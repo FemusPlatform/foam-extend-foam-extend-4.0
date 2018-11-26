@@ -35,7 +35,7 @@
 export WM_PROJECT=foam
 export WM_FORK=extend
 export WM_PROJECT_VERSION=4.0
-
+export MainDir=$MYHOME
 # helps to easily write #ifdefs to detect a dev-version
 export FOAM_DEV=1
 
@@ -47,7 +47,7 @@ export FOAM_DEV=1
 #
 # Location of FOAM installation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-foamInstall=$HOME/$WM_PROJECT
+foamInstall=$MainDir$WM_PROJECT
 # foamInstall=~$WM_PROJECT
 # foamInstall=/usr/local/$WM_PROJECT
 # foamInstall=/opt/$WM_PROJECT
@@ -63,7 +63,7 @@ then
 fi
 
 # note the location for later use (eg, in job scripts)
-: ${FOAM_INST_DIR:=$foamInstall}; export FOAM_INST_DIR
+export FOAM_INST_DIR=$MainDir$WM_PROJECT
 
 # The old dirs to be cleaned from the various environment variables
 # - remove anything under top-level directory.
