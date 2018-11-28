@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -95,10 +95,10 @@ public:
             const dictionary& dict
         );
 
+    // Destructor
 
-    //- Destructor
-    virtual ~BlockCoeffComponentNorm()
-    {}
+        virtual ~BlockCoeffComponentNorm()
+        {}
 
 
     // Member functions
@@ -109,10 +109,10 @@ public:
             const BlockCoeff<Type>& a
         );
 
-        virtual void normalize
+        virtual void coeffMag
         (
-            Field<scalar>& b,
-            const CoeffField<Type>& a
+            const CoeffField<Type>& a,
+            Field<scalar>& b
         );
 };
 

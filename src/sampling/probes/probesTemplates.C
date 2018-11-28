@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,9 +25,7 @@ License
 
 #include "probes.H"
 #include "volFields.H"
-#include "surfaceFields.H"
 #include "IOmanip.H"
-#include "interpolation.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -65,55 +63,63 @@ public:
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
 template<class Type>
+Foam::label Foam::probes::countFields
+(
+    fieldGroup<Type>& fieldList,
+    const wordList& fieldTypes
+) const
+{
+    fieldList.setSize(fieldNames_.size());
+    label nFields = 0;
+
+    forAll(fieldNames_, fieldI)
+    {
+        if
+        (
+            fieldTypes[fieldI]
+         == GeometricField<Type, fvPatchField, volMesh>::typeName
+        )
+        {
+            fieldList[nFields] = fieldNames_[fieldI];
+            nFields++;
+        }
+    }
+
+    fieldList.setSize(nFields);
+
+    return nFields;
+}
+
+
+template<class Type>
 void Foam::probes::sampleAndWrite
 (
     const GeometricField<Type, fvPatchField, volMesh>& vField
 )
 {
-    Field<Type> values(sample(vField));
+    Field<Type> values = sample(vField);
 
     if (Pstream::master())
     {
         unsigned int w = IOstream::defaultPrecision() + 7;
-        OFstream& os = *probeFilePtrs_[vField.name()];
+        OFstream& probeStream = *probeFilePtrs_[vField.name()];
 
-        os  << setw(w) << vField.time().timeToUserTime(vField.time().value());
+        probeStream << setw(w) << vField.time().value();
 
         forAll(values, probeI)
         {
-            os  << ' ' << setw(w) << values[probeI];
+            probeStream << ' ' << setw(w) << values[probeI];
         }
-        os  << endl;
+        probeStream << endl;
     }
 }
 
 
-template<class Type>
+template <class Type>
 void Foam::probes::sampleAndWrite
 (
-    const GeometricField<Type, fvsPatchField, surfaceMesh>& sField
+    const fieldGroup<Type>& fields
 )
-{
-    Field<Type> values(sample(sField));
-
-    if (Pstream::master())
-    {
-        unsigned int w = IOstream::defaultPrecision() + 7;
-        OFstream& os = *probeFilePtrs_[sField.name()];
-
-        os  << setw(w) << sField.time().timeToUserTime(sField.time().value());
-
-        forAll(values, probeI)
-        {
-            os  << ' ' << setw(w) << values[probeI];
-        }
-        os  << endl;
-    }
-}
-
-
-template<class Type>
-void Foam::probes::sampleAndWrite(const fieldGroup<Type>& fields)
 {
     forAll(fields, fieldI)
     {
@@ -126,30 +132,30 @@ void Foam::probes::sampleAndWrite(const fieldGroup<Type>& fields)
                     IOobject
                     (
                         fields[fieldI],
-                        mesh_.time().timeName(),
-                        mesh_,
+                        obr_.time().timeName(),
+                        refCast<const polyMesh>(obr_),
                         IOobject::MUST_READ,
                         IOobject::NO_WRITE,
                         false
                     ),
-                    mesh_
+                    refCast<const fvMesh>(obr_)
                 )
             );
         }
         else
         {
-            objectRegistry::const_iterator iter = mesh_.find(fields[fieldI]);
+            objectRegistry::const_iterator iter = obr_.find(fields[fieldI]);
 
             if
             (
-                iter != objectRegistry::end()
+                iter != obr_.end()
              && iter()->type()
              == GeometricField<Type, fvPatchField, volMesh>::typeName
             )
             {
                 sampleAndWrite
                 (
-                    mesh_.lookupObject
+                    obr_.lookupObject
                     <GeometricField<Type, fvPatchField, volMesh> >
                     (
                         fields[fieldI]
@@ -160,54 +166,6 @@ void Foam::probes::sampleAndWrite(const fieldGroup<Type>& fields)
     }
 }
 
-
-template<class Type>
-void Foam::probes::sampleAndWriteSurfaceFields(const fieldGroup<Type>& fields)
-{
-    forAll(fields, fieldI)
-    {
-        if (loadFromFiles_)
-        {
-            sampleAndWrite
-            (
-                GeometricField<Type, fvsPatchField, surfaceMesh>
-                (
-                    IOobject
-                    (
-                        fields[fieldI],
-                        mesh_.time().timeName(),
-                        mesh_,
-                        IOobject::MUST_READ,
-                        IOobject::NO_WRITE,
-                        false
-                    ),
-                    mesh_
-                )
-            );
-        }
-        else
-        {
-            objectRegistry::const_iterator iter = mesh_.find(fields[fieldI]);
-
-            if
-            (
-                iter != objectRegistry::end()
-             && iter()->type()
-             == GeometricField<Type, fvsPatchField, surfaceMesh>::typeName
-            )
-            {
-                sampleAndWrite
-                (
-                    mesh_.lookupObject
-                    <GeometricField<Type, fvsPatchField, surfaceMesh> >
-                    (
-                        fields[fieldI]
-                    )
-                );
-            }
-        }
-    }
-}
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -222,41 +180,16 @@ Foam::probes::sample
 
     tmp<Field<Type> > tValues
     (
-        new Field<Type>(this->size(), unsetVal)
+        new Field<Type>(probeLocations_.size(), unsetVal)
     );
 
     Field<Type>& values = tValues();
 
-    if (fixedLocations_)
+    forAll(probeLocations_, probeI)
     {
-        autoPtr<interpolation<Type> > interpolator
-        (
-            interpolation<Type>::New(interpolationScheme_, vField)
-        );
-
-        forAll(*this, probeI)
+        if (cellList_[probeI] >= 0)
         {
-            if (elementList_[probeI] >= 0)
-            {
-                const vector& position = operator[](probeI);
-
-                values[probeI] = interpolator().interpolate
-                (
-                    position,
-                    elementList_[probeI],
-                    -1
-                );
-            }
-        }
-    }
-    else
-    {
-        forAll(*this, probeI)
-        {
-            if (elementList_[probeI] >= 0)
-            {
-                values[probeI] = vField[elementList_[probeI]];
-            }
+            values[probeI] = vField[cellList_[probeI]];
         }
     }
 
@@ -273,56 +206,12 @@ Foam::probes::sample(const word& fieldName) const
 {
     return sample
     (
-        mesh_.lookupObject<GeometricField<Type, fvPatchField, volMesh> >
+        obr_.lookupObject<GeometricField<Type, fvPatchField, volMesh> >
         (
             fieldName
         )
     );
 }
 
-
-template<class Type>
-Foam::tmp<Foam::Field<Type> >
-Foam::probes::sample
-(
-    const GeometricField<Type, fvsPatchField, surfaceMesh>& sField
-) const
-{
-    const Type unsetVal(-VGREAT*pTraits<Type>::one);
-
-    tmp<Field<Type> > tValues
-    (
-        new Field<Type>(this->size(), unsetVal)
-    );
-
-    Field<Type>& values = tValues();
-
-    forAll(*this, probeI)
-    {
-        if (faceList_[probeI] >= 0)
-        {
-            values[probeI] = sField[faceList_[probeI]];
-        }
-    }
-
-    Pstream::listCombineGather(values, isNotEqOp<Type>());
-    Pstream::listCombineScatter(values);
-
-    return tValues;
-}
-
-
-template<class Type>
-Foam::tmp<Foam::Field<Type> >
-Foam::probes::sampleSurfaceFields(const word& fieldName) const
-{
-    return sample
-    (
-        mesh_.lookupObject<GeometricField<Type, fvsPatchField, surfaceMesh> >
-        (
-            fieldName
-        )
-    );
-}
 
 // ************************************************************************* //

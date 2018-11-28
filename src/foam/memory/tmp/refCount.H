@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -79,9 +79,9 @@ public:
 
 
         //- Return true if the reference count is zero
-        bool unique() const
+        bool okToDelete() const
         {
-            return count_ == 0;
+            return !count_;
         }
 
 

@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # =========                 |
 # \\      /  F ield         | foam-extend: Open Source CFD
-#  \\    /   O peration     | Version:     4.1
+#  \\    /   O peration     | Version:     4.0
 #   \\  /    A nd           | Web:         http://www.foam-extend.org
 #    \\/     M anipulation  | For copyright notice see file Copyright
 #------------------------------------------------------------------------------
@@ -34,15 +34,8 @@ Script=${0##*/}
 usage() {
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
-
-Usage: $Script [OPTION] [dir]
-       $Script [OPTION] target [dir [MakeDir]]
-
-options:
-  -s | -silent      Run make in 'silent' mode (do not echo commands)
-  -a | -all         Run wmake in all subdirectories
-  -h | -help        Print the usage
-
+usage: $Script [dir]
+       $Script target [dir [MakeDir]]
 
 A general, easy-to-use make system for multi-platform development
 
@@ -61,62 +54,30 @@ USAGE
     exit 1
 }
 
+# provide immediate help, even if none of the environment is set
+if [ "$1" = "-h" -o "$1" = "-help" ]
+then
+    usage
+fi
 
-# Default make is the "make" in the path
-make="make"
 
-
-#------------------------------------------------------------------------------
-# Parse arguments and options
-#------------------------------------------------------------------------------
-
-# Default to compiling the local target only
-all=
-
-while [ "$#" -gt 0 ]
+#
+# check environment variables
+#
+for check in WM_OPTIONS WM_LINK_LANGUAGE WM_DIR
 do
-    case "$1" in
-    -h | -help)
-        usage
-        ;;
-    -s | -silent)
-        make="$make -s"
-        shift
-        ;;
-    -a | -all | all)
-        all="all"
-        shift
-        ;;
-    -*)
-        usage "unknown option: '$*'"
-        ;;
-    *)
-        break
-        ;;
-    esac
-done
-
-
-#------------------------------------------------------------------------------
-# Check environment variables
-#------------------------------------------------------------------------------
-
-for envar in WM_OPTIONS WM_LINK_LANGUAGE WM_DIR
-do
-    eval test "\$$envar" || {
-        echo "$Script error: environment variable \$$envar not set" 1>&2
+    eval test "\$$check" || {
+        echo "$Script error: environment variable \$$check not set" 1>&2
         exit 1
     }
 done
 
-
-# When compiling anything but a standalone exe WM_PROJECT and WM_PROJECT_DIR
-# must be set
+# when compiling anything but a standalone exe:
+# WM_PROJECT and WM_PROJECT_DIR must be set
 [ "$1" = exe -o \( "$WM_PROJECT" -a "$WM_PROJECT_DIR" \) ] || {
     echo "$Script error:" 1>&2
-    echo "    environment variable \$WM_PROJECT or " \
-         "\$WM_PROJECT_DIR not set" 1>&2
-    echo "    while building project library" 1>&2
+    echo "    environment variable \$WM_PROJECT or \$WM_PROJECT_DIR not set" 1>&2
+    echo  "   while building project library" 1>&2
     exit 1
 }
 
@@ -193,7 +154,7 @@ fi
 # Recurse the application directories tree
 #------------------------------------------------------------------------------
 
-if [ "$all" = all ]
+if [ "$makeOption" = all ]
 then
     if [ -e Allwmake ]
     then
@@ -207,6 +168,10 @@ then
         $make -k -f $WM_DIR/MakefileApps FOAM_APPS="$FOAM_APPS"
         exit $?
     fi
+
+    # This is the end of the recursion down the application directories tree
+    # so remove the "all" option so that the call to make builds the application
+    makeOption=
 fi
 
 

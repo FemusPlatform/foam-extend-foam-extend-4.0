@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -27,77 +27,55 @@ License
 #include "fvBoundaryMesh.H"
 
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace Foam
+{
+
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::fvBoundaryMesh::addFvPatches()
+void fvBoundaryMesh::addPatches(const polyBoundaryMesh& basicBdry)
 {
-    const polyBoundaryMesh& bMesh = mesh_.boundaryMesh();
+    setSize(basicBdry.size());
 
-    // Clear existing patches and resize the list
-    clear();
-    setSize(bMesh.size());
-
-    // Set boundary patches, using the patches added to the polyMesh
-    // Bug fix.  HJ, 1/Mar/2018
+    // Set boundary patches
     fvPatchList& Patches = *this;
 
-    forAll (Patches, patchI)
+    forAll(Patches, patchI)
     {
-        Patches.set(patchI, fvPatch::New(bMesh[patchI], *this));
-    }
-}
-
-
-void Foam::fvBoundaryMesh::resetFvPatches(const boolList& resetFvPatchFlag)
-{
-    const polyBoundaryMesh& bMesh = mesh_.boundaryMesh();
-
-    if (resetFvPatchFlag.size() != bMesh.size())
-    {
-        FatalErrorIn("void resetFvPatches(const boolList& resetFvPatchFlag)")
-            << "Incorrect size of reset list.  Boundary size: "
-            << bMesh.size() << " reset size: " << resetFvPatchFlag.size()
-            << abort(FatalError);
-    }
-
-    // Reset list size.  This will delete pointers to patches
-    // if the list is truncated
-    setSize(bMesh.size());
-
-    // Set boundary patches, using the patches added to the polyMesh
-    // Bug fix.  HJ, 1/Mar/2018
-    fvPatchList& Patches = *this;
-
-    // In order to preserve patch links on resize of boundary,
-    // only reset the empty slots
-    forAll (Patches, patchI)
-    {
-        if (resetFvPatchFlag[patchI])
-        {
-            // Set new patch.  This also deletes old pointer
-            Patches.set(patchI, fvPatch::New(bMesh[patchI], *this));
-        }
+        Patches.set(patchI, fvPatch::New(basicBdry[patchI], *this));
     }
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::fvBoundaryMesh::fvBoundaryMesh
+fvBoundaryMesh::fvBoundaryMesh
 (
     const fvMesh& m
 )
 :
-    fvPatchList(m.boundaryMesh().size()),
+    fvPatchList(0),
+    mesh_(m)
+{}
+
+
+fvBoundaryMesh::fvBoundaryMesh
+(
+    const fvMesh& m,
+    const polyBoundaryMesh& basicBdry
+)
+:
+    fvPatchList(basicBdry.size()),
     mesh_(m)
 {
-    addFvPatches();
+    addPatches(basicBdry);
 }
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::fvBoundaryMesh::movePoints()
+void fvBoundaryMesh::movePoints()
 {
     forAll(*this, patchi)
     {
@@ -111,7 +89,7 @@ void Foam::fvBoundaryMesh::movePoints()
 }
 
 
-Foam::lduInterfacePtrsList Foam::fvBoundaryMesh::interfaces() const
+lduInterfacePtrsList fvBoundaryMesh::interfaces() const
 {
     lduInterfacePtrsList interfaces(size());
 
@@ -131,11 +109,15 @@ Foam::lduInterfacePtrsList Foam::fvBoundaryMesh::interfaces() const
 }
 
 
-void Foam::fvBoundaryMesh::readUpdate()
+void fvBoundaryMesh::readUpdate(const polyBoundaryMesh& basicBdry)
 {
     clear();
-    addFvPatches();
+    addPatches(basicBdry);
 }
 
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
 
 // ************************************************************************* //

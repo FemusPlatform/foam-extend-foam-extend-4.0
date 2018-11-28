@@ -1,9 +1,11 @@
 {
+    // Solid side
+    simpleControl simpleSolid(solidMesh);
+
     while (simpleSolid.correctNonOrthogonal())
     {
         coupledFvScalarMatrix TEqns(2);
 
-        // Fluid side
         fvScalarMatrix* TFluidEqn = new fvScalarMatrix
         (
             rho*Cp*
@@ -20,7 +22,6 @@
 
         TFluidEqn->relax();
 
-        // Solid side
         fvScalarMatrix* TSolidEqn = new fvScalarMatrix
         (
           - fvm::laplacian(kSolidf, Tsolid, "laplacian(k,T)")

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -97,8 +97,10 @@ Foam::ThermoLookupTableInjection<CloudType>::ThermoLookupTableInjection
 {
     // Set/cache the injector cells
     injectorCells_.setSize(injectors_.size());
-
-    updateMesh();
+    forAll(injectors_, i)
+    {
+        this->findCellAtPosition(injectorCells_[injectorI], injectors_[i].x());
+    }
 
     // Determine volume of particles to inject
     this->volumeTotal_ = 0.0;
@@ -123,17 +125,6 @@ template<class CloudType>
 bool Foam::ThermoLookupTableInjection<CloudType>::active() const
 {
     return true;
-}
-
-
-template<class CloudType>
-void Foam::ThermoLookupTableInjection<CloudType>::updateMesh()
-{
-    // Set/cache the injector cells
-    forAll(injectors_, i)
-    {
-        this->findCellAtPosition(injectorCells_[injectorI], injectors_[i].x());
-    }
 }
 
 

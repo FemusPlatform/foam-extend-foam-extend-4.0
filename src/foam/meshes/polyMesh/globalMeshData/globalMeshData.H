@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -241,8 +241,12 @@ public:
         globalMeshData(const IOobject& io, const polyMesh& mesh);
 
 
-    //- Destructor
-    ~globalMeshData();
+    // Destructor
+
+        ~globalMeshData();
+
+        //- Remove all demand driven data
+        void clearOut();
 
 
     // Member Functions
@@ -356,6 +360,7 @@ public:
             pointField geometricSharedPoints() const;
 
 
+
         // Globally shared edge addressing
 
             //- Return number of globally shared edges. Demand-driven
@@ -387,9 +392,6 @@ public:
             //  full parallel analysis to determine shared points and
             //  boundaries.
             void updateMesh();
-
-        //- Remove all demand driven data
-        void clearOut();
 
 
         // Write

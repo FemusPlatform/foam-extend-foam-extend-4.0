@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -65,8 +65,50 @@ int main(int argc, char *argv[])
 
         // Pressure-velocity SIMPLE corrector
         {
-#           include "UEqn.H"
-#           include "pEqn.H"
+            // Momentum predictor
+            tmp<fvVectorMatrix> UrelEqn
+            (
+                fvm::div(phi, Urel)
+              + turbulence->divDevReff()
+              + SRF->Su()
+            );
+
+            UrelEqn().relax();
+
+            solve(UrelEqn() == -fvc::grad(p));
+
+            p.boundaryField().updateCoeffs();
+            volScalarField AUrel = UrelEqn().A();
+            Urel = UrelEqn().H()/AUrel;
+            UrelEqn.clear();
+            phi = fvc::interpolate(Urel) & mesh.Sf();
+            adjustPhi(phi, Urel, p);
+
+            // Non-orthogonal pressure corrector loop
+            while (simple.correctNonOrthogonal())
+            {
+                fvScalarMatrix pEqn
+                (
+                    fvm::laplacian(1.0/AUrel, p) == fvc::div(phi)
+                );
+
+                pEqn.setReference(pRefCell, pRefValue);
+                pEqn.solve();
+
+                if (simple.finalNonOrthogonalIter())
+                {
+                    phi -= pEqn.flux();
+                }
+            }
+
+#           include "continuityErrs.H"
+
+            // Explicitly relax pressure for momentum corrector
+            p.relax();
+
+            // Momentum corrector
+            Urel -= fvc::grad(p)/AUrel;
+            Urel.correctBoundaryConditions();
         }
 
         turbulence->correct();

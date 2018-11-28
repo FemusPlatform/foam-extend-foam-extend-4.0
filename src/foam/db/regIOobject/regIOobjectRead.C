@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -51,40 +51,14 @@ Foam::Istream& Foam::regIOobject::readStream()
     // Construct object stream and read header if not already constructed
     if (!isPtr_)
     {
-
-        fileName objPath;
-        if (watchIndex_ != -1)
-        {
-            // File is being watched. Read exact file that is being watched.
-            objPath = time().getFile(watchIndex_);
-        }
-        else
-        {
-            // Search intelligently for file
-            objPath = filePath();
-
-            if (!objPath.size())
-            {
-                FatalIOError
-                (
-                    "regIOobject::readStream()",
-                    __FILE__,
-                    __LINE__,
-                    objectPath(),
-                    0
-                )   << "cannot find file"
-                    << exit(FatalIOError);
-            }
-        }
-
-        if (!(isPtr_ = objectStream(objPath)))
+        if (!(isPtr_ = objectStream()))
         {
             FatalIOError
             (
                 "regIOobject::readStream()",
                 __FILE__,
                 __LINE__,
-                objPath,
+                objectPath(),
                 0
             )   << "cannot open file"
                 << exit(FatalIOError);
@@ -97,10 +71,9 @@ Foam::Istream& Foam::regIOobject::readStream()
         }
     }
 
-    // Mark as uptodate if read successfully
-    if (watchIndex_ != -1)
+    if (!lastModified_)
     {
-        time().setUnmodified(watchIndex_);
+        lastModified_ = lastModified(filePath());
     }
 
     return *isPtr_;
@@ -129,8 +102,7 @@ Foam::Istream& Foam::regIOobject::readStream(const word& expectName)
         (
             expectName.size()
          && headerClassName() != expectName
-         && headerClassName() != dictionary::typeName
-         && headerClassName() != IOdictionary::typeName
+         && headerClassName() != "dictionary"
         )
         {
             FatalIOErrorIn("regIOobject::readStream(const word&)", *isPtr_)
@@ -170,127 +142,57 @@ bool Foam::regIOobject::readData(Istream&)
 
 bool Foam::regIOobject::read()
 {
-    // Note: cannot do anything in readStream itself since this is used by
-    // e.g. GeometricField.
-
-    bool masterOnly =
-        regIOobject::fileModificationChecking == timeStampMaster
-     || regIOobject::fileModificationChecking == inotifyMaster;
-
-    bool ok = true;
-    if (Pstream::master() || !masterOnly)
-    {
-        if (IFstream::debug)
-        {
-            Pout<< "regIOobject::read() : "
-                << "reading object " << name()
-                << " from file " << endl;
-        }
-
-        // Set flag for e.g. codeStream
-        bool oldFlag = regIOobject::masterOnlyReading;
-        regIOobject::masterOnlyReading = masterOnly;
-
-        // Read file
-        ok = readData(readStream(type()));
-        close();
-
-        regIOobject::masterOnlyReading = oldFlag;
-    }
-
-    if (masterOnly && Pstream::parRun())
-    {
-        // Scatter master data using communication scheme
-
-        const List<Pstream::commsStruct>& comms =
-        (
-            (Pstream::nProcs() < Pstream::nProcsSimpleSum)
-          ? Pstream::linearCommunication()
-          : Pstream::treeCommunication()
-        );
-
-        // Master reads headerclassname from file. Make sure this gets
-        // transfered as well as contents.
-        Pstream::scatter
-        (
-            comms,
-            const_cast<word&>(headerClassName()),
-            Pstream::msgType(),
-            Pstream::worldComm
-        );
-        Pstream::scatter(comms, note(), Pstream::msgType(), Pstream::worldComm);
-
-
-        // Get my communication order
-        const Pstream::commsStruct& myComm = comms[Pstream::myProcNo()];
-
-        // Reveive from up
-        if (myComm.above() != -1)
-        {
-            if (IFstream::debug)
-            {
-                Pout<< "regIOobject::read() : "
-                    << "reading object " << name()
-                    << " from processor " << myComm.above()
-                    << endl;
-            }
-
-            // Note: use ASCII for now - binary IO of dictionaries is
-            // not currently supported
-            IPstream fromAbove
-            (
-                Pstream::scheduled,
-                myComm.above(),
-                0,
-                Pstream::msgType(),
-                Pstream::worldComm,
-                IOstream::ASCII
-            );
-            ok = readData(fromAbove);
-        }
-
-        // Send to my downstairs neighbours
-        forAll(myComm.below(), belowI)
-        {
-            OPstream toBelow
-            (
-                Pstream::scheduled,
-                myComm.below()[belowI],
-                0,
-                Pstream::msgType(),
-                Pstream::worldComm,
-                IOstream::ASCII
-            );
-            writeData(toBelow);
-        }
-    }
+    bool ok = readData(readStream(type()));
+    close();
     return ok;
 }
 
 
 bool Foam::regIOobject::modified() const
 {
-    if (watchIndex_ != -1)
-    {
-        return time().getState(watchIndex_) != fileMonitor::UNMODIFIED;
-    }
-    else
-    {
-        return false;
-    }
+    return
+    (
+        lastModified_
+     && lastModified(filePath()) > (lastModified_ + fileModificationSkew())
+    );
 }
 
 
 bool Foam::regIOobject::readIfModified()
 {
-    if (watchIndex_ != -1)
+    if (lastModified_)
     {
-        if (modified())
+        time_t newTimeStamp = lastModified(filePath());
+
+        bool readFile = false;
+
+        if (newTimeStamp > (lastModified_ + fileModificationSkew()))
         {
-            const fileName& fName = time().getFile(watchIndex_);
+            readFile = true;
+        }
+
+        if (Pstream::parRun())
+        {
+            bool readFileOnThisProc = readFile;
+            reduce(readFile, andOp<bool>());
+
+            if (readFileOnThisProc && !readFile)
+            {
+                WarningIn("regIOobject::readIfModified()")
+                    << "Delaying reading " << name()
+                    << " of class " << headerClassName()
+                    << " due to inconsistent "
+                       "file time-stamps between processors"
+                    << endl;
+            }
+        }
+
+        if (readFile)
+        {
+            lastModified_ = newTimeStamp;
             Info<< "regIOobject::readIfModified() : " << nl
-                << "    Re-reading object " << name()
-                << " from file " << fName << endl;
+                << "    Reading object " << name()
+                << " from file " << filePath() << endl;
             return read();
         }
         else

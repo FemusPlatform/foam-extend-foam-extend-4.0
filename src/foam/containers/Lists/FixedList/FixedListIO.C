@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ Foam::Istream& Foam::operator>>(Foam::Istream& is, FixedList<T, Size>& L)
         {
             L = dynamicCast<token::Compound<List<T> > >
             (
-                firstToken.transferCompoundToken(is)
+                firstToken.transferCompoundToken()
             );
         }
         else if (firstToken.isLabel())
@@ -68,7 +68,7 @@ Foam::Istream& Foam::operator>>(Foam::Istream& is, FixedList<T, Size>& L)
         }
         else if (!firstToken.isPunctuation())
         {
-            FatalIOErrorInFunction(is)
+            FatalIOErrorIn("operator>>(Istream&, FixedList<T, Size>&)", is)
                 << "incorrect first token, expected <label> "
                    "or '(' or '{', found "
                 << firstToken.info()

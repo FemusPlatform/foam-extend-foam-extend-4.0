@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,43 +24,24 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "lduInterface.H"
-#include "crMatrix.H"
-#include "autoPtr.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineTypeNameAndDebug(lduInterface, 0);
 
-} // End namespace Foam
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
+defineTypeNameAndDebug(lduInterface, 0);
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::lduInterface::~lduInterface()
+lduInterface::~lduInterface()
 {}
 
-// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::autoPtr<Foam::crMatrix> Foam::lduInterface::prolongationTransfer
-(
-    const Pstream::commsTypes commsType,
-    const crMatrix& P
-) const
-{
-    notImplemented
-    (
-        "autoPtr<crMatrix> lduInterface::prolongationTransfer\n"
-        "(\n"
-        "    const Pstream::commsTypes commsType\n"
-        ") const for type " +
-        this->type()
-    );
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    // Dummy return to make the compiler happy
-    return autoPtr<crMatrix>(new crMatrix(1, 1, labelList(1, 0)));
-}
-
+} // End namespace Foam
 
 // ************************************************************************* //

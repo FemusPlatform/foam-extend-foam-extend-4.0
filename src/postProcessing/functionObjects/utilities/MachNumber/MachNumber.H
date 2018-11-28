@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -102,18 +102,10 @@ public:
         virtual bool start();
 
         //- execute is called at each ++ or += of the time-loop
-        virtual bool execute(const bool forceWrite);
+        virtual bool execute();
 
         //- Read and set the function object if its data has changed
         virtual bool read(const dictionary& dict);
-
-    //- Update for changes of mesh
-        virtual void updateMesh(const mapPolyMesh&)
-        {}
-
-        //- Update for mesh point-motion
-        virtual void movePoints(const pointField&)
-        {}
 };
 
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -258,12 +258,6 @@ public:
 
         //- Flag to indicate whether model activates injection model
         virtual bool active() const = 0;
-
-
-        // Mapping
-
-            //- Update mesh
-            virtual void updateMesh();
 
 
         // Global information

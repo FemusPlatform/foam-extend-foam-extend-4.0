@@ -33,7 +33,6 @@ wallFunctions=derivedFvPatchFields/wallFunctions
 
 derivedFvPatchFields/decayingTurbulence/decayingVorton.C
 derivedFvPatchFields/decayingTurbulence/decayingTurbulenceFvPatchVectorField.C
-derivedFvPatchFields/fixedHeatFluxTemperature/fixedHeatFluxTemperatureFvPatchScalarField.C
 
 nuSgsWallFunctions=$(wallFunctions)/nuSgsWallFunctions
 $(nuSgsWallFunctions)/nuSgsWallFunction/nuSgsWallFunctionFvPatchScalarField.C

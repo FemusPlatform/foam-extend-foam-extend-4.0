@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,10 +24,34 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "PackedList.H"
-#include "IOstreams.H"
+
+// * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
+
+template<unsigned nBits>
+Foam::PackedList<nBits>::PackedList(const label size, const unsigned int val)
+:
+    StorageList(packedLength(size), 0u),
+    size_(size)
+{
+    operator=(val);
+}
+
+
+template<unsigned nBits>
+Foam::PackedList<nBits>::PackedList(const UList<label>& lst)
+:
+    StorageList(packedLength(lst.size()), 0u),
+    size_(lst.size())
+{
+    forAll(lst, i)
+    {
+        set(i, lst[i]);
+    }
+}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
 
 #if (UINT_MAX == 0xFFFFFFFF)
 // 32-bit counting, Hamming weight method
@@ -54,14 +78,29 @@ License
 template<unsigned nBits>
 unsigned int Foam::PackedList<nBits>::count() const
 {
-    unsigned int c = 0;
+    register unsigned int c = 0;
 
     if (size_)
     {
-        const label packLen = packedLength();
-        for (label i = 0; i < packLen; ++i)
+        // mask value for complete segments
+        unsigned int mask = maskLower(packing());
+
+        const unsigned int endSeg = size_ / packing();
+        const unsigned int endOff = size_ % packing();
+
+        // count bits in complete segments
+        for (unsigned i = 0; i < endSeg; ++i)
         {
-            unsigned int bits = StorageList::operator[](i);
+            register unsigned int bits = StorageList::operator[](i) & mask;
+            COUNT_PACKEDBITS(c, bits);
+        }
+
+        // count bits in partial segment
+        if (endOff)
+        {
+            mask = maskLower(endOff);
+
+            register unsigned int bits = StorageList::operator[](endSeg) & mask;
             COUNT_PACKEDBITS(c, bits);
         }
     }
@@ -78,60 +117,64 @@ bool Foam::PackedList<nBits>::trim()
         return false;
     }
 
-    const label oldSize = size_;
-    for (label storeI = packedLength()-1; storeI >= 0; --storeI)
-    {
-        size_ = storeI * packing();
-        unsigned int bits = StorageList::operator[](storeI);
+    // mask value for complete segments
+    unsigned int mask = maskLower(packing());
 
-        // found some bits
-        if (bits)
-        {
-            while (bits)
-            {
-                bits >>= nBits;
-                ++size_;
-            }
-            break;
-        }
+    label currElem = packedLength(size_) - 1;
+    unsigned int endOff = size_ % packing();
+
+    // clear trailing bits on final segment
+    if (endOff)
+    {
+        StorageList::operator[](currElem) &= maskLower(endOff);
     }
 
-    return (size_ != oldSize);
+    // test entire segment
+    while (currElem > 0 && !(StorageList::operator[](currElem) &= mask))
+    {
+        currElem--;
+    }
+
+    // test segment
+    label newsize = (currElem + 1) * packing();
+
+    // mask for the final segment
+    mask = max_value() << (nBits * (packing() - 1));
+
+    for (endOff = packing(); endOff >= 1; --endOff, --newsize)
+    {
+        if (StorageList::operator[](currElem) & mask)
+        {
+            break;
+        }
+
+        mask >>= nBits;
+    }
+
+    if (size_ == newsize)
+    {
+        return false;
+    }
+
+    size_ = newsize;
+    return false;
 }
 
 
 template<unsigned nBits>
 void Foam::PackedList<nBits>::flip()
 {
-    if (!size_)
+    label packLen = packedLength(size_);
+
+    for (label i=0; i < packLen; i++)
     {
-        return;
-    }
-
-    // mask value for complete segments
-    const unsigned int mask = maskLower(packing());
-
-    const label packLen = packedLength();
-    for (label i=0; i < packLen; ++i)
-    {
-        StorageList::operator[](i) = mask & ~StorageList::operator[](i);
-    }
-
-    // mask off the final partial segment
-    {
-        const unsigned int off = size_ % packing();
-        if (off)
-        {
-            const unsigned int seg = size_ / packing();
-
-            StorageList::operator[](seg) &= maskLower(off);
-        }
+        StorageList::operator[](i) = ~StorageList::operator[](i);
     }
 }
 
 
 template<unsigned nBits>
-Foam::Xfer<Foam::labelList> Foam::PackedList<nBits>::values() const
+Foam::labelList Foam::PackedList<nBits>::values() const
 {
     labelList elems(size_);
 
@@ -139,16 +182,12 @@ Foam::Xfer<Foam::labelList> Foam::PackedList<nBits>::values() const
     {
         elems[i] = get(i);
     }
-
-    return elems.xfer();
+    return elems;
 }
 
 
 template<unsigned nBits>
-Foam::Ostream& Foam::PackedList<nBits>::iteratorBase::printInfo
-(
-    Ostream& os
-) const
+Foam::Ostream& Foam::PackedList<nBits>::iteratorBase::print(Ostream& os) const
 {
     os  << "iterator<"  << label(nBits) << "> ["
         << this->index_ << "]"
@@ -162,381 +201,78 @@ Foam::Ostream& Foam::PackedList<nBits>::iteratorBase::printInfo
 
 
 template<unsigned nBits>
-Foam::Ostream& Foam::PackedList<nBits>::printBits
-(
-    Ostream& os,
-    const bool fullOutput
-) const
+Foam::Ostream& Foam::PackedList<nBits>::print(Ostream& os) const
 {
-    const label packLen = packedLength();
+    const label packLen = packedLength(size_);
 
-    // mask value for complete segments
-    unsigned int mask = maskLower(packing());
-    const label outputLen = fullOutput ? StorageList::size() : packLen;
-
-    os  << "(\n";
-    for (label i=0; i < outputLen; ++i)
-    {
-        const StorageType& rawBits = StorageList::operator[](i);
-
-        // the final segment may not be full, modify mask accordingly
-        if (i == packLen-1)
-        {
-            const unsigned int off = size_ % packing();
-
-            if (off)
-            {
-                mask = maskLower(off);
-            }
-        }
-        else if (i == packLen)
-        {
-            // no mask for unaddressed bit
-            mask = 0u;
-        }
-
-
-        for (unsigned int testBit = (1u << max_bits()); testBit; testBit >>= 1)
-        {
-            if (mask & testBit)
-            {
-                // addressable region
-                if (rawBits & testBit)
-                {
-                    os  << '1';
-                }
-                else
-                {
-                    os  << '-';
-                }
-            }
-            else
-            {
-                if (rawBits & testBit)
-                {
-                    os  << '!';
-                }
-                else
-                {
-                    os  << '.';
-                }
-            }
-        }
-        os  << '\n';
-    }
-    os  << ")\n";
-
-    return os;
-}
-
-
-template<unsigned nBits>
-Foam::Ostream& Foam::PackedList<nBits>::printInfo
-(
-    Ostream& os,
-    const bool fullOutput
-) const
-{
     os  << "PackedList<" << nBits << ">"
         << " max_value:" << max_value()
         << " packing:"   << packing() << nl
         << " count: "     << count() << nl
         << " size/capacity: " << size_ << "/" << capacity() << nl
-        << " storage/capacity: "
-        << packedLength() << "/" << StorageList::size()
-        << "\n";
+        << " storage/capacity: " << packLen << "/" << StorageList::size()
+        << "\n(\n";
 
-    return printBits(os, fullOutput);
-}
+    // mask value for complete segments
+    unsigned int mask = maskLower(packing());
 
-
-template<unsigned nBits>
-Foam::Istream& Foam::PackedList<nBits>::read(Istream& is)
-{
-    PackedList<nBits>& lst = *this;
-
-    lst.clear();
-    is.fatalCheck("PackedList<nBits>::read(Istream&)");
-
-    token firstTok(is);
-    is.fatalCheck
-    (
-        "PackedList<nBits>::read(Istream&) : "
-        "reading first token"
-    );
-
-    if (firstTok.isLabel())
+    for (label i=0; i < packLen; i++)
     {
-        const label sz = firstTok.labelToken();
+        const StorageType& rawBits = StorageList::operator[](i);
 
-        // Set list length to that read
-        lst.resize(sz);
-
-        // Read list contents depending on data format
-        if (is.format() == IOstream::ASCII)
+        // the final segment may not be full, modify mask accordingly
+        if (i+1 == packLen)
         {
-            // Read beginning of contents
-            const char delimiter = is.readBeginList("PackedList<nBits>");
+            unsigned int endOff = size_ % packing();
 
-            if (sz)
+            if (endOff)
             {
-                if (delimiter == token::BEGIN_LIST)
-                {
-                    for (label i=0; i<sz; ++i)
-                    {
-                        lst[i] = lst.readValue(is);
+                mask = maskLower(endOff);
+            }
+            else
+            {
+                continue;
+            }
+        }
 
-                        is.fatalCheck
-                        (
-                            "PackedList<nBits>::read(Istream&) : "
-                            "reading entry"
-                        );
-                    }
-                }
-                else if (delimiter == token::BEGIN_BLOCK)
+        for (unsigned int testBit = (1u << max_bits()); testBit; testBit >>= 1)
+        {
+            if (mask & testBit)
+            {
+                if (rawBits & testBit)
                 {
-                    // assign for all entries
-                    lst = lst.readValue(is);
-
-                    is.fatalCheck
-                    (
-                        "PackedList<nBits>::read(Istream&) : "
-                        "reading the single entry"
-                    );
+                    os << '1';
                 }
                 else
                 {
-                    FatalIOErrorIn
-                    (
-                        "PackedList<nBits>::read(Istream&)",
-                        is
-                    )
-                        << "incorrect list token, expected '(' or '{', found "
-                        << firstTok.info()
-                        << exit(FatalIOError);
+                    os << '-';
                 }
             }
-
-            // Read end of contents
-            is.readEndList("PackedList<nBits>");
-        }
-        else
-        {
-            if (sz)
+            else
             {
-                is.read
-                (
-                    reinterpret_cast<char*>(lst.storage().data()),
-                    lst.byteSize()
-                );
-
-                is.fatalCheck
-                (
-                    "PackedList<nBits>::read(Istream&) : "
-                    "reading the binary block"
-                );
+                os << 'x';
             }
         }
+        os << '\n';
     }
-    else if (firstTok.isPunctuation())
-    {
-        if (firstTok.pToken() == token::BEGIN_LIST)
-        {
-            token nextTok(is);
-            is.fatalCheck("PackedList<nBits>::read(Istream&)");
-
-            while
-            (
-                !(   nextTok.isPunctuation()
-                  && nextTok.pToken() == token::END_LIST
-                 )
-            )
-            {
-                is.putBack(nextTok);
-                lst.append(lst.readValue(is));
-
-                is  >> nextTok;
-                is.fatalCheck("PackedList<nBits>::read(Istream&)");
-            }
-        }
-        else if (firstTok.pToken() == token::BEGIN_BLOCK)
-        {
-            token nextTok(is);
-            is.fatalCheck("PackedList<nBits>::read(Istream&)");
-
-            while
-            (
-                !(   nextTok.isPunctuation()
-                  && nextTok.pToken() == token::END_BLOCK
-                 )
-            )
-            {
-                is.putBack(nextTok);
-                lst.setPair(is);
-
-                is  >> nextTok;
-                is.fatalCheck("PackedList<nBits>::read(Istream&)");
-            }
-        }
-        else
-        {
-            FatalIOErrorIn
-            (
-                "PackedList<nBits>::read(Istream&)",
-                is
-            )
-                << "incorrect first token, expected '(', found "
-                << firstTok.info()
-                << exit(FatalIOError);
-        }
-    }
-    else
-    {
-        FatalIOErrorIn
-        (
-            "PackedList<nBits>::read(Istream&)",
-            is
-        )
-            << "incorrect first token, expected <int>, '(' or '{', found "
-            << firstTok.info()
-            << exit(FatalIOError);
-    }
-
-    return is;
-}
-
-
-template<unsigned nBits>
-Foam::Ostream& Foam::PackedList<nBits>::write
-(
-    Ostream& os,
-    const bool indexedOutput
-) const
-{
-    const PackedList<nBits>& lst = *this;
-    const label sz = lst.size();
-
-    // Write list contents depending on data format
-    if (os.format() == IOstream::ASCII)
-    {
-        bool uniform = false;
-
-        if (sz > 1 && !indexedOutput)
-        {
-            uniform = true;
-
-            forAll(lst, i)
-            {
-                if (lst[i] != lst[0])
-                {
-                    uniform = false;
-                    break;
-                }
-            }
-        }
-
-        if (uniform)
-        {
-            // uniform values:
-            os  << sz << token::BEGIN_BLOCK << lst[0] << token::END_BLOCK;
-        }
-        else if (indexedOutput)
-        {
-            // indexed output
-            os  << nl << token::BEGIN_BLOCK << nl;
-
-            for
-            (
-                typename PackedList<nBits>::const_iterator iter = lst.cbegin();
-                iter != lst.cend();
-                ++iter
-            )
-            {
-                if (iter.writeIfSet(os))
-                {
-                    os  << nl;
-                }
-            }
-
-            os  << token::END_BLOCK << nl;
-        }
-        else if (sz < 11)
-        {
-            // short list:
-            os  << sz << token::BEGIN_LIST;
-            forAll(lst, i)
-            {
-                if (i)
-                {
-                    os  << token::SPACE;
-                }
-                os  << lst[i];
-            }
-            os  << token::END_LIST;
-        }
-        else
-        {
-            // longer list:
-            os  << nl << sz << nl << token::BEGIN_LIST;
-            forAll(lst, i)
-            {
-                os  << nl << lst[i];
-            }
-            os  << nl << token::END_LIST << nl;
-        }
-    }
-    else
-    {
-        os  << nl << sz << nl;
-        if (sz)
-        {
-            os.write
-            (
-                reinterpret_cast<const char*>(lst.storage().cdata()),
-                lst.byteSize()
-            );
-        }
-    }
+    os << ")\n";
 
     return os;
-}
-
-
-template<unsigned nBits>
-void Foam::PackedList<nBits>::writeEntry(Ostream& os) const
-{
-    os  << *this;
-}
-
-
-template<unsigned nBits>
-void Foam::PackedList<nBits>::writeEntry
-(
-    const word& keyword,
-    Ostream& os
-) const
-{
-    os.writeKeyword(keyword);
-    writeEntry(os);
-    os  << token::END_STATEMENT << endl;
 }
 
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
 template<unsigned nBits>
-Foam::PackedList<nBits>&
-Foam::PackedList<nBits>::operator=(const PackedList<nBits>& lst)
+void Foam::PackedList<nBits>::operator=(const PackedList<nBits>& lst)
 {
     StorageList::operator=(lst);
     size_ = lst.size();
-    return *this;
 }
 
 
 template<unsigned nBits>
-Foam::PackedList<nBits>&
-Foam::PackedList<nBits>::operator=(const UList<label>& lst)
+void Foam::PackedList<nBits>::operator=(const UList<label>& lst)
 {
     setCapacity(lst.size());
     size_ = lst.size();
@@ -545,39 +281,19 @@ Foam::PackedList<nBits>::operator=(const UList<label>& lst)
     {
         set(i, lst[i]);
     }
-    return *this;
 }
 
 
-template<unsigned nBits>
-Foam::PackedList<nBits>&
-Foam::PackedList<nBits>::operator=(const UIndirectList<label>& lst)
-{
-    setCapacity(lst.size());
-    size_ = lst.size();
+// * * * * * * * * * * * * * * * Ostream Operator *  * * * * * * * * * * * * //
 
-    forAll(lst, i)
-    {
-        set(i, lst[i]);
-    }
-    return *this;
-}
+//template<unsigned nBits>
+//Foam::Ostream& ::Foam::operator<<(Ostream& os, const PackedList<nBits>& lst)
+//{
+//    os << lst();
+//    return os;
+//}
 
 
-// * * * * * * * * * * * * * *  Friend Operators * * * * * * * * * * * * * * //
-
-template<unsigned nBits>
-Foam::Istream& Foam::operator>>(Istream& is, PackedList<nBits>& lst)
-{
-    return lst.read(is);
-}
-
-
-template<unsigned nBits>
-Foam::Ostream& Foam::operator<<(Ostream& os, const PackedList<nBits>& lst)
-{
-    return lst.write(os, false);
-}
-
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 // ************************************************************************* //

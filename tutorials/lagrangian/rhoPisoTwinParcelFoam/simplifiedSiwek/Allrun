@@ -6,7 +6,7 @@
 application=`getApplication`
 
 # make sure the application is compiled
-compileApplication ../$application
+wmake ../$application
 
 runApplication blockMesh
 runApplication $application

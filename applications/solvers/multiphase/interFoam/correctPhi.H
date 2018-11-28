@@ -7,7 +7,7 @@
         zeroGradientFvPatchScalarField::typeName
     );
 
-    forAll (pd.boundaryField(), i)
+    for (label i=0; i<pd.boundaryField().size(); i++)
     {
         if (pd.boundaryField()[i].fixesValue())
         {
@@ -26,7 +26,7 @@
             IOobject::NO_WRITE
         ),
         mesh,
-        dimensionedScalar("pcorr", pd.dimensions(), 0),
+        dimensionedScalar("pcorr", pd.dimensions(), 0.0),
         pcorrTypes
     );
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -51,9 +51,6 @@ class isentropicTotalPressureFvPatchScalarField
     public fixedValueFvPatchScalarField
 {
     // Private data
-
-        //- Name of the flux field
-        word phiName_;
 
         //- Name of the velocity field
         word UName_;

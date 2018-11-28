@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -217,6 +217,13 @@ public:
             const polyBoundaryMesh&
         );
 
+        //- Construct as copy, resetting the boundary mesh
+        overlapGgiPolyPatch
+        (
+            const overlapGgiPolyPatch&,
+            const polyBoundaryMesh&
+        );
+
         //- Construct as given the original patch and resetting the
         //  face list and boundary mesh information
         overlapGgiPolyPatch
@@ -226,16 +233,6 @@ public:
             const label index,
             const label newSize,
             const label newStart
-        );
-
-        //- Construct as copy
-        overlapGgiPolyPatch(const overlapGgiPolyPatch&);
-
-        //- Construct as copy, resetting the boundary mesh
-        overlapGgiPolyPatch
-        (
-            const overlapGgiPolyPatch&,
-            const polyBoundaryMesh&
         );
 
         //- Construct and return a clone, resetting the boundary mesh
@@ -268,113 +265,103 @@ public:
         }
 
 
-    //- Destructor
-     virtual ~overlapGgiPolyPatch();
+    // Destructor
+
+        virtual ~overlapGgiPolyPatch();
 
 
     // Member functions
 
-        // Basic info
+        //- Return shadow patch name
+        const word& shadowName() const
+        {
+            return shadowName_;
+        }
 
-            //- Return shadow patch name
-            const word& shadowName() const
-            {
-                return shadowName_;
-            }
+        //- Return name of interpolation face zone
+        const word& zoneName() const
+        {
+            return zoneName_;
+        }
 
-            //- Return name of interpolation face zone
-            const word& zoneName() const
-            {
-                return zoneName_;
-            }
+        //- Return shadow patch index
+        label shadowIndex() const;
 
-            //- Return shadow patch index
-            label shadowIndex() const;
+        //- Return zone patch index
+        label zoneIndex() const;
 
-            //- Return zone patch index
-            label zoneIndex() const;
+        //- Return shadow patch
+        const overlapGgiPolyPatch& shadow() const;
 
-            //- Return shadow patch
-            const overlapGgiPolyPatch& shadow() const;
+        //- Return interpolation face zone
+        const faceZone& zone() const;
 
-            //- Return interpolation face zone
-            const faceZone& zone() const;
+        //- Return rotation axis
+        const vector& rotationAxis() const
+        {
+            return rotationAxis_;
+        }
 
-            //- Return rotation axis
-            const vector& rotationAxis() const
-            {
-                return rotationAxis_;
-            }
+        //- Return wedge angle
+        scalar angle() const
+        {
+            return 360.0/scalar(nCopies());
+        }
 
-            //- Return wedge angle
-            scalar angle() const
-            {
-                return 360.0/scalar(nCopies());
-            }
+        //- Return number of slave copies
+        const label& nCopies() const;
 
-            //- Return number of slave copies
-            const label& nCopies() const;
+        //- Is this the master side?
+        bool master() const;
 
+        //- Is this the slave side?
+        bool slave() const
+        {
+            return !master();
+        }
 
-        // Interpolation data
+        //- Is the patch localised on a single processor
+        bool localParallel() const;
 
-            //- Is this the master side?
-            virtual bool master() const
-            {
-                return index() < shadowIndex();
-            }
+        //- Expand face field to full for 360 degrees coverage
+        template<class Type>
+        tmp<Field<Type> > expandData(const Field<Type>& spf) const;
 
-            //- Is the patch localised on a single processor
-            bool localParallel() const;
+        //- Interpolate face field: given field on the shadow side,
+        //  create an interpolated field on this side
+        template<class Type>
+        tmp<Field<Type> > interpolate(const Field<Type>& pf) const;
 
+        template<class Type>
+        tmp<Field<Type> > interpolate(const tmp<Field<Type> >& tpf) const;
 
-        // Interpolation functions
+        //- Filter zone field to patch size
+        template<class Type>
+        tmp<Field<Type> > filter(const Field<Type>& zf) const;
 
-            //- Expand face field to full for 360 degrees coverage
-            template<class Type>
-            tmp<Field<Type> > expandData(const Field<Type>& spf) const;
+        //- Return reconstructed cell centres
+        const vectorField& reconFaceCellCentres() const;
 
-            //- Interpolate face field: given field on the shadow side,
-            //  create an interpolated field on this side
-            template<class Type>
-            tmp<Field<Type> > interpolate(const Field<Type>& pf) const;
+        //- Initialize ordering for primitivePatch. Does not
+        //  refer to *this (except for name() and type() etc.)
+        virtual void initOrder(const primitivePatch&) const;
 
-            template<class Type>
-            tmp<Field<Type> > interpolate(const tmp<Field<Type> >& tpf) const;
+        //- Return new ordering for primitivePatch.
+        //  Ordering is -faceMap: for every face
+        //  index of the new face -rotation: for every new face the clockwise
+        //  shift of the original face. Return false if nothing changes
+        //  (faceMap is identity, rotation is 0), true otherwise.
+        virtual bool order
+        (
+            const primitivePatch&,
+            labelList& faceMap,
+            labelList& rotation
+        ) const;
 
-            //- Filter zone field to patch size
-            template<class Type>
-            tmp<Field<Type> > filter(const Field<Type>& zf) const;
-
-
-        // Geometric data
-
-            //- Return reconstructed cell centres
-            const vectorField& reconFaceCellCentres() const;
-
-
-        // Patch ordering
-
-            //- Initialize ordering for primitivePatch. Does not
-            //  refer to *this (except for name() and type() etc.)
-            virtual void initOrder(const primitivePatch&) const;
-
-            //- Return new ordering for primitivePatch.
-            //  Ordering is -faceMap: for every face
-            //  index of the new face -rotation: for every new face the
-            //  clockwise shift of the original face. Return false if nothing
-            //  changes (faceMap is identity, rotation is 0), true otherwise.
-            virtual bool order
-            (
-                const primitivePatch&,
-                labelList& faceMap,
-                labelList& rotation
-            ) const;
-
-            //- Synchronise communications of ordering for primitivePatch
-            //  Used in cases when no topological change happens locally,
-            //  but is happening on other processors
-            virtual void syncOrder() const;
+        //- Synchronise communications of ordering for primitivePatch
+        //  Used in cases when no topological change happens locally,
+        //  but is happening on other processors
+        virtual void syncOrder() const;
 
 
         //- Write

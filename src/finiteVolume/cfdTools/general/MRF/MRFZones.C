@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -57,35 +57,6 @@ Foam::MRFZones::MRFZones(const fvMesh& mesh)
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::tmp<Foam::volVectorField> Foam::MRFZones::omega() const
-{
-    tmp<volVectorField> tMRFZonesOmega
-    (
-        new volVectorField
-        (
-            IOobject
-            (
-                "MRFZonesOmega",
-                mesh_.time().timeName(),
-                mesh_,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh_,
-            dimensionedVector("zero", dimless/dimTime, vector::zero)
-        )
-    );
-    volVectorField& MRFZonesOmega = tMRFZonesOmega();
-
-    forAll (*this, i)
-    {
-        operator[](i).addOmega(MRFZonesOmega);
-    }
-
-    return tMRFZonesOmega;
-}
-
-
 Foam::tmp<Foam::surfaceScalarField> Foam::MRFZones::fluxCorrection() const
 {
     tmp<surfaceScalarField> tMRFZonesPhiCorr
@@ -117,7 +88,7 @@ Foam::tmp<Foam::surfaceScalarField> Foam::MRFZones::fluxCorrection() const
 
 Foam::tmp<Foam::surfaceScalarField> Foam::MRFZones::meshPhi() const
 {
-    tmp<surfaceScalarField> tMRFZonesFaceU
+    tmp<surfaceScalarField> tMRFZonesPhiCorr
     (
         new surfaceScalarField
         (
@@ -133,14 +104,14 @@ Foam::tmp<Foam::surfaceScalarField> Foam::MRFZones::meshPhi() const
             dimensionedScalar("zero", dimVolume/dimTime, 0)
         )
     );
-    surfaceScalarField& MRFZonesFaceU = tMRFZonesFaceU();
+    surfaceScalarField& MRFZonesPhiCorr = tMRFZonesPhiCorr();
 
     forAll (*this, i)
     {
-        operator[](i).meshPhi(MRFZonesFaceU);
+        operator[](i).meshPhi(MRFZonesPhiCorr);
     }
 
-    return tMRFZonesFaceU;
+    return tMRFZonesPhiCorr;
 }
 
 

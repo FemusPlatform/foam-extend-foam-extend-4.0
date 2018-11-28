@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -51,45 +51,8 @@ namespace Foam
 
 void Foam::ILU0::calcPreconDiag()
 {
-    // Precondition the diagonal
-
-    // Do coupled interfaces
-
-    // Note: ordering of ILU coefficients on the coupled boundary is
-    // out of sequence.  Formally, this can be fixed by visiting the coupled
-    // boundary from the cell loop, but HJ thinks this does not
-    // make a difference
-    // HJ and VV, 19/Jun/2017
-    if (!matrix_.diagonal())
+    if (matrix_.asymmetric())
     {
-        // Do coupled interfaces
-        forAll (interfaces_, patchI)
-        {
-            if (interfaces_.set(patchI))
-            {
-                // Get face-cells addressing
-                const unallocLabelList& fc =
-                    interfaces_[patchI].coupledInterface().faceCells();
-
-                // Get interface coefficiens
-                const scalarField& bouCoeffs = coupleBouCoeffs_[patchI];
-                const scalarField& intCoeffs = coupleIntCoeffs_[patchI];
-
-                forAll (fc, coeffI)
-                {
-                    // Note: change of the sign compared to main loop below
-                    // This is because lower = -intCoeffs
-                    // HJ and VV, 19/Jun/2017
-                    // Note: sign fixed by HJ, 19/Jun/2017
-                    preconDiag_[fc[coeffI]] +=
-                        bouCoeffs[coeffI]*intCoeffs[coeffI]/
-                        preconDiag_[fc[coeffI]];
-                }
-            }
-        }
-
-        // Do core matrix
-
         const unallocLabelList& upperAddr = matrix_.lduAddr().upperAddr();
         const unallocLabelList& lowerAddr = matrix_.lduAddr().lowerAddr();
 
@@ -169,43 +132,12 @@ void Foam::ILU0::precondition
 (
     scalarField& x,
     const scalarField& b,
-    const direction cmpt
+    const direction
 ) const
 {
-    if (matrix_.symmetric())
+    forAll(x, i)
     {
-        FatalErrorIn
-        (
-            "void ILU0::precondition\n"
-            "(\n"
-            "    scalarField& x,\n"
-            "    const scalarField& b,\n"
-            "    const direction cmpt\n"
-            ") const"
-        )   << "Calling ILU0 on a symetric matrix.  "
-            << "Please use CholeskyPrecon instead"
-            << abort(FatalError);
-    }
-
-    // Note: coupled boundary updated is not needed because x is zero
-    // HJ and VV, 19/Jun/2017
-
-    // Diagonal block
-    {
-        scalar* __restrict__ xPtr = x.begin();
-
-        const scalar* __restrict__ preconDiagPtr = preconDiag_.begin();
-
-        const scalar* __restrict__ bPtr = b.begin();
-
-        const label nRows = x.size();
-
-        // Note: multiplication over-write x: no need to initialise
-        // HJ, and VV, 19/Jun/2017
-        for (register label rowI = 0; rowI < nRows; rowI++)
-        {
-            xPtr[rowI] = bPtr[rowI]*preconDiagPtr[rowI];
-        }
+        x[i] = b[i]*preconDiag_[i];
     }
 
     if (matrix_.asymmetric())
@@ -218,15 +150,15 @@ void Foam::ILU0::precondition
         const scalarField& upper = matrix_.upper();
         const scalarField& lower = matrix_.lower();
 
-        label losortIndex;
+        label losortCoeff;
 
         forAll (lower, coeffI)
         {
-            losortIndex = losortAddr[coeffI];
+            losortCoeff = losortAddr[coeffI];
 
-            x[upperAddr[losortIndex]] -=
-                preconDiag_[upperAddr[losortIndex]]*
-                lower[losortIndex]*x[lowerAddr[losortIndex]];
+            x[upperAddr[losortCoeff]] -=
+                preconDiag_[upperAddr[losortCoeff]]*
+                lower[losortCoeff]*x[lowerAddr[losortCoeff]];
         }
 
         forAllReverse (upper, coeffI)
@@ -235,38 +167,6 @@ void Foam::ILU0::precondition
                 preconDiag_[lowerAddr[coeffI]]*
                 upper[coeffI]*x[upperAddr[coeffI]];
         }
-/*
-        // Parallel preconditioning
-        // HJ, 19/Jun/2017
-
-        scalarField xCorr(x.size(), 0);
-
-        // Coupled boundary update
-        {
-            matrix_.initMatrixInterfaces
-            (
-                coupleBouCoeffs_,
-                interfaces_,
-                x,
-                xCorr,               // put result into xCorr
-                cmpt,
-                false
-            );
-
-            matrix_.updateMatrixInterfaces
-            (
-                coupleBouCoeffs_,
-                interfaces_,
-                x,
-                xCorr,               // put result into xCorr
-                cmpt,
-                false
-            );
-
-            // Multiply with inverse diag to precondition
-            x += xCorr*preconDiag_;
-        }
-*/
     }
 }
 
@@ -278,40 +178,9 @@ void Foam::ILU0::preconditionT
     const direction cmpt
 ) const
 {
-    if (matrix_.symmetric())
+    forAll(x, i)
     {
-        FatalErrorIn
-        (
-            "void ILU0::precondition\n"
-            "(\n"
-            "    scalarField& x,\n"
-            "    const scalarField& b,\n"
-            "    const direction cmpt\n"
-            ") const"
-        )   << "Calling ILU0 on a symetric matrix.  "
-            << "Please use CholeskyPrecon instead"
-            << abort(FatalError);
-    }
-
-    // Note: coupled boundary updated is not needed because x is zero
-    // HJ and VV, 19/Jun/2017
-
-    // Diagonal block
-    {
-        scalar* __restrict__ xPtr = x.begin();
-
-        const scalar* __restrict__ preconDiagPtr = preconDiag_.begin();
-
-        const scalar* __restrict__ bPtr = b.begin();
-
-        const label nRows = x.size();
-
-        // Note: multiplication over-write x: no need to initialise
-        // HJ, and VV, 19/Jun/2017
-        for (register label rowI = 0; rowI < nRows; rowI++)
-        {
-            xPtr[rowI] = bPtr[rowI]*preconDiagPtr[rowI];
-        }
+        x[i] = b[i]*preconDiag_[i];
     }
 
     if (matrix_.asymmetric())
@@ -324,7 +193,7 @@ void Foam::ILU0::preconditionT
         const scalarField& upper = matrix_.upper();
         const scalarField& lower = matrix_.lower();
 
-        label losortIndex;
+        label losortCoeff;
 
         forAll (lower, coeffI)
         {
@@ -336,12 +205,12 @@ void Foam::ILU0::preconditionT
 
         forAllReverse (upper, coeffI)
         {
-            losortIndex = losortAddr[coeffI];
+            losortCoeff = losortAddr[coeffI];
 
             // Transpose multiplication.  HJ, 19/Jan/2009
-            x[lowerAddr[losortIndex]] -=
-                preconDiag_[lowerAddr[losortIndex]]*
-                lower[losortIndex]*x[upperAddr[losortIndex]];
+            x[lowerAddr[losortCoeff]] -=
+                preconDiag_[lowerAddr[losortCoeff]]*
+                lower[losortCoeff]*x[upperAddr[losortCoeff]];
         }
     }
 }

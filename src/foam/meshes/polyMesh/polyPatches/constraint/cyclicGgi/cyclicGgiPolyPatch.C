@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -212,6 +212,20 @@ Foam::cyclicGgiPolyPatch::cyclicGgiPolyPatch
 {}
 
 
+// Construct as copy, resetting the boundary mesh
+Foam::cyclicGgiPolyPatch::cyclicGgiPolyPatch
+(
+    const cyclicGgiPolyPatch& pp,
+    const polyBoundaryMesh& bm
+)
+:
+    ggiPolyPatch(pp, bm),
+    separationOffset_(pp.separationOffset_),
+    rotationAxis_(pp.rotationAxis_),
+    rotationAngle_(pp.rotationAngle_)
+{}
+
+
 // Construct as copy, resetting the face list and boundary mesh data
 Foam::cyclicGgiPolyPatch::cyclicGgiPolyPatch
 (
@@ -223,33 +237,6 @@ Foam::cyclicGgiPolyPatch::cyclicGgiPolyPatch
 )
 :
     ggiPolyPatch(pp, bm, index, newSize, newStart),
-    separationOffset_(pp.separationOffset_),
-    rotationAxis_(pp.rotationAxis_),
-    rotationAngle_(pp.rotationAngle_)
-{}
-
-
-// Construct as copy, resetting the boundary mesh
-Foam::cyclicGgiPolyPatch::cyclicGgiPolyPatch
-(
-    const cyclicGgiPolyPatch& pp
-)
-:
-    ggiPolyPatch(pp),
-    separationOffset_(pp.separationOffset_),
-    rotationAxis_(pp.rotationAxis_),
-    rotationAngle_(pp.rotationAngle_)
-{}
-
-
-// Construct as copy, resetting the boundary mesh
-Foam::cyclicGgiPolyPatch::cyclicGgiPolyPatch
-(
-    const cyclicGgiPolyPatch& pp,
-    const polyBoundaryMesh& bm
-)
-:
-    ggiPolyPatch(pp, bm),
     separationOffset_(pp.separationOffset_),
     rotationAxis_(pp.rotationAxis_),
     rotationAngle_(pp.rotationAngle_)

@@ -10,8 +10,8 @@
 
     fvScalarMatrix hEqn
     (
-        fvm::div(phi, h)
-      + fvm::SuSp(-fvc::div(phi), h)
+        fvm::ddt(rho, h)
+      + fvm::div(phi, h)
       - fvm::laplacian(turbulence->alphaEff(), h)
      ==
         fvc::div(faceU, p, "div(U,p)")
@@ -22,6 +22,7 @@
     );
 
     hEqn.relax();
+
     hEqn.solve();
 
     // Bounding of enthalpy taken out

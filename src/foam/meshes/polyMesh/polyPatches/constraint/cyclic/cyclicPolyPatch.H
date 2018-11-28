@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -204,7 +204,6 @@ protected:
         //- Update of the patch topology
         virtual void updateMesh();
 
-
 public:
 
     //- Runtime type information
@@ -232,6 +231,9 @@ public:
             const polyBoundaryMesh& bm
         );
 
+        //- Construct as copy, resetting the boundary mesh
+        cyclicPolyPatch(const cyclicPolyPatch&, const polyBoundaryMesh&);
+
         //- Construct given the original patch and resetting the
         //  face list and boundary mesh information
         cyclicPolyPatch
@@ -242,12 +244,6 @@ public:
             const label newSize,
             const label newStart
         );
-
-        //- Construct as copy
-        cyclicPolyPatch(const cyclicPolyPatch&);
-
-        //- Construct as copy, resetting the boundary mesh
-        cyclicPolyPatch(const cyclicPolyPatch&, const polyBoundaryMesh&);
 
         //- Construct and return a clone, resetting the boundary mesh
         virtual autoPtr<polyPatch> clone(const polyBoundaryMesh& bm) const
@@ -272,17 +268,12 @@ public:
         }
 
 
-    //- Destructor
-    virtual ~cyclicPolyPatch();
+    // Destructor
+
+        virtual ~cyclicPolyPatch();
 
 
     // Member Functions
-
-        //- Is this the master side?  Yes: it contains both sets of faces
-        virtual bool master() const
-        {
-            return true;
-        }
 
         //- Return connected points (in patch local point indexing). Demand
         //  driven calculation. Does primitivePatch::clearOut

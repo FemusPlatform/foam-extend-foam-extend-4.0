@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -200,9 +200,9 @@ Foam::tmp<Foam::Field<Type> > Foam::regionCouplePolyPatch::interpolate
 
 
 template<class Type>
-void Foam::regionCouplePolyPatch::setUncoveredFaces
+void Foam::regionCouplePolyPatch::bridge
 (
-    const Field<Type>& fieldToSet,
+    const Field<Type>& bridgeField,
     Field<Type>& ff
 ) const
 {
@@ -211,12 +211,12 @@ void Foam::regionCouplePolyPatch::setUncoveredFaces
     {
         FatalErrorIn
         (
-            "tmp<Field<Type> > regionCouplePolyPatch::setUncoveredFaces\n"
+            "tmp<Field<Type> > regionCouplePolyPatch::bridge\n"
             "(\n"
-            "    const Field<Type>& fieldToSet,\n"
+            "    const Field<Type>& ff,\n"
             "    Field<Type>& ff\n"
             ") const"
-        )   << "Incorrect patch field size for setting.  Field size: "
+        )   << "Incorrect patch field size for bridge.  Field size: "
             << ff.size() << " patch size: " << size()
             << abort(FatalError);
     }
@@ -233,11 +233,11 @@ void Foam::regionCouplePolyPatch::setUncoveredFaces
         {
             if (master())
             {
-                patchToPatch().setUncoveredFacesMaster(fieldToSet, ff);
+                patchToPatch().bridgeMaster(bridgeField, ff);
             }
             else
             {
-                patchToPatch().setUncoveredFacesSlave(fieldToSet, ff);
+                patchToPatch().bridgeSlave(bridgeField, ff);
             }
         }
         else
@@ -245,18 +245,18 @@ void Foam::regionCouplePolyPatch::setUncoveredFaces
             // Note: since bridging is only a local operation
             if (master())
             {
-                patchToPatch().maskedSetUncoveredFacesMaster
+                patchToPatch().maskedBridgeMaster
                 (
-                    fieldToSet,
+                    bridgeField,
                     ff,
                     zoneAddressing()
                 );
             }
             else
             {
-                patchToPatch().maskedSetUncoveredFacesSlave
+                patchToPatch().maskedBridgeSlave
                 (
-                    fieldToSet,
+                    bridgeField,
                     ff,
                     zoneAddressing()
                 );

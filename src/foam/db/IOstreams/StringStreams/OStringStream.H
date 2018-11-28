@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ public:
                     (
                         dynamic_cast<const std::ostringstream&>
                         (
-                            oss.stdStream()
+                            oss.stream()
                         ).str()
                     )
                 ),
@@ -93,11 +93,12 @@ public:
         {}
 
 
-    //- Destructor
-    ~OStringStream()
-    {
-        delete &dynamic_cast<std::ostringstream&>(stdStream());
-    }
+    // Destructor
+
+        ~OStringStream()
+        {
+            delete &dynamic_cast<std::ostringstream&>(stream());
+        }
 
 
     // Member functions
@@ -107,22 +108,19 @@ public:
             //- Return the string
             string str() const
             {
-                return dynamic_cast<const std::ostringstream&>
-                (
-                    stdStream()
-                ).str();
+                return dynamic_cast<const std::ostringstream&>(stream()).str();
             }
 
 
         // Edit
 
-            //- Rewind the OStringStream
+            //- Clear the OStringStream
             void rewind()
             {
 #               if __GNUC__ < 4 && __GNUC_MINOR__ < 4
-                stdStream().rdbuf()->pubsetbuf(" ", 1);
+                stream().rdbuf()->pubsetbuf(" ", 1);
 #               else
-                stdStream().rdbuf()->pubseekpos(0);
+                stream().rdbuf()->pubseekpos(0);
 #               endif
             }
 

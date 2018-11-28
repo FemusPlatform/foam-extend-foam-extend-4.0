@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -39,7 +39,6 @@ Contributor
 #include "SubField.H"
 #include "foamTime.H"
 #include "indirectPrimitivePatch.H"
-#include "symmTransformField.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -287,33 +286,17 @@ void Foam::ggiPolyPatch::calcReconFaceCellCentres() const
     {
         const label shadowID = shadowIndex();
 
-        // Get interpolated shadow face centre to face cell centre vectors
-        tmp<vectorField> tdf = interpolate
-        (
-            boundaryMesh()[shadowID].faceCellCentres()
-          - boundaryMesh()[shadowID].faceCentres()
-        );
-
-        // Get face centres on master side
-        const vectorField::subField cf = faceCentres();
-
-        if (bridgeOverlap_)
-        {
-            // Get face cell centres on master side
-            const vectorField ccf = faceCellCentres();
-
-            // Deltas for fully uncovered faces
-            const vectorField uncoveredDeltas(cf - ccf);
-
-            // Set uncovered deltas to fully uncovered faces
-            setUncoveredFaces(uncoveredDeltas, tdf());
-
-            // Scale partially overlapping faces
-            scalePartialFaces(tdf());
-        }
-
-        // Calculate the reconstructed cell centres
-        reconFaceCellCentresPtr_ = new vectorField(tdf() + cf);
+        // Get the transformed and interpolated shadow face cell centers
+        reconFaceCellCentresPtr_ =
+            new vectorField
+            (
+                interpolate
+                (
+                    boundaryMesh()[shadowID].faceCellCentres()
+                  - boundaryMesh()[shadowID].faceCentres()
+                )
+              + faceCentres()
+            );
     }
     else
     {
@@ -717,7 +700,31 @@ Foam::ggiPolyPatch::ggiPolyPatch
 }
 
 
-// Construct as copy, resetting the face list and boundary mesh data
+Foam::ggiPolyPatch::ggiPolyPatch
+(
+    const ggiPolyPatch& pp,
+    const polyBoundaryMesh& bm
+)
+:
+    coupledPolyPatch(pp, bm),
+    shadowName_(pp.shadowName_),
+    zoneName_(pp.zoneName_),
+    bridgeOverlap_(pp.bridgeOverlap_),
+    reject_(pp.reject_),
+    shadowIndex_(-1),
+    zoneIndex_(-1),
+    patchToPatchPtr_(NULL),
+    zoneAddressingPtr_(NULL),
+    remoteZoneAddressingPtr_(NULL),
+    reconFaceCellCentresPtr_(NULL),
+    localParallelPtr_(NULL),
+    comm_(pp.comm_),
+    tag_(pp.tag_),
+    mapPtr_(NULL)
+{}
+
+
+//- Construct as copy, resetting the face list and boundary mesh data
 Foam::ggiPolyPatch::ggiPolyPatch
 (
     const ggiPolyPatch& pp,
@@ -728,53 +735,6 @@ Foam::ggiPolyPatch::ggiPolyPatch
 )
 :
     coupledPolyPatch(pp, bm, index, newSize, newStart),
-    shadowName_(pp.shadowName_),
-    zoneName_(pp.zoneName_),
-    bridgeOverlap_(pp.bridgeOverlap_),
-    reject_(pp.reject_),
-    shadowIndex_(-1),
-    zoneIndex_(-1),
-    patchToPatchPtr_(NULL),
-    zoneAddressingPtr_(NULL),
-    remoteZoneAddressingPtr_(NULL),
-    reconFaceCellCentresPtr_(NULL),
-    localParallelPtr_(NULL),
-    comm_(pp.comm_),
-    tag_(pp.tag_),
-    mapPtr_(NULL)
-{}
-
-
-Foam::ggiPolyPatch::ggiPolyPatch
-(
-    const ggiPolyPatch& pp
-)
-:
-    coupledPolyPatch(pp),
-    shadowName_(pp.shadowName_),
-    zoneName_(pp.zoneName_),
-    bridgeOverlap_(pp.bridgeOverlap_),
-    reject_(pp.reject_),
-    shadowIndex_(-1),
-    zoneIndex_(-1),
-    patchToPatchPtr_(NULL),
-    zoneAddressingPtr_(NULL),
-    remoteZoneAddressingPtr_(NULL),
-    reconFaceCellCentresPtr_(NULL),
-    localParallelPtr_(NULL),
-    comm_(pp.comm_),
-    tag_(pp.tag_),
-    mapPtr_(NULL)
-{}
-
-
-Foam::ggiPolyPatch::ggiPolyPatch
-(
-    const ggiPolyPatch& pp,
-    const polyBoundaryMesh& bm
-)
-:
-    coupledPolyPatch(pp, bm),
     shadowName_(pp.shadowName_),
     zoneName_(pp.zoneName_),
     bridgeOverlap_(pp.bridgeOverlap_),
@@ -880,6 +840,8 @@ const Foam::faceZone& Foam::ggiPolyPatch::zone() const
 
 Foam::label Foam::ggiPolyPatch::comm() const
 {
+    //HJ, Testing.  Use optimised comm or a local one
+
     // Note: comm is calculated with localParallel and will use the
     // localParallelPtr_ for signalling.  HJ, 10/Sep/2016
     if (master())
@@ -895,6 +857,8 @@ Foam::label Foam::ggiPolyPatch::comm() const
     {
         return shadow().comm();
     }
+
+//     return boundaryMesh().mesh().comm();
 }
 
 

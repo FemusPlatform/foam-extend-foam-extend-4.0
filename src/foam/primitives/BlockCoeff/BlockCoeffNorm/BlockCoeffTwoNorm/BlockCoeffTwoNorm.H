@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -66,9 +66,6 @@ class BlockCoeffTwoNorm
         //- Control data dictionary
         dictionary dict_;
 
-        //- Component from which the sign is determined
-        const direction cmpt_;
-
 
 protected:
 
@@ -95,10 +92,10 @@ public:
             const dictionary& dict
         );
 
+    // Destructor
 
-    //- Destructor
-    virtual ~BlockCoeffTwoNorm()
-    {}
+        virtual ~BlockCoeffTwoNorm()
+        {}
 
 
     // Member functions
@@ -109,10 +106,10 @@ public:
             const BlockCoeff<Type>& a
         );
 
-        virtual void normalize
+        virtual void coeffMag
         (
-            Field<scalar>& b,
-            const CoeffField<Type>& a
+            const CoeffField<Type>& a,
+            Field<scalar>& b
         );
 };
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -158,22 +158,12 @@ public:
         );
 
 
-    //- Destructor
-    ~SlicedGeometricField();
+    // Destructor
+
+        ~SlicedGeometricField();
 
 
     // Member functions
-
-        //- Reset storage of a field to slice
-        void reset(const Field<Type>& completeField);
-
-        //- Reset storage of a field to slice with separate fields for the
-        //  internal field and boundary field
-        void reset
-        (
-            const Field<Type>& completeIField,
-            const Field<Type>& completeBField
-        );
 
         //- Correct boundary field
         void correctBoundaryConditions();
@@ -212,8 +202,9 @@ public:
         );
 
 
-    //- Destructor
-    ~DimensionedInternalField();
+    // Destructor
+
+        ~DimensionedInternalField();
 };
 
 

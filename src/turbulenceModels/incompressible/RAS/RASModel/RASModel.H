@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -44,6 +44,7 @@ SourceFiles
 #include "incompressible/turbulenceModel/turbulenceModel.H"
 #include "volFields.H"
 #include "surfaceFields.H"
+#include "nearWallDist.H"
 #include "fvm.H"
 #include "fvc.H"
 #include "fvMatrices.H"
@@ -102,6 +103,9 @@ protected:
         //- Laminar to turbulent viscosity ratio
         scalar nuRatio_;
 
+        //- Near wall distance boundary field
+        nearWallDist y_;
+
 
     // Protected member functions
 
@@ -136,10 +140,9 @@ public:
             (
                 const volVectorField& U,
                 const surfaceScalarField& phi,
-                transportModel& transport,
-                const word& turbulenceModelName
+                transportModel& lamTransportModel
             ),
-            (U, phi, transport, turbulenceModelName)
+            (U, phi, lamTransportModel)
         );
 
 
@@ -151,20 +154,18 @@ public:
             const word& type,
             const volVectorField& U,
             const surfaceScalarField& phi,
-            transportModel& transport,
-            const word& turbulenceModelName = turbulenceModel::typeName
+            transportModel& lamTransportModel
         );
 
 
     // Selectors
 
         //- Return a reference to the selected RAS model
-        static autoPtr<RASModel> New
+        static autoPtr<incompressible::RASModel> New
         (
             const volVectorField& U,
             const surfaceScalarField& phi,
-            transportModel& transport,
-            const word& turbulenceModelName = turbulenceModel::typeName
+            transportModel& lamTransportModel
         );
 
 

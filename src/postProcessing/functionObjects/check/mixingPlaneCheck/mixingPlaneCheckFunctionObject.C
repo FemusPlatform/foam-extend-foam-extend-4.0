@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ bool Foam::mixingPlaneCheckFunctionObject::start()
 }
 
 
-bool Foam::mixingPlaneCheckFunctionObject::execute(const bool forceWrite)
+bool Foam::mixingPlaneCheckFunctionObject::execute()
 {
     const polyMesh& mesh =
         time_.lookupObject<polyMesh>(regionName_);
@@ -232,12 +232,6 @@ bool Foam::mixingPlaneCheckFunctionObject::execute(const bool forceWrite)
         }
     }
 
-    return true;
-}
-
-
-bool Foam::mixingPlaneCheckFunctionObject::timeSet()
-{
     return true;
 }
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -86,8 +86,9 @@ public:
         );
 
 
-    //- Destructor
-    virtual ~coupledFacePointPatch();
+    // Destructor
+
+        virtual ~coupledFacePointPatch();
 
 
     // Member Functions
@@ -96,15 +97,6 @@ public:
 
             //- Return true because this patch is coupled
             virtual bool coupled() const
-            {
-                return true;
-            }
-
-            //- Does this side own the patch ?
-            //  HACKED: the patch contains both master and slave
-            //  This influences parallel Cholesky and ILU preconditioning
-            //  Please use cyclicGgi instead.  HJ, 22/Jun/2017
-            virtual bool master() const
             {
                 return true;
             }

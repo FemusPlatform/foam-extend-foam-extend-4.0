@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -83,7 +83,6 @@ protected:
             return T_.mesh();
         }
 
-
 public:
 
     //- Runtime type information
@@ -156,12 +155,6 @@ public:
 
         //- Return thermal conductivity
         virtual tmp<volScalarField> k() const = 0;
-
-        //- Return thermal expansion coefficient
-        virtual tmp<volScalarField> alpha() const = 0;
-
-        //- Return reference temperature
-        virtual tmp<volScalarField> T0() const = 0;
 
         //- Correct the thermal model
         virtual void correct() = 0;

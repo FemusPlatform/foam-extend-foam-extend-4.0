@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -74,15 +74,6 @@ gaussLaplacianScheme<Type, GType>::fvmLaplacianUncorrected
 
         fvm.internalCoeffs()[patchI] = patchGamma*psf.gradientInternalCoeffs();
         fvm.boundaryCoeffs()[patchI] = -patchGamma*psf.gradientBoundaryCoeffs();
-    }
-
-    // Manipulate internal and boundary coeffs for diffusion. Needed for very
-    // special treatment and is currently used only for ensuring implicit
-    // conservation across GGI interface that has partially covered faces. Does
-    // nothing for other fvPatchFields. VV, 8/Mar/2018.
-    forAll(fvm.psi().boundaryField(), patchI)
-    {
-        fvm.psi().boundaryField()[patchI].manipulateGradientCoeffs(fvm);
     }
 
     return tfvm;

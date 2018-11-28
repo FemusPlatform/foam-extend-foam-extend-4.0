@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -32,10 +32,16 @@ Author
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
 #include "fvMatrices.H"
+#include "magLongDelta.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace Foam
+{
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
+chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
 (
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF
@@ -47,7 +53,7 @@ Foam::chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
 {}
 
 
-Foam::chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
+chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
 (
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF,
@@ -60,7 +66,7 @@ Foam::chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
 {}
 
 
-Foam::chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
+chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
 (
     const chtRcTemperatureFvPatchScalarField& ptf,
     const fvPatch& p,
@@ -74,7 +80,7 @@ Foam::chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
 {}
 
 
-Foam::chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
+chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
 (
     const chtRcTemperatureFvPatchScalarField& ptf,
     const DimensionedField<scalar, volMesh>& iF
@@ -88,27 +94,11 @@ Foam::chtRcTemperatureFvPatchScalarField::chtRcTemperatureFvPatchScalarField
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-const Foam::chtRcTemperatureFvPatchScalarField&
-Foam::chtRcTemperatureFvPatchScalarField::shadowPatchField() const
-{
-    if
-    (
-        !isA<chtRcTemperatureFvPatchScalarField>
-        (
-            regionCouplingFvPatchScalarField::shadowPatchField()
-        )
-    )
-    {
-        FatalErrorIn
-        (
-            "chtRcTemperatureFvPatchScalarField::shadowPatchField() const"
-        )   << "Incorrect shadow patch type for patch " << this->patch().name()
-            << " of field " << this->dimensionedInternalField().name()
-            << " Should be chtRcTemperatureFvPatchScalarField.  Actual type "
-            << regionCouplingFvPatchScalarField::shadowPatchField().type()
-            << abort(FatalError);
-    }
 
+// Return a named shadow patch field
+const chtRcTemperatureFvPatchScalarField&
+chtRcTemperatureFvPatchScalarField::shadowPatchField() const
+{
     return dynamic_cast
     <
         const chtRcTemperatureFvPatchScalarField&
@@ -119,61 +109,22 @@ Foam::chtRcTemperatureFvPatchScalarField::shadowPatchField() const
 }
 
 
-// Return neighbour field given internal cell data
-Foam::tmp<Foam::scalarField>
-Foam::chtRcTemperatureFvPatchScalarField::patchNeighbourField() const
-{
-    return regionCouplingFvPatchScalarField::patchNeighbourField
-    (
-        remoteFieldName()
-    );
-}
-
-
-Foam::tmp<Foam::scalarField>
-Foam::chtRcTemperatureFvPatchScalarField::Tw() const
-{
-    return *this;
-}
-
-
-Foam::tmp<Foam::scalarField>
-Foam::chtRcTemperatureFvPatchScalarField::Tc() const
-{
-    return patchInternalField();
-}
-
-
-void Foam::chtRcTemperatureFvPatchScalarField::initEvaluate
+void chtRcTemperatureFvPatchScalarField::initEvaluate
 (
     const Pstream::commsTypes commsType
 )
 {
-    const fvPatchScalarField& kpf =
-        lookupPatchField<volScalarField, scalar>(kName_);
-
-    if (!isA<chtRegionCoupleBase>(kpf))
-    {
-        FatalErrorIn
+    const chtRegionCoupleBase& K =
+        dynamic_cast<const chtRegionCoupleBase&>
         (
-            "void chtRcTemperatureFvPatchScalarField::initEvaluate\n"
-            "(\n"
-            "    const Pstream::commsTypes commsType\n"
-            ")"
-        )   << "Incorrect shadow patch type for patch " << this->patch().name()
-            << " of field " << dimensionedInternalField().name()
-            << ".  Should be derived from chtRegionCoupleBase.  Actual type "
-            << kpf.type()
-            << abort(FatalError);
-    }
+            patch().lookupPatchField<volScalarField, scalar>(kName_)
+        );
 
-    const chtRegionCoupleBase& K = dynamic_cast<const chtRegionCoupleBase&>(kpf);
-
-    *this == K.calcTemperature(*this, shadowPatchField(), K);
+    K.calcTemperature(*this, shadowPatchField(), K);
 }
 
 
-void Foam::chtRcTemperatureFvPatchScalarField::evaluate
+void chtRcTemperatureFvPatchScalarField::evaluate
 (
     const Pstream::commsTypes
 )
@@ -182,34 +133,25 @@ void Foam::chtRcTemperatureFvPatchScalarField::evaluate
 }
 
 
-void Foam::chtRcTemperatureFvPatchScalarField::updateCoeffs()
+void chtRcTemperatureFvPatchScalarField::updateCoeffs()
 {
     if (updated())
     {
         return;
     }
 
-    const chtRegionCoupleBase& K =
-        refCast<const chtRegionCoupleBase>
-        (
-            lookupPatchField<volScalarField, scalar>(kName_)
-        );
-
-    *this == K.calcTemperature(*this, shadowPatchField(), K);
-
     fvPatchScalarField::updateCoeffs();
 }
 
 
-Foam::tmp<Foam::scalarField>
-Foam::chtRcTemperatureFvPatchScalarField::source() const
+tmp<scalarField> chtRcTemperatureFvPatchScalarField::source() const
 {
     const fvPatch& p = patch();
+    const magLongDelta& mld = magLongDelta::New(p.boundaryMesh().mesh());
 
-    const scalarField TcOwn = Tc();
-    const scalarField TcNei =
-        regionCouplePatch().interpolate(shadowPatchField().Tc());
-    const scalarField Tw = this->Tw();
+    const scalarField TcOwn = patchInternalField();
+    const scalarField TcNei = patchNeighbourField();
+    const scalarField& Tw = *this;
 
     const chtRegionCoupleBase& K =
         dynamic_cast<const chtRegionCoupleBase&>
@@ -217,14 +159,16 @@ Foam::chtRcTemperatureFvPatchScalarField::source() const
             p.lookupPatchField<volScalarField, scalar>(kName_)
         );
 
-    const scalarField k = K.kw()*p.deltaCoeffs();
-    const scalarField kOwn = K.korig();
+    const scalarField k = K*p.deltaCoeffs();
+
+    const scalarField kOwn =
+        K.originalPatchField()/(1 - p.weights())/mld.magDelta(p.index());
 
     return kOwn*(Tw - TcOwn) - k*(TcNei - TcOwn);
 }
 
 
-void Foam::chtRcTemperatureFvPatchScalarField::manipulateMatrix
+void chtRcTemperatureFvPatchScalarField::manipulateMatrix
 (
     fvScalarMatrix& matrix
 )
@@ -236,6 +180,9 @@ void Foam::chtRcTemperatureFvPatchScalarField::manipulateMatrix
 
     scalarField s = this->source();
 
+    //Info << "s = " << s << " Sum s = " << sum(s*p.magSf()) << endl;
+    //Info << "Sum s = " << sum(s*p.magSf()) << endl;
+
     forAll(cellLabels, i)
     {
         source[cellLabels[i]] += s[i]*magSf[i];
@@ -243,21 +190,18 @@ void Foam::chtRcTemperatureFvPatchScalarField::manipulateMatrix
 }
 
 
-void Foam::chtRcTemperatureFvPatchScalarField::write(Ostream& os) const
+void chtRcTemperatureFvPatchScalarField::write(Ostream& os) const
 {
     fvPatchScalarField::write(os);
     os.writeKeyword("K") << kName_ << token::END_STATEMENT << nl;
     os.writeKeyword("radiation") << radiation_ << token::END_STATEMENT << nl;
     os.writeKeyword("remoteField")
         << remoteFieldName() << token::END_STATEMENT << nl;
-    writeEntry("value", os);
+    this->writeEntry("value", os);
 }
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-namespace Foam
-{
 
 makePatchTypeField
 (
@@ -266,6 +210,5 @@ makePatchTypeField
 );
 
 } // End namespace Foam
-
 
 // ************************************************************************* //

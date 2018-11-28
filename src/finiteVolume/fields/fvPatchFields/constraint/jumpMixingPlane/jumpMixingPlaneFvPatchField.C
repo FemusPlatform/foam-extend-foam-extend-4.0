@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ Author
 
 Contributor
     Hrvoje Jasak, Wikki Ltd.
-    Gregor Cvijetic, FMENA Zagreb.
 
 GE CONFIDENTIAL INFORMATION 2016 General Electric Company. All Rights Reserved
 
@@ -110,7 +109,7 @@ jumpMixingPlaneFvPatchField<Type>::patchNeighbourField() const
     if (this->mixing() == mixingPlaneInterpolation::AREA_AVERAGING)
     {
         // Area-weighted averaging
-        return this->mixingPlanePatch().interpolate(sField) + jump();
+        return this->mixingPlanePatch().interpolate(sField);
     }
     else if (this->mixing() == mixingPlaneInterpolation::FLUX_AVERAGING)
     {
@@ -135,12 +134,11 @@ jumpMixingPlaneFvPatchField<Type>::patchNeighbourField() const
                 )
             )
           + this->mixingPlanePatch().fromProfile(1 - mask)*
-            this->patchInternalField()
-          + jump();
+            this->patchInternalField();
     }
     else if (this->mixing() == mixingPlaneInterpolation::ZERO_GRADIENT)
     {
-        return this->patchInternalField() + jump();
+        return this->patchInternalField();
     }
     else
     {
@@ -197,46 +195,19 @@ void jumpMixingPlaneFvPatchField<Type>::initInterfaceMatrixUpdate
 
         scalarField pnf = this->mixingPlanePatch().interpolate(sField);
 
-        if
-        (
-            reinterpret_cast<const void*>(&psiInternal)
-         == reinterpret_cast<const void*>(&this->internalField())
-        )
+        // Multiply the field by coefficients and add into the result
+        if (switchToLhs)
         {
-            const Field<scalar> jf = jump()().component(cmpt);
-
-            // Multiply the field by coefficients and add into the result
-            if (switchToLhs)
+            forAll(fc, elemI)
             {
-                forAll(fc, elemI)
-                {
-                    result[fc[elemI]] += coeffs[elemI]*(pnf[elemI] + jf[elemI]);
-                }
-            }
-            else
-            {
-                forAll(fc, elemI)
-                {
-                    result[fc[elemI]] -= coeffs[elemI]*(pnf[elemI] + jf[elemI]);
-                }
+                result[fc[elemI]] += coeffs[elemI]*pnf[elemI];
             }
         }
         else
         {
-            // Multiply the field by coefficients and add into the result
-            if (switchToLhs)
+            forAll(fc, elemI)
             {
-                forAll(fc, elemI)
-                {
-                    result[fc[elemI]] += coeffs[elemI]*pnf[elemI];
-                }
-            }
-            else
-            {
-                forAll(fc, elemI)
-                {
-                    result[fc[elemI]] -= coeffs[elemI]*pnf[elemI];
-                }
+                result[fc[elemI]] -= coeffs[elemI]*pnf[elemI];
             }
         }
     }

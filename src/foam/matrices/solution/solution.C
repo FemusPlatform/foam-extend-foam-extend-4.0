@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -127,15 +127,6 @@ void Foam::solution::read(const dictionary& dict)
     {
         solverPerformance_ = dict.subDict("solverPerformance");
     }
-
-    if (dict.found("residuals"))
-    {
-        storeAllResiduals_ =
-            dict.subDict("residuals").lookupOrDefault
-            (
-                "storeAllResiduals", false
-            );
-    }
 }
 
 
@@ -150,7 +141,7 @@ Foam::solution::solution(const objectRegistry& obr, const fileName& dictName)
             dictName,
             obr.time().system(),
             obr,
-            IOobject::READ_IF_PRESENT_IF_MODIFIED,  // Allow default dictionary creation
+            IOobject::READ_IF_PRESENT,  // Allow default dictionary creation
             IOobject::NO_WRITE
         )
     ),
@@ -162,8 +153,7 @@ Foam::solution::solution(const objectRegistry& obr, const fileName& dictName)
     eqnRelaxDefault_(0),
     solvers_(dictionary::null),
     solverPerformance_(dictionary::null),
-    prevTimeIndex_(0),
-    storeAllResiduals_(false)
+    prevTimeIndex_(0)
 {
     if (!headerOk())
     {
@@ -432,5 +422,49 @@ Foam::dictionary& Foam::solution::solverPerformanceDict() const
     return solverPerformance_;
 }
 
+
+void Foam::solution::setSolverPerformance
+(
+    const word& name,
+    const lduSolverPerformance& sp
+) const
+{
+    List<lduSolverPerformance> perfs;
+
+    if (prevTimeIndex_ != this->time().timeIndex())
+    {
+        // Reset solver performance between iterations
+        prevTimeIndex_ = this->time().timeIndex();
+        solverPerformance_.clear();
+    }
+    else
+    {
+        solverPerformance_.readIfPresent(name, perfs);
+    }
+
+    // Only the first iteration and the current iteration residuals are
+    // required, so the current iteration residual replaces the previous one and
+    // only the first iteration is always present, VS 2017-11-27
+    if (perfs.size() < 2)
+    {
+        // Append to list
+        perfs.setSize(perfs.size() + 1, sp);
+    }
+    else
+    {
+        perfs.last() = sp;
+    }
+
+    solverPerformance_.set(name, perfs);
+}
+
+
+void Foam::solution::setSolverPerformance
+(
+    const lduSolverPerformance& sp
+) const
+{
+    setSolverPerformance(sp.fieldName(), sp);
+}
 
 // ************************************************************************* //

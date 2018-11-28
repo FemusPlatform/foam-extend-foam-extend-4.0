@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ License
 
 #include "functionObjectList.H"
 #include "objectRegistry.H"
-#include "mapPolyMesh.H"
 
 #include "profiling.H"
 
@@ -108,20 +107,6 @@ void Foam::functionObjectList::clear()
 }
 
 
-Foam::label Foam::functionObjectList::findObjectID(const word& name) const
-{
-    forAll(*this, objectI)
-    {
-        if (operator[](objectI).name() == name)
-        {
-            return objectI;
-        }
-    }
-
-    return -1;
-}
-
-
 void Foam::functionObjectList::on()
 {
     execution_ = true;
@@ -147,7 +132,7 @@ bool Foam::functionObjectList::start()
 }
 
 
-bool Foam::functionObjectList::execute(const bool forceWrite)
+bool Foam::functionObjectList::execute()
 {
     bool ok = true;
 
@@ -158,11 +143,16 @@ bool Foam::functionObjectList::execute(const bool forceWrite)
             read();
         }
 
-        forAll(*this, objectI)
+        forAllIter
+        (
+            PtrList<functionObject>,
+            static_cast<PtrList<functionObject>&>(*this),
+            iter
+        )
         {
-            addProfile2(fo,"FO::"+operator[](objectI).name()+"::execute");
+            addProfile2(fo,"FO::"+(*iter).name()+"::execute");
 
-            ok = operator[](objectI).execute(forceWrite) && ok;
+            ok = iter().execute() && ok;
         }
     }
 
@@ -181,53 +171,16 @@ bool Foam::functionObjectList::end()
             read();
         }
 
-        forAll(*this, objectI)
+        forAllIter
+        (
+            PtrList<functionObject>,
+            static_cast<PtrList<functionObject>&>(*this),
+            iter
+        )
         {
-            addProfile2(fo,"FO::"+operator[](objectI).name()+"::end");
+            addProfile2(fo,"FO::"+(*iter).name()+"::end");
 
-            ok = operator[](objectI).end() && ok;
-        }
-    }
-
-    return ok;
-}
-
-
-bool Foam::functionObjectList::timeSet()
-{
-    bool ok = true;
-
-    if (execution_)
-    {
-        if (!updated_)
-        {
-            read();
-        }
-
-        forAll(*this, objectI)
-        {
-            ok = operator[](objectI).timeSet() && ok;
-        }
-    }
-
-    return ok;
-}
-
-
-bool Foam::functionObjectList::adjustTimeStep()
-{
-    bool ok = true;
-
-    if (execution_)
-    {
-        if (!updated_)
-        {
-            read();
-        }
-
-        forAll(*this, objectI)
-        {
-            ok = operator[](objectI).adjustTimeStep() && ok;
+            ok = iter().end() && ok;
         }
     }
 
@@ -372,30 +325,6 @@ bool Foam::functionObjectList::read()
     }
 
     return ok;
-}
-
-
-void Foam::functionObjectList::updateMesh(const mapPolyMesh& mpm)
-{
-    if (execution_)
-    {
-        forAll(*this, objectI)
-        {
-            operator[](objectI).updateMesh(mpm);
-        }
-    }
-}
-
-
-void Foam::functionObjectList::movePoints(const pointField& mesh)
-{
-    if (execution_)
-    {
-        forAll(*this, objectI)
-        {
-            operator[](objectI).movePoints(mesh);
-        }
-    }
 }
 
 

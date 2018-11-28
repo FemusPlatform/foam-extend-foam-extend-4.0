@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -104,20 +104,6 @@ class MRFZone
         //- Ramping time scale
         scalar rampTime_;
 
-        //- Mesh velocity
-        //  Note: for precise calculation of the mesh velocity on bad meshes
-        //  the velocity is calculated from the swept volume
-        mutable surfaceScalarField* meshVelocityPtr_;
-
-        //- Time for which mesh velocity is calculated
-        mutable scalar meshVelTime_;
-
-
-    // Private Static Data
-
-        //- Rotational angle in degrees used to determine the time-step size
-        static const debug::tolerancesSwitch rotAngle_;
-
 
     // Private Member Functions
 
@@ -131,9 +117,8 @@ class MRFZone
         //- Divide faces in frame according to patch
         void setMRFFaces();
 
-        //- Calculate mesh velocity
-        void calcMeshVelocity() const;
-
+        //- Return rotational vector
+        vector Omega() const;
 
         //- Make the given absolute mass/vol flux relative within MRF region
         template<class RhoFieldType>
@@ -189,65 +174,12 @@ public:
             }
         };
 
-    //- Destructor
-    ~MRFZone();
-
 
     // Member Functions
-
-        // Access Functions
-
-            //- Return the MRFZone name
-            const word& name() const
-            {
-                return name_;
-            }
-
-            //- Return cellZone number
-            label zoneId() const
-            {
-                return cellZoneID_;
-            }
-
-            //- Return cellZone
-            const cellZone& zone() const
-            {
-                return mesh_.cellZones()[cellZoneID_];
-            }
-
-            //- Return the MRFZone dictionary
-            const dictionary& dict() const
-            {
-                return dict_;
-            }
-
-            //- Return the MRFZone axis of rotation
-            const dimensionedVector& axis() const
-            {
-                return axis_;
-            }
-
-            //- Return rotational vector
-            vector Omega() const;
-
-            //- Return the MRFZone omega
-            const dimensionedScalar& omega() const
-            {
-                return omega_;
-            }
-
-            //- Return mesh velocity for all faces
-            const surfaceScalarField& meshVelocity() const;
-
-
-    // Member functions used in a top level solver
 
         //- Update the mesh corresponding to given map
         void updateMesh(const mapPolyMesh& mpm)
         {
-            // Clear mesh velocity
-            deleteDemandDrivenData(meshVelocityPtr_);
-
             // Only updates face addressing
             setMRFFaces();
         }
@@ -261,9 +193,6 @@ public:
             const volScalarField& rho,
             fvVectorMatrix& UEqn
         ) const;
-
-        //- Add omega within the MRF region
-        void addOmega(volVectorField& omg) const;
 
         //- Make the given absolute velocity relative within the MRF region
         void relativeVelocity(volVectorField& U) const;
@@ -291,7 +220,7 @@ public:
             surfaceScalarField& phi
         ) const;
 
-        //- Compute pseudo mesh phi for the MRF region
+        //- Compute the pseudo mesh phi of the MRF region
         void meshPhi(surfaceScalarField& phi) const;
 
         //- Correct the boundary velocity for the roation of the MRF region

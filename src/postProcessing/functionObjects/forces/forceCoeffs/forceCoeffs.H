@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -130,10 +130,6 @@ public:
 
         //- Execute at the final time-loop, currently does nothing
         virtual void end();
-
-        //- Called when time was set at the end of the Time::operator++
-        virtual void timeSet()
-        {}
 
         //- Write the forces
         virtual void write();

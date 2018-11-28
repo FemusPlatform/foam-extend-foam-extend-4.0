@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -70,13 +70,13 @@ protected:
     // Protected Member functions
 
         //- Make patch weighting factors
-        virtual void makeWeights(fvsPatchScalarField&) const;
+        virtual void makeWeights(scalarField&) const;
 
         //- Make patch face - neighbour cell distances
-        virtual void makeDeltaCoeffs(fvsPatchScalarField&) const;
+        virtual void makeDeltaCoeffs(scalarField&) const;
 
         //- Make patch face non-orthogonality correction vectors
-        virtual void makeCorrVecs(fvsPatchVectorField&) const;
+        virtual void makeCorrVecs(vectorField&) const;
 
 
 public:
@@ -152,16 +152,15 @@ public:
                 return rcPolyPatch_.interpolate(tpf);
             }
 
-            //- Set given field for uncovered faces. Usually used for setting
-            //  mirrored field
+            //- Bridge interpolated face field for uncovered faces
             template<class Type>
-            void setUncoveredFaces
+            void bridge
             (
-                const Field<Type>& fieldToSet,
+                const Field<Type>& bridgeField,
                 Field<Type>& ff
             ) const
             {
-                return rcPolyPatch_.setUncoveredFaces(fieldToSet, ff);
+                return rcPolyPatch_.bridge(bridgeField, ff);
             }
 
 
@@ -190,7 +189,7 @@ public:
 
             //- Return addressing.  Master side returns own addressing and
             //  slave side returns addressing from master
-            virtual const labelListList& ggiAddressing() const;
+            virtual const labelListList& addressing() const;
 
             //- Is the patch localised on a single processor
             virtual bool localParallel() const;
@@ -200,7 +199,7 @@ public:
 
             //- Return weights.  Master side returns own weights and
             //  slave side returns weights from master
-            virtual const scalarListList& ggiWeights() const;
+            virtual const scalarListList& weights() const;
 
             //- Return face transformation tensor
             virtual const tensorField& forwardT() const
@@ -217,10 +216,6 @@ public:
             //- Expand addressing to zone
             //  Used in optimised AMG coarsening
             virtual void expandAddrToZone(labelField&) const;
-
-            //- Expand crMatrix to zone
-            //  Used in optimised SAMG coarsening
-            virtual void expandCrMatrixToZone(crMatrix&) const;
 
 
             //- Return the values of the given internal data adjacent to

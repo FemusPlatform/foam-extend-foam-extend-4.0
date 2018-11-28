@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -49,13 +49,6 @@ namespace Foam
 
 template<class Type>
 class BlockSolverPerformance;
-
-template<class Type>
-BlockSolverPerformance<Type> max
-(
-    const BlockSolverPerformance<Type>&,
-    const BlockSolverPerformance<Type>&
-);
 
 template<class Type>
 Istream& operator>>(Istream&, BlockSolverPerformance<Type>&);
@@ -224,17 +217,6 @@ public:
         //- Print summary of solver performance
         void print() const;
 
-        //- Replace component based on the minimal BlockSolverPerformance
-        void replace
-        (
-            const label cmpt,
-            const BlockSolverPerformance<typename pTraits<Type>::cmptType>& sp
-        );
-
-        //- Return the summary maximum of BlockSolverPerformance<Type>
-        //  Effectively it will mostly return BlockSolverPerformance<scalar>
-        BlockSolverPerformance<typename pTraits<Type>::cmptType> max();
-
 
     // Member Operators
 
@@ -242,16 +224,6 @@ public:
 
 
     // Friend functions
-
-        //- Return the element-wise max of two BlockSolverPerformance<Type>s
-        friend BlockSolverPerformance<Type> Foam::max <Type>
-        (
-            const BlockSolverPerformance<Type>&,
-            const BlockSolverPerformance<Type>&
-        );
-
-
-    // Ostream operator
 
         friend Istream& operator>> <Type>
         (

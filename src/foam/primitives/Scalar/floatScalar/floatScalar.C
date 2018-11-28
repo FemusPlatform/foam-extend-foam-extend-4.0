@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -23,9 +23,8 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-// Source IOstreams.H first for consistency
-#include "IOstreams.H"
 #include "floatScalar.H"
+#include "IOstreams.H"
 
 #include <sstream>
 
@@ -34,15 +33,11 @@ License
 #define Scalar floatScalar
 #define ScalarVGREAT floatScalarVGREAT
 #define ScalarVSMALL floatScalarVSMALL
-#define ScalarROOTVGREAT floatScalarROOTVGREAT
-#define ScalarROOTVSMALL floatScalarROOTVSMALL
 #define readScalar readFloatScalar
 #include "ScalarTemplate.C"
 #undef Scalar
 #undef ScalarVSMALL
 #undef ScalarVSMALL
-#undef ScalarROOTVGREAT
-#undef ScalarROOTVSMALL
 #undef readScalar
 
 // ************************************************************************* //

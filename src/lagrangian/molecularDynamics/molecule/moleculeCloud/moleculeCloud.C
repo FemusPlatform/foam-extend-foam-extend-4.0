@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ void Foam::moleculeCloud::buildConstProps()
             "moleculeProperties",
             mesh_.time().constant(),
             mesh_,
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
         )

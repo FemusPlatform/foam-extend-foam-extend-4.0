@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ Foam::lduSolverPerformance Foam::fvMatrix<Type>::solve
     // Complete matrix assembly.  HJ, 17/Apr/2012
     this->completeAssembly();
 
-    BlockSolverPerformance<Type> solverPerfVec
+    lduSolverPerformance solverPerfVec
     (
         "fvMatrix<Type>::solve",
         psi_.name()
@@ -80,7 +80,7 @@ Foam::lduSolverPerformance Foam::fvMatrix<Type>::solve
     Field<Type> source = source_;
 
     // At this point include the boundary source from the coupled boundaries.
-    // This is corrected for the implicit part by correctImplicitBoundarySource
+    // This is corrected for the implicit part by correctCmptBoundarySource
     // within the component loop.
 
     // Note: this is related to non-parallel coupled implicit boundaries
@@ -129,7 +129,7 @@ Foam::lduSolverPerformance Foam::fvMatrix<Type>::solve
 
         // Correct component boundary source for the explicit part of the
         // coupled boundary conditions.  At the moment, the whole
-        // coefficient-field product has been added into the source,
+        // coefficient-field product hass been added into the source,
         // but the implicit part for the current element needs to be taken out
         // (because it is implicit).
         // HJ, 31/May/2013
@@ -155,7 +155,14 @@ Foam::lduSolverPerformance Foam::fvMatrix<Type>::solve
 
         solverPerf.print();
 
-        solverPerfVec.replace(cmpt, solverPerf);
+        if
+        (
+            solverPerf.initialResidual() > solverPerfVec.initialResidual()
+         && !solverPerf.singular()
+        )
+        {
+            solverPerfVec = solverPerf;
+        }
 
         psi.internalField().replace(cmpt, psiCmpt);
         diag() = saveDiag;
@@ -165,7 +172,7 @@ Foam::lduSolverPerformance Foam::fvMatrix<Type>::solve
 
     psi_.mesh().solutionDict().setSolverPerformance(psi_.name(), solverPerfVec);
 
-    return solverPerfVec.max();
+    return solverPerfVec;
 }
 
 

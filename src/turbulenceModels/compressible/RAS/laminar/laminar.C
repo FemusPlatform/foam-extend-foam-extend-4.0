@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -47,12 +47,10 @@ laminar::laminar
     const volScalarField& rho,
     const volVectorField& U,
     const surfaceScalarField& phi,
-    const basicThermo& thermophysicalModel,
-    const word& turbulenceModelName,
-    const word& modelName
+    const basicThermo& thermophysicalModel
 )
 :
-    RASModel(modelName, rho, U, phi, thermophysicalModel, turbulenceModelName)
+    RASModel(typeName, rho, U, phi, thermophysicalModel)
 {}
 
 
@@ -74,27 +72,6 @@ tmp<volScalarField> laminar::mut() const
             ),
             mesh_,
             dimensionedScalar("mut", mu().dimensions(), 0.0)
-        )
-    );
-}
-
-
-tmp<volScalarField> laminar::alphat() const
-{
-    return tmp<volScalarField>
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "alphat",
-                runTime_.timeName(),
-                mesh_,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh_,
-            dimensionedScalar("alphat", alpha().dimensions(), 0.0)
         )
     );
 }

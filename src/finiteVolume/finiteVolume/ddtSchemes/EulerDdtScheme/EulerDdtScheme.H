@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -151,16 +151,6 @@ public:
             const fluxFieldType& phi
         );
 
-
-        // Member functions for the new time consistent formulation
-        tmp<fluxFieldType> fvcDdtConsistentPhiCorr
-        (
-            const GeometricField<Type, fvsPatchField, surfaceMesh>& faceU,
-            const GeometricField<Type, fvPatchField, volMesh>& U,
-            const surfaceScalarField& rAUf
-        );
-
-
         tmp<surfaceScalarField> meshPhi
         (
             const GeometricField<Type, fvPatchField, volMesh>&
@@ -184,15 +174,6 @@ tmp<surfaceScalarField> EulerDdtScheme<scalar>::fvcDdtPhiCorr
     const volScalarField& rho,
     const volScalarField& U,
     const surfaceScalarField& phi
-);
-
-
-template<>
-tmp<surfaceScalarField> EulerDdtScheme<scalar>::fvcDdtConsistentPhiCorr
-(
-    const surfaceScalarField& faceU,
-    const volScalarField& U,
-    const surfaceScalarField& rAUf
 );
 
 

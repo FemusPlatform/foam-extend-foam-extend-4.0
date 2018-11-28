@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     (
         sampledSets::typeName,
         mesh,
-        word("sampleDict"),
+        "sampleDict",
         IOobject::MUST_READ,
         true
     );
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     (
         sampledSurfaces::typeName,
         mesh,
-        word("sampleDict"),
+        "sampleDict",
         IOobject::MUST_READ,
         true
     );

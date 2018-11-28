@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ Foam::OSstream& Foam::error::operator()
 }
 
 
-Foam::error::operator Foam::OSstream&()
+Foam::error::operator OSstream&()
 {
     if (!messageStreamPtr_->good())
     {
@@ -142,7 +142,7 @@ Foam::error::operator Foam::OSstream&()
 }
 
 
-Foam::error::operator Foam::dictionary() const
+Foam::error::operator dictionary() const
 {
     dictionary errDict;
 
@@ -175,6 +175,9 @@ void Foam::error::exit(const int errNo)
 
     if (abort_)
     {
+        Perr<< endl << *this << endl
+            << "\nFOAM aborting (FOAM_ABORT set)\n" << endl;
+
         abort();
     }
 

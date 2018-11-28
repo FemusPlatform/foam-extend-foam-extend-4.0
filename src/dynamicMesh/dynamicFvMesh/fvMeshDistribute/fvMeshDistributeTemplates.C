@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -154,12 +154,17 @@ void Foam::fvMeshDistribute::exchange
 template<class GeoField>
 void Foam::fvMeshDistribute::printFieldInfo(const fvMesh& mesh)
 {
-    const HashTable<const GeoField*> flds
+    HashTable<const GeoField*> flds
     (
         mesh.objectRegistry::lookupClass<GeoField>()
     );
 
-    forAllConstIter (typename HashTable<const GeoField*>, flds, iter)
+    for
+    (
+        typename HashTable<const GeoField*>::const_iterator iter = flds.begin();
+        iter != flds.end();
+        ++iter
+    )
     {
         const GeoField& fld = *iter();
 
@@ -182,17 +187,26 @@ void Foam::fvMeshDistribute::printFieldInfo(const fvMesh& mesh)
 template<class GeoField>
 void Foam::fvMeshDistribute::addPatchFields(const word& patchFieldType)
 {
-    HashTable<GeoField*> flds
+    HashTable<const GeoField*> flds
     (
         mesh_.objectRegistry::lookupClass<GeoField>()
     );
 
-    forAllIter (typename HashTable<GeoField*>, flds, iter)
+    for
+    (
+        typename HashTable<const GeoField*>::const_iterator iter =
+            flds.begin();
+        iter != flds.end();
+        ++iter
+    )
     {
-        GeoField& fld = *iter();
+        const GeoField& fld = *iter();
 
         typename GeoField::GeometricBoundaryField& bfld =
-            fld.boundaryField();
+            const_cast<typename GeoField::GeometricBoundaryField&>
+            (
+                fld.boundaryField()
+            );
 
         label sz = bfld.size();
         bfld.setSize(sz + 1);
@@ -214,17 +228,26 @@ void Foam::fvMeshDistribute::addPatchFields(const word& patchFieldType)
 template<class GeoField>
 void Foam::fvMeshDistribute::deleteTrailingPatchFields()
 {
-    HashTable<GeoField*> flds
+    HashTable<const GeoField*> flds
     (
         mesh_.objectRegistry::lookupClass<GeoField>()
     );
 
-    forAllIter (typename HashTable<GeoField*>, flds, iter)
+    for
+    (
+        typename HashTable<const GeoField*>::const_iterator iter =
+            flds.begin();
+        iter != flds.end();
+        ++iter
+    )
     {
-        GeoField& fld = *iter();
+        const GeoField& fld = *iter();
 
         typename GeoField::GeometricBoundaryField& bfld =
-            fld.boundaryField();
+            const_cast<typename GeoField::GeometricBoundaryField&>
+            (
+                fld.boundaryField()
+            );
 
         // Shrink patchFields
         bfld.setSize(bfld.size() - 1);
@@ -239,9 +262,9 @@ void Foam::fvMeshDistribute::saveBoundaryFields
     PtrList<FieldField<fvsPatchField, T> >& bflds
 ) const
 {
-    typedef const GeometricField<T, fvsPatchField, Mesh> fldType;
+    typedef GeometricField<T, fvsPatchField, Mesh> fldType;
 
-    const HashTable<fldType*> flds
+    HashTable<const fldType*> flds
     (
         mesh_.objectRegistry::lookupClass<fldType>()
     );
@@ -250,7 +273,12 @@ void Foam::fvMeshDistribute::saveBoundaryFields
 
     label i = 0;
 
-    forAllConstIter (typename HashTable<const fldType*>, flds, iter)
+    for
+    (
+        typename HashTable<const fldType*>::const_iterator iter = flds.begin();
+        iter != flds.end();
+        ++iter
+    )
     {
         const fldType& fld = *iter();
 
@@ -274,7 +302,7 @@ void Foam::fvMeshDistribute::mapBoundaryFields
 
     typedef GeometricField<T, fvsPatchField, Mesh> fldType;
 
-    HashTable<fldType*> flds
+    HashTable<const fldType*> flds
     (
         mesh_.objectRegistry::lookupClass<fldType>()
     );
@@ -287,11 +315,20 @@ void Foam::fvMeshDistribute::mapBoundaryFields
 
     label fieldI = 0;
 
-    forAllIter (typename HashTable<fldType*>, flds, iter)
+    for
+    (
+        typename HashTable<const fldType*>::const_iterator iter = flds.begin();
+        iter != flds.end();
+        ++iter
+    )
     {
-        fldType& fld = *iter();
+        const fldType& fld = *iter();
         typename fldType::GeometricBoundaryField& bfld =
-            fld.boundaryField();
+            const_cast<typename fldType::GeometricBoundaryField&>
+            (
+                fld.boundaryField()
+            );
+
 
         const FieldField<fvsPatchField, T>& oldBfld = oldBflds[fieldI++];
 
@@ -333,17 +370,26 @@ void Foam::fvMeshDistribute::initPatchFields
     const typename GeoField::value_type& initVal
 )
 {
-    HashTable<GeoField*> flds
+    HashTable<const GeoField*> flds
     (
         mesh_.objectRegistry::lookupClass<GeoField>()
     );
 
-    forAllIter (typename HashTable<GeoField*>, flds, iter)
+    for
+    (
+        typename HashTable<const GeoField*>::const_iterator iter =
+            flds.begin();
+        iter != flds.end();
+        ++iter
+    )
     {
-        GeoField& fld = *iter();
+        const GeoField& fld = *iter();
 
         typename GeoField::GeometricBoundaryField& bfld =
-            fld.boundaryField();
+            const_cast<typename GeoField::GeometricBoundaryField&>
+            (
+                fld.boundaryField()
+            );
 
         forAll(bfld, patchI)
         {

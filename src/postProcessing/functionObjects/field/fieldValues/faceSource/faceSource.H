@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,33 +24,21 @@ License
 Class
     Foam::fieldValues::faceSource
 
-Group
-    grpFieldFunctionObjects
-
 Description
-    This function object provides a 'face source' variant of the fieldValues
-    function object.  Given a list of user-specified fields and a selection
-    of mesh (or general surface) faces, a number of operations can be
-    performed, such as sums, averages and integrations.
+    Face source variant of field value function object. Values of user-
+    specified fields reported for collections of faces.
 
-    \linebreak
-    For example, to calculate the volumetric or mass flux across a patch,
-    apply the 'sum' operator to the flux field (typically \c phi)
-
-    Example of function object specification:
-    \verbatim
-    faceSource1
+    faceObj1                        // Name also used to identify output folder
     {
         type            faceSource;
         functionObjectLibs ("libfieldFunctionObjects.so");
-        ...
-        log             yes;
-        valueOutput     true;
-        surfaceFormat   none;
-        source          faceZone;
+        enabled         true;
+        outputControl   outputTime;
+        log             true;       // log to screen?
+        valueOutput     true;       // Write values at run-time output times?
+        source          faceZone;   // Type of face source: faceZone, patch
         sourceName      f0;
         operation       sum;
-        weightField     alpha1;
         fields
         (
             p
@@ -58,81 +46,25 @@ Description
             U
         );
     }
-    \endverbatim
 
-    \heading Function object usage
-    \table
-        Property     | Description             | Required    | Default value
-        type         | type name: faceSource   | yes         |
-        log          | write data to standard output | no    | no
-        valueOutput  | write the output values | yes         |
-        writeArea    | Write the area of the faceSource | no |
-        surfaceFormat | output value format    | no          |
-        source       | face source: see below  | yes         |
-        sourceName   | name of face source if required  | no |
-        operation    | operation to perform    | yes         |
-        weightField  | name of field to apply weighting | no |
-        orientedWeightField  | name of oriented field to apply weighting | no |
-        scaleFactor  | scale factor            | no          | 1
-        fields       | list of fields to operate on | yes    |
-        orientedFields | list of oriented fields to operate on | no |
-    \endtable
+    where operation is one of:
+      - none
+      - sum
+      - areaAverage
+      - areaIntegrate
+      - weightedAverage
+      - min
+      - max
 
-    \linebreak
-    Where \c source is defined by
-    \plaintable
-        faceZone     | requires a 'sourceName' entry to specify the faceZone
-        patch        | requires a 'sourceName' entry to specify the patch
-        sampledSurface | requires a 'sampledSurfaceDict' sub-dictionary
-    \endplaintable
-
-    \linebreak
-    The \c operation is one of:
-    \plaintable
-       none          | no operation
-       sum           | sum
-       sumMag        | sum of component magnitudes
-       sumDirection  | sum values which are positive in given direction
-       sumDirectionBalance | sum of balance of values in given direction
-       average       | ensemble average
-       weightedAverage | weighted average
-       areaAverage   | area weighted average
-       weightedAreaAverage | weighted area average
-       areaIntegrate | area integral
-       min           | minimum
-       max           | maximum
-       CoV           | coefficient of variation: standard deviation/mean
-       areaNormalAverage| area weighted average in face normal direction
-       areaNormalIntegrate | area weighted integral in face normal directon
-    \endplaintable
-
-Note
-    - The values reported by the areaNormalAverage and areaNormalIntegrate
-      operations are written as the first component of a field with the same
-      rank as the input field.
+    Notes:
     - faces on empty patches get ignored
-    - if the field is a volField the \c faceZone can only consist of boundary
-      faces
-    - the `oriented' entries relate to mesh-oriented fields, such as the
-      flux, phi.  These fields will be oriented according to the face normals.
-    - using \c sampledSurfaces:
-        - not available for surface fields
-        - if interpolate=true they use \c interpolationCellPoint
-          otherwise they use cell values
-        - each triangle in \c sampledSurface is logically only in one cell
-          so interpolation will be wrong when triangles are larger than
-          cells.  This can only happen for sampling on a \c triSurfaceMesh
-        - take care when using isoSurfaces - these might have duplicate
-          triangles and so integration might be wrong
-
-SeeAlso
-    Foam::fieldValues
-    Foam::functionObject
-    Foam::OutputFilterFunctionObject
+    - if the field is a volField the faceZone can only consist of boundary
+    faces.
+    - all fields get oriented according to the faceZone (so you might e.g. see
+    negative pressure)
 
 SourceFiles
     faceSource.C
-    faceSourceTemplates.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -143,15 +75,11 @@ SourceFiles
 #include "fieldValue.H"
 #include "surfaceFieldsFwd.H"
 #include "volFieldsFwd.H"
-#include "surfaceWriter.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
-class sampledSurface;
-
 namespace fieldValues
 {
 
@@ -172,12 +100,11 @@ public:
         enum sourceType
         {
             stFaceZone,
-            stPatch,
-            stSampledSurface
+            stPatch
         };
 
         //- Source type names
-        static const NamedEnum<sourceType, 3> sourceTypeNames_;
+        static const NamedEnum<sourceType, 2> sourceTypeNames_;
 
 
         //- Operation type enumeration
@@ -185,30 +112,20 @@ public:
         {
             opNone,
             opSum,
-            opWeightedSum,
-            opSumMag,
-            opWeightedSumMag,
-            opSumDirection,
-            opSumDirectionBalance,
-            opAverage,
-            opWeightedAverage,
             opAreaAverage,
-            opWeightedAreaAverage,
             opAreaIntegrate,
+            opWeightedAverage,
             opMin,
-            opMax,
-            opCoV,
-            opAreaNormalAverage,
-            opAreaNormalIntegrate
+            opMax
         };
 
         //- Operation type names
-        static const NamedEnum<operationType, 17> operationTypeNames_;
+        static const NamedEnum<operationType, 7> operationTypeNames_;
 
 
 private:
 
-    // Private Member Functions
+    // Private member functions
 
         //- Set faces to evaluate based on a face zone
         void setFaceZoneFaces();
@@ -216,33 +133,10 @@ private:
         //- Set faces to evaluate based on a patch
         void setPatchFaces();
 
-        //- Set faces according to sampledSurface
-        void sampledSurfaceFaces(const dictionary&);
-
-        //- Combine mesh faces and points from multiple processors
-        void combineMeshGeometry
-        (
-            faceList& faces,
-            pointField& points
-        ) const;
-
-        //- Combine surface faces and points from multiple processors
-        void combineSurfaceGeometry
-        (
-            faceList& faces,
-            pointField& points
-        ) const;
-
-        //- Calculate and return total area of the faceSource: sum(magSf)
-        scalar totalArea() const;
-
 
 protected:
 
     // Protected data
-
-        //- Surface writer
-        autoPtr<surfaceWriter> surfaceWriterPtr_;
 
         //- Source type
         sourceType source_;
@@ -250,48 +144,23 @@ protected:
         //- Operation to apply to values
         operationType operation_;
 
-        //- Weight field name - optional
-        word weightFieldName_;
-
-        //- Flag to indicate if flipMap should be applied to the weight field
-        bool orientWeightField_;
-
-        //- Start index of fields that require application of flipMap
-        label orientedFieldsStart_;
-
-        //- Scale factor - optional
-        scalar scaleFactor_;
-
-        //- Total area of the faceSource
-        scalar totalArea_;
-
-        //- Optionally write the area of the faceSource
-        bool writeArea_;
-
         //- Global number of faces
         label nFaces_;
 
+        //- Local list of face IDs
+        labelList faceId_;
 
-        // If operating on mesh faces (faceZone, patch)
+        //- Local list of patch ID per face
+        labelList facePatchId_;
 
-            //- Local list of face IDs
-            labelList faceId_;
+        //- List of +1/-1 representing face flip map (1 use as is, -1 negate)
+        labelList faceSign_;
 
-            //- Local list of patch ID per face
-            labelList facePatchId_;
-
-            //- List of +1/-1 representing face flip map
-            //  (1 use as is, -1 negate)
-            labelList faceSign_;
-
-
-        // If operating on sampledSurface
-
-            //- Underlying sampledSurface
-            autoPtr<sampledSurface> surfacePtr_;
+        //- Weight field name - only used for opWeightedAverage mode
+        word weightFieldName_;
 
 
-    // Protected Member Functions
+    // Protected member functions
 
         //- Initialise, e.g. face addressing
         void initialise(const dictionary& dict);
@@ -302,35 +171,19 @@ protected:
 
         //- Return field values by looking up field name
         template<class Type>
-        tmp<Field<Type> > getFieldValues
-        (
-            const word& fieldName,
-            const bool mustGet = false,
-            const bool applyOrientation = false
-        ) const;
+        tmp<Field<Type> > setFieldValues(const word& fieldName) const;
 
-        //- Apply the 'operation' to the values. Operation has to
-        //  preserve Type.
-        template<class Type>
-        Type processSameTypeValues
-        (
-            const Field<Type>& values,
-            const vectorField& Sf,
-            const scalarField& weightField
-        ) const;
-
-        //- Apply the 'operation' to the values. Wrapper around
-        //  processSameTypeValues. See also template specialisation below.
+        //- Apply the 'operation' to the values
         template<class Type>
         Type processValues
         (
             const Field<Type>& values,
-            const vectorField& Sf,
+            const scalarField& magSf,
             const scalarField& weightField
         ) const;
 
         //- Output file header information
-        virtual void writeFileHeader(const label i);
+        virtual void writeFileHeader();
 
 
 public:
@@ -353,7 +206,7 @@ public:
     virtual ~faceSource();
 
 
-    // Public Member Functions
+    // Public member functions
 
         // Access
 
@@ -380,12 +233,7 @@ public:
 
             //- Templated helper function to output field values
             template<class Type>
-            bool writeValues
-            (
-                const word& fieldName,
-                const scalarField& weightField,
-                const bool orient
-            );
+            bool writeValues(const word& fieldName);
 
             //- Filter a surface field according to faceIds
             template<class Type>
@@ -403,26 +251,6 @@ public:
                 const bool applyOrientation
             ) const;
 };
-
-
-//- Specialisation of processing scalars
-template<>
-scalar faceSource::processValues
-(
-    const Field<scalar>& values,
-    const vectorField& Sf,
-    const scalarField& weightField
-) const;
-
-
-//- Specialisation of processing vectors
-template<>
-vector faceSource::processValues
-(
-    const Field<vector>& values,
-    const vectorField& Sf,
-    const scalarField& weightField
-) const;
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

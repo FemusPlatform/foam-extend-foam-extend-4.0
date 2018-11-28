@@ -1,2 +1,0 @@
-c++DBUG     =
-c++OPT      = -O3 -march=armv8.1-a -mtune=thunderx2t99

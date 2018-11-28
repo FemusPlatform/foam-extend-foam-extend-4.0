@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ Class
 Description
     Specify a file to include if it exists. Expects a single string to follow.
 
-    The \c \#includeIfPresent directive is similar to the \c \#include
+    The @c \#includeIfPresent directive is similar to the @c \#include
     directive, but does not generate an error if the file does not exist.
 
 See Also

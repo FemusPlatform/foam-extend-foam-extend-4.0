@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -28,17 +28,14 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "objectRegistry.H"
 #include "foamTime.H"
 #include "OSspecific.H"
 #include "IStringStream.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-Foam::instantList Foam::Time::findTimes
-(
-    const fileName& directory,
-    const word& constantName
-)
+Foam::instantList Foam::Time::findTimes(const fileName& directory)
 {
     if (debug)
     {
@@ -57,7 +54,7 @@ Foam::instantList Foam::Time::findTimes
     bool haveConstant = false;
     forAll(dirEntries, i)
     {
-        if (dirEntries[i] == constantName)
+        if (dirEntries[i] == "constant")
         {
             Times[nTimes].value() = 0;
             Times[nTimes].name() = dirEntries[i];

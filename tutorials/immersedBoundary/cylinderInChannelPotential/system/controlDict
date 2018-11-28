@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.1                                |
+|  \\    /   O peration     | Version:     4.0                                |
 |   \\  /    A nd           | Web:         http://www.foam-extend.org         |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -17,21 +17,9 @@ FoamFile
 libs
 (
     "liblduSolvers.so"
-    "libfoam.so"
-    "libsurfMesh.so"
-    "libsampling.so"
-    "libimmersedBoundary.so"
 )
 
-Tolerances
-{
-    immersedBoundaryLiveFactor  0.05;
-//     immersedBoundaryNonOrthogonalFactor 0.5;
-}
-
-
-
-application     potentialFoam;
+application     potentialIbFoam;
 
 startFrom       startTime;
 

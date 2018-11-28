@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -38,9 +38,7 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef sigInt_H
-#define sigInt_H
-
+#include "OSspecific.H"
 #include <signal.h>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -62,24 +60,23 @@ class sigInt
 
     // Private Member Functions
 
-        static void sigHandler(int);
+        static void sigIntHandler(int);
 
 
 public:
 
     // Constructors
 
-        //- Construct null
         sigInt();
 
 
-    //- Destructor
-    ~sigInt();
+    // Destructor
+
+        ~sigInt();
 
 
     // Member functions
 
-        //- Activate SIGINT signal handler
         void set(const bool verbose);
 };
 
@@ -87,9 +84,5 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

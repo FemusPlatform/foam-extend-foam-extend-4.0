@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -82,35 +82,30 @@ triSurfaceSearch::triSurfaceSearch(const triSurface& surface)
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 // Determine inside/outside for samples
-bool triSurfaceSearch::calcInside(const point& p) const
-{
-    if (!tree().bb().contains(p))
-    {
-        return false;
-    }
-    else if
-    (
-        tree().getVolumeType(p)
-     == indexedOctree<treeDataTriSurface>::INSIDE
-    )
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-
-// Determine inside/outside for samples
 boolList triSurfaceSearch::calcInside(const pointField& samples) const
 {
     boolList inside(samples.size());
 
     forAll(samples, sampleI)
     {
-        inside[sampleI] = calcInside(samples[sampleI]);
+        const point& sample = samples[sampleI];
+
+        if (!tree().bb().contains(sample))
+        {
+            inside[sampleI] = false;
+        }
+        else if
+        (
+            tree().getVolumeType(sample)
+         == indexedOctree<treeDataTriSurface>::INSIDE
+        )
+        {
+            inside[sampleI] = true;
+        }
+        else
+        {
+            inside[sampleI] = false;
+        }
     }
 
     return inside;

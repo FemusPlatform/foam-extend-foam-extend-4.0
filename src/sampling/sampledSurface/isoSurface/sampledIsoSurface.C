@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -572,13 +572,13 @@ bool Foam::sampledIsoSurface::expire()
     facesPtr_.clear();
     subMeshPtr_.clear();
 
-    // Already marked as expired
+    // already marked as expired
     if (prevTimeIndex_ == -1)
     {
         return false;
     }
 
-    // Force update
+    // force update
     prevTimeIndex_ = -1;
     return true;
 }

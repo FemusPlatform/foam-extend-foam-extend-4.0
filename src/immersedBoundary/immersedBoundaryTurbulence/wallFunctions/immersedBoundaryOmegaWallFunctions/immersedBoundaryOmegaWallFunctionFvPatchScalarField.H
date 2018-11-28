@@ -22,7 +22,8 @@ License
     along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::incompressible::RASModels::omegaWallFunctionFvPatchScalarField
+    Foam::incompressible::RASModels::
+    immersedBoundaryOmegaWallFunctionFvPatchScalarField
 
 Description
     Provides a wall function boundary condition/constraint on omega
@@ -43,13 +44,6 @@ Description
         Nov. 2001
     @endverbatim
 
-Description
-    Boundary condition for omega when using wall functions
-    on immersed boundary patches
-
-Author
-    Hrvoje Jasak, Wikki Ltd.  All rights reserved
-
 SourceFiles
     immersedBoundaryOmegaWallFunctionFvPatchScalarField.C
 
@@ -58,8 +52,7 @@ SourceFiles
 #ifndef immersedBoundaryOmegaWallFunctionFvPatchScalarField_H
 #define immersedBoundaryOmegaWallFunctionFvPatchScalarField_H
 
-#include "omegaWallFunctionFvPatchScalarField.H"
-#include "immersedBoundaryFieldBase.H"
+#include "immersedBoundaryWallFunctionFvPatchFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -76,9 +69,38 @@ namespace RASModels
 
 class immersedBoundaryOmegaWallFunctionFvPatchScalarField
 :
-    public omegaWallFunctionFvPatchScalarField,
-    public immersedBoundaryFieldBase<scalar>
+    public immersedBoundaryWallFunctionFvPatchScalarField
 {
+    // Private data
+
+        //- Name of velocity field
+        word UName_;
+
+        //- Name of turbulence kinetic energy field
+        word kName_;
+
+        //- Name of turbulence generation field
+        word GName_;
+
+        //- Name of laminar viscosity field
+        word nuName_;
+
+        //- Name of turbulent viscosity field
+        word nutName_;
+
+        //- Cmu coefficient
+        scalar Cmu_;
+
+        //- Von Karman constant
+        scalar kappa_;
+
+        //- E coefficient
+        scalar E_;
+
+        //- beta1 coefficient
+        scalar beta1_;
+
+
 public:
 
     //- Runtime type information
@@ -103,7 +125,7 @@ public:
         );
 
         //- Construct by mapping given
-        // immersedBoundaryOmegaWallFunctionFvPatchScalarField
+        //  immersedBoundaryOmegaWallFunctionFvPatchScalarField
         //  onto a new patch
         immersedBoundaryOmegaWallFunctionFvPatchScalarField
         (
@@ -124,7 +146,10 @@ public:
         {
             return tmp<fvPatchScalarField>
             (
-                new immersedBoundaryOmegaWallFunctionFvPatchScalarField(*this)
+                new immersedBoundaryOmegaWallFunctionFvPatchScalarField
+                (
+                    *this
+                )
             );
         }
 
@@ -152,26 +177,12 @@ public:
         }
 
 
+    //- Destructor
+    virtual ~immersedBoundaryOmegaWallFunctionFvPatchScalarField()
+    {}
+
+
     // Member functions
-
-        // Mapping functions
-
-            //- Map (and resize as needed) from self given a mapping object
-            virtual void autoMap
-            (
-                const fvPatchFieldMapper&
-            );
-
-            //- Reverse map the given fvPatchField onto this fvPatchField
-            virtual void rmap
-            (
-                const fvPatchScalarField&,
-                const labelList&
-            );
-
-            //- Update on mesh motion
-            virtual void updateOnMotion();
-
 
         // Evaluation functions
 

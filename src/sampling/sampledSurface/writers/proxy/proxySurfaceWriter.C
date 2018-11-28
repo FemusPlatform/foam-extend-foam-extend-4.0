@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -29,34 +29,27 @@ License
 #include "OFstream.H"
 #include "OSspecific.H"
 
-#include "makeSurfaceWriterMethods.H"
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-namespace Foam
-{
-    defineTypeNameAndDebug(proxySurfaceWriter, 0);
-}
-
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::proxySurfaceWriter::proxySurfaceWriter(const word& ext)
+template<class Type>
+Foam::proxySurfaceWriter<Type>::proxySurfaceWriter(const word& ext)
 :
-    surfaceWriter(),
+    surfaceWriter<Type>(),
     ext_(ext)
 {}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::proxySurfaceWriter::~proxySurfaceWriter()
+template<class Type>
+Foam::proxySurfaceWriter<Type>::~proxySurfaceWriter()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::proxySurfaceWriter::write
+template<class Type>
+void Foam::proxySurfaceWriter<Type>::write
 (
     const fileName& outputDir,
     const fileName& surfaceName,
@@ -76,14 +69,19 @@ void Foam::proxySurfaceWriter::write
         mkDir(outputDir);
     }
 
-    fileName outName(outputDir/surfaceName + "." + ext_);
+    fileName fName(outputDir/surfaceName + "." + ext_);
 
     if (verbose)
     {
-        Info<< "Writing geometry to " << outName << endl;
+        Info<< "Writing geometry to " << fName << endl;
     }
 
-    MeshedSurfaceProxy<face>(points, faces).write(outName);
+    MeshedSurfaceProxy<face>
+    (
+        points,
+        faces
+    ).write(fName);
+
 }
 
 

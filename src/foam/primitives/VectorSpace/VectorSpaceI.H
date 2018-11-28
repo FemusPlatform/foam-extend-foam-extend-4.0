@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -319,7 +319,7 @@ inline scalar mag
     const VectorSpace<Form, Cmpt, nCmpt>& vs
 )
 {
-    return sqrt(magSqr(static_cast<const Form&>(vs)));
+    return ::sqrt(magSqr(static_cast<const Form&>(vs)));
 }
 
 
@@ -332,19 +332,6 @@ inline VectorSpace<Form, Cmpt, nCmpt> cmptMultiply
 {
     Form v;
     VectorSpaceOps<nCmpt, 0>::op(v, vs1, vs2, cmptMultiplyOp<Cmpt>());
-    return v;
-}
-
-
-template<class Form, class Cmpt, int nCmpt>
-inline VectorSpace<Form, Cmpt, nCmpt> cmptPow
-(
-    const VectorSpace<Form, Cmpt, nCmpt>& vs1,
-    const VectorSpace<Form, Cmpt, nCmpt>& vs2
-)
-{
-    Form v;
-    VectorSpaceOps<nCmpt, 0>::op(v, vs1, vs2, cmptPowOp<Cmpt>());
     return v;
 }
 

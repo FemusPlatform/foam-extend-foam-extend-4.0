@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ lduSolverPerformance faMatrix<Type>::solve(const dictionary& solverControls)
             << endl;
     }
 
-    BlockSolverPerformance<Type> solverPerfVec
+    lduSolverPerformance solverPerfVec
     (
         "faMatrix<Type>::solve",
         psi_.name()
@@ -84,7 +84,7 @@ lduSolverPerformance faMatrix<Type>::solve(const dictionary& solverControls)
         // copy field and source
 
         scalarField psiCmpt = psi_.internalField().component(cmpt);
-        addBoundaryDiag(diag(), cmpt);
+        addBoundaryDiag(diag(), solvingComponent);
 
         scalarField sourceCmpt = source.component(cmpt);
 
@@ -134,7 +134,14 @@ lduSolverPerformance faMatrix<Type>::solve(const dictionary& solverControls)
 
         solverPerf.print();
 
-        solverPerfVec.replace(cmpt, solverPerf);
+        if
+        (
+            solverPerf.initialResidual() > solverPerfVec.initialResidual()
+         && !solverPerf.singular()
+        )
+        {
+            solverPerfVec = solverPerf;
+        }
 
         psi.internalField().replace(cmpt, psiCmpt);
         diag() = saveDiag;
@@ -142,11 +149,15 @@ lduSolverPerformance faMatrix<Type>::solve(const dictionary& solverControls)
 
     psi.correctBoundaryConditions();
 
-    psi_.mesh().solutionDict().setSolverPerformance(psi_.name(), solverPerfVec);
-
-    return solverPerfVec.max();
+    return solverPerfVec;
 }
 
+
+template<class Type>
+autoPtr<typename faMatrix<Type>::faSolver> faMatrix<Type>::solver()
+{
+    return solver(psi_.mesh().solutionDict().solverDict(psi_.name()));
+}
 
 template<class Type>
 lduSolverPerformance faMatrix<Type>::faSolver::solve()

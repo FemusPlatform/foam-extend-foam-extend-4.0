@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,11 +24,8 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "cyclicFvPatch.H"
-#include "fvMesh.H"
-#include "fvPatchFields.H"
-#include "fvsPatchFields.H"
-#include "slicedSurfaceFields.H"
 #include "addToRunTimeSelectionTable.H"
+#include "fvMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -43,18 +40,8 @@ addToRunTimeSelectionTable(fvPatch, cyclicFvPatch, polyPatch);
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-// Make mesh cell centres.  Moved from fvMeshGeometry
-void cyclicFvPatch::makeC(slicedSurfaceVectorField& C) const
-{
-    C.boundaryField()[index()].UList<vector>::operator=
-    (
-        patchSlice(cyclicPolyPatch_.boundaryMesh().mesh().faceCentres())
-    );
-}
-
-
 // Make patch weighting factors
-void cyclicFvPatch::makeWeights(fvsPatchScalarField& w) const
+void cyclicFvPatch::makeWeights(scalarField& w) const
 {
     const scalarField& magFa = magSf();
 
@@ -102,7 +89,7 @@ void cyclicFvPatch::makeWeights(fvsPatchScalarField& w) const
     {
         scalar avFa = (magFa[errorFace] + magFa[errorFace + sizeby2])/2.0;
 
-        FatalErrorIn("cyclicFvPatch::makeWeights(fvsPatchScalarField& w) const")
+        FatalErrorIn("cyclicFvPatch::makeWeights(scalarField& w) const")
             << "face " << errorFace << " and " << errorFace + sizeby2
             <<  " areas do not match by "
             << 100*mag(magFa[errorFace] - magFa[errorFace + sizeby2])/avFa
@@ -115,7 +102,7 @@ void cyclicFvPatch::makeWeights(fvsPatchScalarField& w) const
 
 
 // Make patch face - neighbour cell distances
-void cyclicFvPatch::makeDeltaCoeffs(fvsPatchScalarField& dc) const
+void cyclicFvPatch::makeDeltaCoeffs(scalarField& dc) const
 {
     vectorField d = delta();
     vectorField n = nf();

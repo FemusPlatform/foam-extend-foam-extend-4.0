@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -50,11 +50,10 @@ laminar::laminar
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
-    const word& turbulenceModelName
+    transportModel& lamTransportModel
 )
 :
-    turbulenceModel(U, phi, transport, turbulenceModelName)
+    turbulenceModel(U, phi, lamTransportModel)
 {}
 
 
@@ -64,14 +63,10 @@ autoPtr<laminar> laminar::New
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
-    const word& turbulenceModelName
+    transportModel& lamTransportModel
 )
 {
-    return autoPtr<laminar>
-    (
-        new laminar(U, phi, transport, turbulenceModelName)
-    );
+    return autoPtr<laminar>(new laminar(U, phi, lamTransportModel));
 }
 
 

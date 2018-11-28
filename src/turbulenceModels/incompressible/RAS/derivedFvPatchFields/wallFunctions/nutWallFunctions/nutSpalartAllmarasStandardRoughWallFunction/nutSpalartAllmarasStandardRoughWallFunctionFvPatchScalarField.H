@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,9 +26,7 @@ Class
     nutSpalartAllmarasStandardRoughWallFunctionFvPatchScalarField
 
 Description
-    This boundary condition is the same as nutURoughWallFunction. We will simply
-    derive from nutURoughWallFunctionFvPatchScalarField to enable backward
-    compatibility.
+    Wall function boundary condition for rough walls
 
 SourceFiles
     nutSpalartAllmarasStandardWallFunctionFvPatchScalarField.C
@@ -38,7 +36,7 @@ SourceFiles
 #ifndef nutSpalartAllmarasStandardRoughWallFunctionFvPatchScalarField_H
 #define nutSpalartAllmarasStandardRoughWallFunctionFvPatchScalarField_H
 
-#include "nutURoughWallFunctionFvPatchScalarField.H"
+#include "nutWallFunctionFvPatchScalarField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -55,8 +53,31 @@ Class nutSpalartAllmarasStandardRoughWallFunctionFvPatchScalarField Declaration
 
 class nutSpalartAllmarasStandardRoughWallFunctionFvPatchScalarField
 :
-    public nutURoughWallFunctionFvPatchScalarField
+    public nutWallFunctionFvPatchScalarField
 {
+    // Private data
+
+        // Roughness model parameters
+
+            //- Height
+            scalar roughnessHeight_;
+
+            //- Constant
+            scalar roughnessConstant_;
+
+            //- Scale factor
+            scalar roughnessFudgeFactor_;
+
+
+    // Protected member functions
+
+        //- Calculate yPLus
+        virtual tmp<scalarField> calcYPlus(const scalarField& magUp) const;
+
+        //- Calculate the turbulence viscosity
+        virtual tmp<scalarField> calcNut() const;
+
+
 public:
 
     //- Runtime type information
@@ -131,6 +152,63 @@ public:
                 )
             );
         }
+
+
+    // Member functions
+
+        // Access
+
+            //- Return the roughness height
+            const scalar& roughnessHeight() const
+            {
+                return roughnessHeight_;
+            }
+
+            //- Return reference to the roughness height to allow adjustment
+            scalar& roughnessHeight()
+            {
+                return roughnessHeight_;
+            }
+
+
+            //- Return the roughness constant scale
+            const scalar& roughnessConstant() const
+            {
+                return roughnessConstant_;
+            }
+
+            //- Return reference to the roughness constant to allow adjustment
+            scalar& roughnessConstant()
+            {
+                return roughnessConstant_;
+            }
+
+            //- Return the roughness scale factor
+            const scalar& roughnessFudgeFactor() const
+            {
+                return roughnessFudgeFactor_;
+            }
+
+            //- Return reference to the roughness scale factor to allow
+            //  adjustment
+            scalar& roughnessFudgeFactor()
+            {
+                return roughnessFudgeFactor_;
+            }
+
+
+    // I-O
+
+        // Evaluation functions
+
+            //- Calculate and return the yPlus at the boundary
+            virtual tmp<scalarField> yPlus() const;
+
+
+        // I-O
+
+            //- Write
+            virtual void write(Ostream& os) const;
 };
 
 

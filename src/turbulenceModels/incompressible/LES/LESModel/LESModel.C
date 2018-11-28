@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -57,11 +57,10 @@ LESModel::LESModel
     const word& type,
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
-    const word& turbulenceModelName
+    transportModel& lamTransportModel
 )
 :
-    turbulenceModel(U, phi, transport, turbulenceModelName),
+    turbulenceModel(U, phi, lamTransportModel),
 
     IOdictionary
     (
@@ -70,7 +69,7 @@ LESModel::LESModel
             "LESProperties",
             U.time().constant(),
             U.db(),
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE
         )
     ),
@@ -95,8 +94,7 @@ autoPtr<LESModel> LESModel::New
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
-    const word& turbulenceModelName
+    transportModel& transport
 )
 {
     word modelName;
@@ -112,9 +110,8 @@ autoPtr<LESModel> LESModel::New
                 "LESProperties",
                 U.time().constant(),
                 U.db(),
-                IOobject::MUST_READ_IF_MODIFIED,
-                IOobject::NO_WRITE,
-                false
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE
             )
         );
 
@@ -139,10 +136,7 @@ autoPtr<LESModel> LESModel::New
             << exit(FatalError);
     }
 
-    return autoPtr<LESModel>
-    (
-        cstrIter()(U, phi, transport, turbulenceModelName)
-    );
+    return autoPtr<LESModel>(cstrIter()(U, phi, transport));
 }
 
 
@@ -163,22 +157,7 @@ void LESModel::correct()
 
 bool LESModel::read()
 {
-    //if (regIOobject::read())
-
-    // Bit of trickery : we are both IOdictionary ('RASProperties') and
-    // an regIOobject from the turbulenceModel level. Problem is to distinguish
-    // between the two - we only want to reread the IOdictionary.
-
-    bool ok = IOdictionary::readData
-    (
-        IOdictionary::readStream
-        (
-            IOdictionary::type()
-        )
-    );
-    IOdictionary::close();
-
-    if (ok)
+    if (regIOobject::read())
     {
         if (const dictionary* dictPtr = subDictPtr(type() + "Coeffs"))
         {

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,8 +26,7 @@ Class
 
 Author
     Dubravko Matijasevic, FSB Zagreb.  All rights reserved.
-    Hrvoje Jasak, FSB Zagreb.  All rights reserved.
-    Vuko Vukcevic, FSB Zagreb.  All rights reserved.
+    Updated by Hrvoje Jasak
 
 Description
     Rotation defined with 4 parameters: quaternions.
@@ -67,13 +66,13 @@ class HamiltonRodriguezRot
         scalarRectangularMatrix Gt_;
 
         //- Inertial to rotated coordinate system transformation
-        tensor R_;
+        mutable tensor R_;
 
 
     // Private member functions
 
         //- Calculate R_ - inertial to body coord. sys. rotation
-        inline void calculateR()
+        inline void calculateR() const
         {
             R_.xx() = 2*(e1_*e1_ + e0_*e0_ - 0.5);
             R_.xy() = 2*(e1_*e2_ + e0_*e3_);
@@ -134,7 +133,11 @@ public:
         }
 
         //- Construct from rotation vector and angle
-        HamiltonRodriguezRot(const vector& rVect, const scalar& rAngle)
+        explicit HamiltonRodriguezRot
+        (
+            const vector& rVect,
+            const scalar& rAngle
+        )
         :
             Gt_(4, 3),
             R_(tensor::zero)
@@ -158,29 +161,6 @@ public:
             e3_ = Foam::sin(0.5*rAngle)*r.z();
 
             calculateR();
-            calculateGt();
-        }
-
-        //- Construct from rotation tensor
-        explicit HamiltonRodriguezRot(const tensor& R)
-        :
-            Gt_(4, 3),
-            R_(R)
-        {
-            // Calculate Hamilton - Rodriguez (Euler) parameters from rotation
-            // matrix
-
-            // Note: sign of e0_ assumed positive
-            e0_ = Foam::sqrt((tr(R) + 1.0)/4.0);
-
-            // Helper variable
-            const scalar oneByFourEo = 1.0/(4.0*e0_);
-
-            e1_ = oneByFourEo*(R.zy() - R.yz());
-            e2_ = oneByFourEo*(R.xz() - R.zx());
-            e3_ = oneByFourEo*(R.yx() - R.xy());
-
-            // Calculate Gt
             calculateGt();
         }
 

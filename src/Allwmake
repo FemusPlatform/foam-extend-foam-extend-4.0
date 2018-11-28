@@ -39,13 +39,9 @@ wmake libso meshTools
 wmake libso finiteVolume
 wmake libso finiteArea
 
-conversion/Allwmake
 wmake libso lduSolvers
 
 wmake libso tetFiniteElement
-
-# We can now compile this library from decompositionMethods
-wmake libso decompositionMethods/decomposeReconstruct
 
 # Make dynamicMesh tools
 dynamicMesh/AllwmakeLnInclude
@@ -66,6 +62,7 @@ lagrangian/Allwmake
 wmake libso conjugateHeatTransfer
 
 postProcessing/Allwmake
+conversion/Allwmake
 
 wmake libso errorEstimation
 
@@ -81,10 +78,8 @@ wmake libso dbns
 
 wmake libso immersedBoundary/immersedBoundary
 wmake libso immersedBoundary/immersedBoundaryTurbulence
+wmake libso immersedBoundary/immersedBoundaryForce
 wmake libso immersedBoundary/immersedBoundaryDynamicMesh
-
-wmake libso overset/oversetMesh
-wmake libso overset/oversetDynamicFvMesh
 
 ( cd cudaSolvers ; ./Allwmake )
 

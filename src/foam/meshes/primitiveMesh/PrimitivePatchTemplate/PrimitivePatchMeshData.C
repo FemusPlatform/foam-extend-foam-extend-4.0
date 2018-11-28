@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -376,42 +376,43 @@ template
 >
 void
 Foam::PrimitivePatch<Face, FaceList, PointField, PointType>::
-calcFaceAreas() const
+calcFaceNormals() const
 {
     if (debug)
     {
         Pout<< "PrimitivePatch<Face, FaceList, PointField, PointType>::"
-               "calcFaceAreas() : "
-               "calculating faceAreas in PrimitivePatch"
+               "calcFaceNormals() : "
+               "calculating faceNormals in PrimitivePatch"
             << endl;
     }
 
-    // It is considered an error to attempt to recalculate faceAreas
+    // It is considered an error to attempt to recalculate faceNormals
     // if they have already been calculated.
-    if (faceAreasPtr_)
+    if (faceNormalsPtr_)
     {
         FatalErrorIn
         (
             "PrimitivePatch<Face, FaceList, PointField, PointType>::"
-            "calcFaceAreas()"
-        )   << "faceAreasPtr_ already allocated"
+            "calcFaceNormals()"
+        )   << "faceNormalsPtr_ already allocated"
             << abort(FatalError);
     }
 
-    faceAreasPtr_ = new Field<PointType>(this->size());
+    faceNormalsPtr_ = new Field<PointType>(this->size());
 
-    Field<PointType>& n = *faceAreasPtr_;
+    Field<PointType>& n = *faceNormalsPtr_;
 
     forAll (n, faceI)
     {
         n[faceI] = this->operator[](faceI).normal(points_);
+        n[faceI] /= mag(n[faceI]) + VSMALL;
     }
 
     if (debug)
     {
         Pout<< "PrimitivePatch<Face, FaceList, PointField, PointType>::"
-               "calcFaceAreas() : "
-               "finished calculating faceAreas in PrimitivePatch"
+               "calcFaceNormals() : "
+               "finished calculating faceNormals in PrimitivePatch"
             << endl;
     }
 }

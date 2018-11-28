@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -56,6 +56,9 @@ class globalPointPatch
 {
     // Private data
 
+        // //- Reference to the basic globalMeshData
+        // const globalMeshData& globalMeshData_;
+
         //- Index in the boundary mesh
         label index_;
 
@@ -106,7 +109,6 @@ public:
     //- Runtime type information
     TypeName("global");
 
-
     // Constructors
 
         //- Construct from components
@@ -117,8 +119,9 @@ public:
         );
 
 
-    //- Destructor
-    virtual ~globalPointPatch();
+    // Destructor
+
+        virtual ~globalPointPatch();
 
 
     // Member functions
@@ -148,15 +151,6 @@ public:
             {
                 return false;
             }
-        }
-
-        //- Does this side own the patch ?
-        //  HACKED: the patch contains both master and slave
-        //  This influences parallel Cholesky and ILU preconditioning
-        //  HJ, 22/Jun/2017
-        virtual bool master() const
-        {
-            return true;
         }
 
         //- Return number of faces

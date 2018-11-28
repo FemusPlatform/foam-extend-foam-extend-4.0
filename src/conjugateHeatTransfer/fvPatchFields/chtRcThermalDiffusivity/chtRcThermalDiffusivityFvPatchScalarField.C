@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -35,7 +35,6 @@ Author
 #include "harmonic.H"
 #include "radiationConstants.H"
 #include "VectorN.H"
-#include "basicThermo.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -104,72 +103,15 @@ void Foam::chtRcThermalDiffusivityFvPatchScalarField::updateCoeffs()
         return;
     }
 
-    if
-    (
-        dimensionedInternalField().dimensions()
-     == dimensionSet(1, -1, -1, 0, 0, 0, 0)
-    )
-    {
-        const label patchi = patch().index();
-
-        const basicThermo& thermo = db().lookupObject<basicThermo>
-        (
-            "thermophysicalProperties"
-        );
-
-        const scalarField Tw = lookupPatchField<volScalarField, scalar>("T");
-
-        // Note: BUG work-around
-        // Selection of enthaly field cannot just rely on dimensions
-        // Appropriate function should be added into basicThermo
-        // which identifies the active form or enthalpy at run-time
-        // in order to avoid nonImplemented virtual function call
-        // Fix it.  HJ, 15/Jun/2018
-        if (this->db().objectRegistry::foundObject<volScalarField>("h"))
-        {
-            const chtRcTemperatureFvPatchScalarField& h =
-                refCast<const chtRcTemperatureFvPatchScalarField>
-                (
-                    thermo.h().boundaryField()[patchi]
-                );
-
-            *this == calcThermalDiffusivity(*this, shadowPatchField(), h)
-            /thermo.Cp(Tw, patchi);
-        }
-        else if
-        (
-            this->db().objectRegistry::foundObject<volScalarField>("hs")
-        )
-        {
-            const chtRcTemperatureFvPatchScalarField& hs =
-                refCast<const chtRcTemperatureFvPatchScalarField>
-                (
-                    thermo.hs().boundaryField()[patchi]
-                );
-
-            *this == calcThermalDiffusivity(*this, shadowPatchField(), hs)
-                /thermo.Cp(Tw, patchi);
-        }
-        else
-        {
-            FatalErrorIn
-            (
-                "void fixedFluxPressureFvPatchScalarField::updateCoeffs()"
-            )   << "Cannot find enthalpy for field "
-                << dimensionedInternalField().name() << " on patch "
-                << patch().name()
-                << abort(FatalError);
-        }
-    }
+    calcThermalDiffusivity(*this, shadowPatchField());
 }
 
 
-Foam::tmp<Foam::scalarField>
+void
 Foam::chtRcThermalDiffusivityFvPatchScalarField::calcThermalDiffusivity
 (
-    const chtRegionCoupleBase& owner,
-    const chtRegionCoupleBase& neighbour,
-    const chtRcTemperatureFvPatchScalarField& TwOwn
+    chtRegionCoupleBase& owner,
+    const chtRegionCoupleBase& neighbour
 ) const
 {
     if (debug)
@@ -186,8 +128,14 @@ Foam::chtRcThermalDiffusivityFvPatchScalarField::calcThermalDiffusivity
     const fvMesh& mesh = p.boundaryMesh().mesh();
     const magLongDelta& mld = magLongDelta::New(mesh);
 
-    const scalarField fOwn = owner.forig();
-    const scalarField TcOwn = TwOwn.Tc();
+    const chtRcTemperatureFvPatchScalarField& TwOwn =
+        dynamic_cast<const chtRcTemperatureFvPatchScalarField&>
+        (
+            p.lookupPatchField<volScalarField, scalar>("T")
+        );
+    scalarField& k = owner;
+    const scalarField& fOwn = owner.originalPatchField();
+    const scalarField TcOwn = TwOwn.patchInternalField();
 
     scalarField fNei(p.size());
     scalarField TcNei(p.size());
@@ -198,39 +146,35 @@ Foam::chtRcThermalDiffusivityFvPatchScalarField::calcThermalDiffusivity
     if (TwOwn.radiation())
     {
         Qr += p.lookupPatchField<volScalarField, scalar>("Qr");
-        fourQro += 4.0*radiation::sigmaSB.value()*pow4(TwOwn.Tw());
+        fourQro += 4.0*radiation::sigmaSB.value()*pow4(TwOwn);
     }
 
     {
-        Field<VectorN<scalar, 4> > lData(neighbour.size());
+        Field<VectorN<scalar, 4> > lData
+        (
+            neighbour.size(),
+            pTraits<VectorN<scalar, 4> >::zero
+        );
 
-        const scalarField lfNei = neighbour.forig();
-        const scalarField lTcNei = TwOwn.shadowPatchField().Tc();
+        const scalarField& lfNei = neighbour.originalPatchField();
+        scalarField lTcNei = TwOwn.shadowPatchField().patchInternalField();
 
-        forAll(lData, facei)
+        forAll (lData, facei)
         {
             lData[facei][0] = lTcNei[facei];
             lData[facei][1] = lfNei[facei];
         }
 
-        if(TwOwn.shadowPatchField().radiation())
+        if (TwOwn.shadowPatchField().radiation())
         {
-            const scalarField& lTwNei = TwOwn.shadowPatchField().Tw();
             const scalarField& lQrNei =
                 owner.lookupShadowPatchField<volScalarField, scalar>("Qr");
+            const scalarField& lTwNei = TwOwn.shadowPatchField();
 
             forAll (lData, facei)
             {
                 lData[facei][2] = lTwNei[facei];
                 lData[facei][3] = lQrNei[facei];
-            }
-        }
-        else
-        {
-            forAll (lData, facei)
-            {
-                lData[facei][2] = 0.0;
-                lData[facei][3] = 0.0;
             }
         }
 
@@ -261,26 +205,26 @@ Foam::chtRcThermalDiffusivityFvPatchScalarField::calcThermalDiffusivity
 
     const scalarField kOwn = fOwn/(1.0 - p.weights())/mld.magDelta(p.index());
     const scalarField kNei = fNei/p.weights()/mld.magDelta(p.index());
- 
-    tmp<scalarField> kTmp(new scalarField(p.size()));
-    scalarField& k = kTmp();
 
-    k = kOwn*(kNei + Qr/stabilise(TcNei - TcOwn, SMALL));
-    k /= p.deltaCoeffs()*(kOwn + kNei);
+    k = kOwn*(TwOwn*(kNei*(TcNei - TcOwn) + Qr + fourQro) - TcOwn*fourQro);
+    k /= stabilise((fourQro + TwOwn*(kOwn + kNei))*(TcNei - TcOwn), SMALL);
+    k /= p.deltaCoeffs();
+
+    //Info << "k = " << k << endl;
 
     forAll (k, facei)
     {
         k[facei] = max(min(k[facei], 100*kHarm[facei]), 0.01*kHarm[facei]);
     }
 
-    return kTmp;
+    owner.fvPatchScalarField::updateCoeffs();
 }
 
 
-Foam::tmp<Foam::scalarField>
+void
 Foam::chtRcThermalDiffusivityFvPatchScalarField::calcTemperature
 (
-    const chtRcTemperatureFvPatchScalarField& TwOwn,
+    chtRcTemperatureFvPatchScalarField& TwOwn,
     const chtRcTemperatureFvPatchScalarField& neighbour,
     const chtRegionCoupleBase& ownerK
 ) const
@@ -299,8 +243,8 @@ Foam::chtRcThermalDiffusivityFvPatchScalarField::calcTemperature
     const fvMesh& mesh = p.boundaryMesh().mesh();
     const magLongDelta& mld = magLongDelta::New(mesh);
 
-    const scalarField fOwn = ownerK.forig();
-    const scalarField TcOwn = TwOwn.Tc();
+    const scalarField& fOwn = ownerK.originalPatchField();
+    const scalarField TcOwn = TwOwn.patchInternalField();
 
     scalarField fNei(p.size());
     scalarField TcNei(p.size());
@@ -311,14 +255,20 @@ Foam::chtRcThermalDiffusivityFvPatchScalarField::calcTemperature
     if (TwOwn.radiation())
     {
         Qr += p.lookupPatchField<volScalarField, scalar>("Qr");
-        fourQro += 4.0*radiation::sigmaSB.value()*pow4(TwOwn.Tw());
+        fourQro += 4.0*radiation::sigmaSB.value()*pow4(TwOwn);
     }
 
     {
-        Field<VectorN<scalar, 4> > lData(neighbour.size());
+        Field<VectorN<scalar, 4> > lData
+        (
+            neighbour.size(),
+            pTraits<VectorN<scalar, 4> >::zero
+        );
 
-        const scalarField lfNei = ownerK.shadowPatchField().forig();
-        const scalarField lTcNei = TwOwn.shadowPatchField().Tc();
+        const scalarField& lfNei =
+            ownerK.shadowPatchField().originalPatchField();
+        scalarField lTcNei =
+            TwOwn.shadowPatchField().patchInternalField();
 
         forAll (lData, facei)
         {
@@ -328,7 +278,7 @@ Foam::chtRcThermalDiffusivityFvPatchScalarField::calcTemperature
 
         if (TwOwn.shadowPatchField().radiation())
         {
-            const scalarField& lTwNei = TwOwn.shadowPatchField().Tw();
+            const scalarField& lTwNei = TwOwn.shadowPatchField();
             const scalarField& lQrNei =
                 TwOwn.lookupShadowPatchField<volScalarField, scalar>("Qr");
 
@@ -336,14 +286,6 @@ Foam::chtRcThermalDiffusivityFvPatchScalarField::calcTemperature
             {
                 lData[facei][2] = lTwNei[facei];
                 lData[facei][3] = lQrNei[facei];
-            }
-        }
-        else
-        {
-            forAll (lData, facei)
-            {
-                lData[facei][2] = 0.0;
-                lData[facei][3] = 0.0;
             }
         }
 
@@ -367,26 +309,14 @@ Foam::chtRcThermalDiffusivityFvPatchScalarField::calcTemperature
         }
     }
 
-    // Do interpolation
-    harmonic<scalar> interp(mesh);
-    scalarField weights = interp.weights(fOwn, fNei, p);
-    const scalarField kHarm = weights*fOwn + (1.0 - weights)*fNei;
-
     const scalarField kOwn = fOwn/(1.0 - p.weights())/mld.magDelta(p.index());
     const scalarField kNei = fNei/p.weights()/mld.magDelta(p.index());
 
-    tmp<scalarField> TwTmp(new scalarField(TwOwn.Tw()));
-    scalarField& Tw = TwTmp();
+    TwOwn *=
+        (fourQro + Qr + kOwn*TcOwn + kNei*TcNei)
+       /(TwOwn*(kOwn + kNei) + fourQro);
 
-    Tw = (Qr + kOwn*TcOwn + kNei*TcNei)/(kOwn + kNei);
-
-    scalarField q1 = (Tw - TcOwn)*kOwn;
-
-    scalarField q2 = (TcNei - Tw)*kNei;
-
-    scalarField q3 = (TcNei - TcOwn)*ownerK*p.deltaCoeffs();
-
-    return TwTmp;
+    TwOwn.fvPatchScalarField::updateCoeffs();
 }
 
 

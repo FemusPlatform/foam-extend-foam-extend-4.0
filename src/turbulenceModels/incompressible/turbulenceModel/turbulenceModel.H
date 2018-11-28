@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -49,7 +49,6 @@ SourceFiles
 #include "surfaceFieldsFwd.H"
 #include "fvMatricesFwd.H"
 #include "incompressible/transportModel/transportModel.H"
-#include "nearWallDist.H"
 #include "autoPtr.H"
 #include "runTimeSelectionTables.H"
 
@@ -69,8 +68,6 @@ namespace incompressible
 \*---------------------------------------------------------------------------*/
 
 class turbulenceModel
-:
-    public regIOobject
 {
 
 protected:
@@ -84,9 +81,6 @@ protected:
         const surfaceScalarField& phi_;
 
         transportModel& transportModel_;
-
-        //- Near wall distance boundary field
-        nearWallDist y_;
 
 
 private:
@@ -108,6 +102,7 @@ public:
 
     // Declare run-time New selection table
 
+#ifndef SWIG
         declareRunTimeNewSelectionTable
         (
             autoPtr,
@@ -116,11 +111,11 @@ public:
             (
                 const volVectorField& U,
                 const surfaceScalarField& phi,
-                transportModel& transport,
-                const word& turbulenceModelName
+                transportModel& lamTransportModel
             ),
-            (U, phi, transport, turbulenceModelName)
+            (U, phi, lamTransportModel)
         );
+#endif
 
 
     // Constructors
@@ -130,8 +125,7 @@ public:
         (
             const volVectorField& U,
             const surfaceScalarField& phi,
-            transportModel& transport,
-            const word& turbulenceModelName = typeName
+            transportModel& lamTransportModel
         );
 
 
@@ -142,8 +136,7 @@ public:
         (
             const volVectorField& U,
             const surfaceScalarField& phi,
-            transportModel& transport,
-            const word& turbulenceModelName = typeName
+            transportModel& lamTransportModel
         );
 
 
@@ -171,12 +164,6 @@ public:
         inline transportModel& transport() const
         {
             return transportModel_;
-        }
-
-        //- Return the near wall distances
-        const nearWallDist& y() const
-        {
-            return y_;
         }
 
         //- Return the laminar viscosity
@@ -211,12 +198,6 @@ public:
 
         //- Read turbulenceProperties dictionary
         virtual bool read() = 0;
-
-        //- Default dummy write function
-        virtual bool writeData(Ostream&) const
-        {
-            return true;
-        }
 };
 
 

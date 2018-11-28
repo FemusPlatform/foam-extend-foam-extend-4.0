@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -58,11 +58,10 @@ LESModel::LESModel
     const volScalarField& rho,
     const volVectorField& U,
     const surfaceScalarField& phi,
-    const basicThermo& thermoPhysicalModel,
-    const word& turbulenceModelName
+    const basicThermo& thermoPhysicalModel
 )
 :
-    turbulenceModel(rho, U, phi, thermoPhysicalModel, turbulenceModelName),
+    turbulenceModel(rho, U, phi, thermoPhysicalModel),
 
     IOdictionary
     (
@@ -71,7 +70,7 @@ LESModel::LESModel
             "LESProperties",
             U.time().constant(),
             U.db(),
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE
         )
     ),
@@ -98,8 +97,7 @@ autoPtr<LESModel> LESModel::New
     const volScalarField& rho,
     const volVectorField& U,
     const surfaceScalarField& phi,
-    const basicThermo& thermoPhysicalModel,
-    const word& turbulenceModelName
+    const basicThermo& thermoPhysicalModel
 )
 {
     word modelName;
@@ -115,7 +113,7 @@ autoPtr<LESModel> LESModel::New
                 "LESProperties",
                 U.time().constant(),
                 U.db(),
-                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::MUST_READ,
                 IOobject::NO_WRITE
             )
         );
@@ -141,10 +139,7 @@ autoPtr<LESModel> LESModel::New
             << exit(FatalError);
     }
 
-    return autoPtr<LESModel>
-    (
-        cstrIter()(rho, U, phi, thermoPhysicalModel, turbulenceModelName)
-    );
+    return autoPtr<LESModel>(cstrIter()(rho, U, phi, thermoPhysicalModel));
 }
 
 
@@ -152,7 +147,6 @@ autoPtr<LESModel> LESModel::New
 
 void LESModel::correct(const tmp<volTensorField>&)
 {
-    turbulenceModel::correct();
     delta_().correct();
 }
 
@@ -165,20 +159,7 @@ void LESModel::correct()
 
 bool LESModel::read()
 {
-    // Bit of trickery : we are both IOdictionary ('RASProperties') and
-    // an regIOobject (from the turbulenceModel). Problem is to distinguish
-    // between the two - we only want to reread the IOdictionary.
-
-    bool ok = IOdictionary::readData
-    (
-        IOdictionary::readStream
-        (
-            IOdictionary::type()
-        )
-    );
-    IOdictionary::close();
-
-    if (ok)
+    if (regIOobject::read())
     {
         if (const dictionary* dictPtr = subDictPtr(type() + "Coeffs"))
         {

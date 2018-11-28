@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,8 +25,7 @@ Class
     Foam::fv::steadyInertialDdtScheme
 
 Description
-    Stabilised local time-step first-order Euler implicit/explicit ddt
-    for intertially relaxed steady-state simulations.
+    Stabilised local time-step first-order Euler implicit/explicit ddt.
     The time-step is adjusted locally so that an advective equations remains
     diagonally dominant.
 
@@ -35,9 +34,6 @@ Description
     under-relaxation for transport consistency reasons.
 
     See also CoEulerDdtScheme.
-
-Author
-    Hrvoje Jasak, Wikki Ltd.  All rights reserved.
 
 SourceFiles
     steadyInertialDdtScheme.C
@@ -70,13 +66,8 @@ class steadyInertialDdtScheme
 {
     // Private Data
 
-        //- Name of the flux field used to calculate the local
-        //  convective time-step
+        //- Name of the flux field used to calculate the local time-step
         word phiName_;
-
-        //- Name of the diffusivity field used to calculate the local
-        //  diffusive time-step
-        word nuName_;
 
         //- Name of the density field used to obtain the volumetric flux
         //  from the mass flux if required
@@ -98,19 +89,7 @@ class steadyInertialDdtScheme
         tmp<volScalarField> CorDeltaT() const;
 
         //- Return the reciprocal of the face-Courant-number limited time-step
-        //  for convective transport
-        tmp<surfaceScalarField> convectionCofrDeltaT() const;
-
-        //- Return the reciprocal of the face-Courant-number limited time-step
-        //  for diffusive transport
-        tmp<surfaceScalarField> diffusionCofrDeltaT() const;
-
-        //- Return the reciprocal of the face-Courant-number limited time-step
-        //  for diffusive transport ginev face diffusivity
-        tmp<surfaceScalarField> diffusionCofrDeltaT
-        (
-            const surfaceScalarField& nuf
-        ) const;
+        tmp<surfaceScalarField> CofrDeltaT() const;
 
 
 public:
@@ -126,7 +105,6 @@ public:
         :
             ddtScheme<Type>(mesh, is),
             phiName_(is),
-            nuName_(is),
             rhoName_(is),
             maxCo_(readScalar(is))
         {}
@@ -196,16 +174,6 @@ public:
             const fluxFieldType& phi
         );
 
-
-        // Member functions for the new time consistent formulation
-        tmp<fluxFieldType> fvcDdtConsistentPhiCorr
-        (
-            const GeometricField<Type, fvsPatchField, surfaceMesh>& faceU,
-            const GeometricField<Type, fvPatchField, volMesh>& U,
-            const surfaceScalarField& rAUf
-        );
-
-
         tmp<surfaceScalarField> meshPhi
         (
             const GeometricField<Type, fvPatchField, volMesh>&
@@ -229,15 +197,6 @@ tmp<surfaceScalarField> steadyInertialDdtScheme<scalar>::fvcDdtPhiCorr
     const volScalarField& rho,
     const volScalarField& U,
     const surfaceScalarField& phi
-);
-
-
-template<>
-tmp<surfaceScalarField> steadyInertialDdtScheme<scalar>::fvcDdtConsistentPhiCorr
-(
-    const surfaceScalarField& faceU,
-    const volScalarField& U,
-    const surfaceScalarField& rAUf
 );
 
 

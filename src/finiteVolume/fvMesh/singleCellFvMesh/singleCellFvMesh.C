@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -44,15 +44,14 @@ void Foam::singleCellFvMesh::agglomerateMesh
     // Check agglomeration within patch face range and continuous
     labelList nAgglom(oldPatches.size(), 0);
 
-    forAll (oldPatches, patchI)
+    forAll(oldPatches, patchI)
     {
         const polyPatch& pp = oldPatches[patchI];
-
         if (pp.size() > 0)
         {
-            nAgglom[patchI] = max(agglom[patchI]) + 1;
+            nAgglom[patchI] = max(agglom[patchI])+1;
 
-            forAll (pp, i)
+            forAll(pp, i)
             {
                 if (agglom[patchI][i] < 0  || agglom[patchI][i] >= pp.size())
                 {
@@ -60,7 +59,7 @@ void Foam::singleCellFvMesh::agglomerateMesh
                     (
                         "singleCellFvMesh::agglomerateMesh(..)"
                     )   << "agglomeration on patch " << patchI
-                        << " is out of range 0.." << pp.size() - 1
+                        << " is out of range 0.." << pp.size()-1
                         << exit(FatalError);
                 }
             }
@@ -71,14 +70,14 @@ void Foam::singleCellFvMesh::agglomerateMesh
     {
         // Get neighbouring agglomeration
         labelList nbrAgglom(mesh.nFaces()-mesh.nInternalFaces());
-        forAll (oldPatches, patchI)
+        forAll(oldPatches, patchI)
         {
             const polyPatch& pp = oldPatches[patchI];
 
             if (pp.coupled())
             {
-                label offset = pp.start() - mesh.nInternalFaces();
-                forAll (pp, i)
+                label offset = pp.start()-mesh.nInternalFaces();
+                forAll(pp, i)
                 {
                     nbrAgglom[offset+i] = agglom[patchI][i];
                 }
@@ -90,52 +89,52 @@ void Foam::singleCellFvMesh::agglomerateMesh
         // Get correspondence between this agglomeration and remote one
         Map<label> localToNbr(nbrAgglom.size()/10);
 
-        forAll (oldPatches, patchI)
+        forAll(oldPatches, patchI)
         {
-            // const polyPatch& pp = oldPatches[patchI];
+            const polyPatch& pp = oldPatches[patchI];
 
-            // if (pp.coupled())
-            // {
-            //     label offset = pp.start() - mesh.nInternalFaces();
+            if (pp.coupled())
+            {
+                label offset = pp.start()-mesh.nInternalFaces();
 
-            //     forAll (pp, i)
-            //     {
-            //         label bFaceI = offset + i;
-            //         label myZone = agglom[patchI][i];
-            //         label nbrZone = nbrAgglom[bFaceI];
+                forAll(pp, i)
+                {
+                    label bFaceI = offset+i;
+                    label myZone = agglom[patchI][i];
+                    label nbrZone = nbrAgglom[bFaceI];
 
-            //         Map<label>::const_iterator iter = localToNbr.find(myZone);
+                    Map<label>::const_iterator iter = localToNbr.find(myZone);
 
-            //         if (iter == localToNbr.end())
-            //         {
-            //             // First occurence of this zone. Store correspondence
-            //             // to remote zone number.
-            //             localToNbr.insert(myZone, nbrZone);
-            //         }
-            //         else
-            //         {
-            //             // Check that zone numbers are still the same.
-            //             if (iter() != nbrZone)
-            //             {
-            //                 FatalErrorIn
-            //                 (
-            //                     "singleCellFvMesh::agglomerateMesh(..)"
-            //                 )   << "agglomeration is not synchronised across"
-            //                     << " coupled patch " << pp.name()
-            //                     << endl
-            //                     << "Local agglomeration " << myZone
-            //                     << ". Remote agglomeration " << nbrZone
-            //                     << exit(FatalError);
-            //             }
-            //         }
-            //     }
-            // }
+                    if (iter == localToNbr.end())
+                    {
+                        // First occurence of this zone. Store correspondence
+                        // to remote zone number.
+                        localToNbr.insert(myZone, nbrZone);
+                    }
+                    else
+                    {
+                        // Check that zone numbers are still the same.
+                        if (iter() != nbrZone)
+                        {
+                            FatalErrorIn
+                            (
+                                "singleCellFvMesh::agglomerateMesh(..)"
+                            )   << "agglomeration is not synchronised across"
+                                << " coupled patch " << pp.name()
+                                << endl
+                                << "Local agglomeration " << myZone
+                                << ". Remote agglomeration " << nbrZone
+                                << exit(FatalError);
+                        }
+                    }
+                }
+            }
         }
     }
 
 
     label coarseI = 0;
-    forAll (nAgglom, patchI)
+    forAll(nAgglom, patchI)
     {
         coarseI += nAgglom[patchI];
     }
@@ -156,7 +155,7 @@ void Foam::singleCellFvMesh::agglomerateMesh
     coarseI = 0;
 
 
-    forAll (oldPatches, patchI)
+    forAll(oldPatches, patchI)
     {
         patchStarts[patchI] = coarseI;
 
@@ -175,7 +174,7 @@ void Foam::singleCellFvMesh::agglomerateMesh
             // From agglomeration to compact patch face
             labelList agglomToFace(nAgglom[patchI], -1);
 
-            forAll (pp, i)
+            forAll(pp, i)
             {
                 label myAgglom = agglom[patchI][i];
 
@@ -193,7 +192,7 @@ void Foam::singleCellFvMesh::agglomerateMesh
                     const labelList& fineFaces = agglomToPatch[myAgglom];
 
                     // Create overall map from fine mesh faces to coarseI.
-                    forAll (fineFaces, fineI)
+                    forAll(fineFaces, fineI)
                     {
                         reverseFaceMap_[pp.start()+fineFaces[fineI]] = coarseI;
                     }
@@ -229,19 +228,22 @@ void Foam::singleCellFvMesh::agglomerateMesh
             }
         }
 
-        patchSizes[patchI] = coarseI - patchStarts[patchI];
+        patchSizes[patchI] = coarseI-patchStarts[patchI];
     }
+
+    //Pout<< "patchStarts:" << patchStarts << endl;
+    //Pout<< "patchSizes:" << patchSizes << endl;
 
     // Compact numbering for points
     reversePointMap_.setSize(mesh.nPoints());
     reversePointMap_.labelList::operator=(-1);
     label newI = 0;
 
-    forAll (patchFaces, coarseI)
+    forAll(patchFaces, coarseI)
     {
         face& f = patchFaces[coarseI];
 
-        forAll (f, fp)
+        forAll(f, fp)
         {
             if (reversePointMap_[f[fp]] == -1)
             {
@@ -259,7 +261,7 @@ void Foam::singleCellFvMesh::agglomerateMesh
 
     // Add patches (on still zero sized mesh)
     List<polyPatch*> newPatches(oldPatches.size());
-    forAll (oldPatches, patchI)
+    forAll(oldPatches, patchI)
     {
         newPatches[patchI] = oldPatches[patchI].clone
         (
@@ -276,7 +278,7 @@ void Foam::singleCellFvMesh::agglomerateMesh
     labelList neighbour(0);
 
 
-    // Actually change the mesh
+    // actually change the mesh
     resetPrimitives
     (
         xferMove(boundaryPoints),
@@ -293,11 +295,19 @@ void Foam::singleCellFvMesh::agglomerateMesh
     cellZones().clear();
     cellZones().setSize(mesh.cellZones().size());
     {
-        forAll (mesh.cellZones(), zoneI)
+        forAll(mesh.cellZones(), zoneI)
         {
             const cellZone& oldFz = mesh.cellZones()[zoneI];
 
             dynamicLabelList newAddressing;
+
+            //Note: uncomment if you think it makes sense. Note that value
+            // of cell0 is the average.
+            //// Was old cell0 in this cellZone?
+            //if (oldFz.localID(0) != -1)
+            //{
+            //    newAddressing.append(0);
+            //}
 
             cellZones().set
             (
@@ -315,14 +325,14 @@ void Foam::singleCellFvMesh::agglomerateMesh
     faceZones().clear();
     faceZones().setSize(mesh.faceZones().size());
     {
-        forAll (mesh.faceZones(), zoneI)
+        forAll(mesh.faceZones(), zoneI)
         {
             const faceZone& oldFz = mesh.faceZones()[zoneI];
 
             dynamicLabelList newAddressing(oldFz.size());
             DynamicList<bool> newFlipMap(oldFz.size());
 
-            forAll (oldFz, i)
+            forAll(oldFz, i)
             {
                 label newFaceI = reverseFaceMap_[oldFz[i]];
 
@@ -351,13 +361,13 @@ void Foam::singleCellFvMesh::agglomerateMesh
     pointZones().clear();
     pointZones().setSize(mesh.pointZones().size());
     {
-        forAll (mesh.pointZones(), zoneI)
+        forAll(mesh.pointZones(), zoneI)
         {
             const pointZone& oldFz = mesh.pointZones()[zoneI];
 
             dynamicLabelList newAddressing(oldFz.size());
 
-            forAll (oldFz, i)
+            forAll(oldFz, i)
             {
                 label newPointI  = reversePointMap_[oldFz[i]];
                 if (newPointI != -1)
@@ -392,11 +402,11 @@ Foam::singleCellFvMesh::singleCellFvMesh
     fvMesh
     (
         io,
-        xferCopy(pointField()), // points
-        xferCopy(faceList()),   // faces
-        xferCopy(labelList()),  // allOwner
-        xferCopy(labelList()),  // allNeighbour
-        false                   // syncPar
+        xferCopy(pointField()), //points
+        xferCopy(faceList()),   //faces
+        xferCopy(labelList()),  //allOwner
+        xferCopy(labelList()),  //allNeighbour
+        false                   //syncPar
     ),
     patchFaceAgglomeration_
     (
@@ -468,7 +478,7 @@ Foam::singleCellFvMesh::singleCellFvMesh
 
     labelListList agglom(oldPatches.size());
 
-    forAll (oldPatches, patchI)
+    forAll(oldPatches, patchI)
     {
         agglom[patchI] = identity(oldPatches[patchI].size());
     }
@@ -487,11 +497,11 @@ Foam::singleCellFvMesh::singleCellFvMesh
     fvMesh
     (
         io,
-        xferCopy(pointField()), // points
-        xferCopy(faceList()),   // faces
-        xferCopy(labelList()),  // allOwner
-        xferCopy(labelList()),  // allNeighbour
-        false                   // syncPar
+        xferCopy(pointField()), //points
+        xferCopy(faceList()),   //faces
+        xferCopy(labelList()),  //allOwner
+        xferCopy(labelList()),  //allNeighbour
+        false                   //syncPar
     ),
     patchFaceAgglomeration_
     (
@@ -627,6 +637,10 @@ Foam::singleCellFvMesh::singleCellFvMesh(const IOobject& io)
         )
     )
 {}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
 
 
 // ************************************************************************* //

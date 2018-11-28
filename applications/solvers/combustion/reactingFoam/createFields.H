@@ -18,9 +18,7 @@ volScalarField rho
     (
         "rho",
         runTime.timeName(),
-        mesh,
-        IOobject::NO_READ,
-        IOobject::AUTO_WRITE
+        mesh
     ),
     thermo.rho()
 );

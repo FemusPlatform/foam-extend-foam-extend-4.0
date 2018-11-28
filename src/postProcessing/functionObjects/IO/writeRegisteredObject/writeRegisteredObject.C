@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,13 +25,13 @@ License
 
 #include "writeRegisteredObject.H"
 #include "dictionary.H"
-#include "foamTime.H"
+#include "objectRegistry.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-defineTypeNameAndDebug(writeRegisteredObject, 0);
+    defineTypeNameAndDebug(writeRegisteredObject, 0);
 }
 
 
@@ -46,8 +46,8 @@ Foam::writeRegisteredObject::writeRegisteredObject
 )
 :
     name_(name),
-    exclusiveWriting_(false),
     obr_(obr),
+    active_(true),
     objectNames_()
 {
     read(dict);
@@ -64,8 +64,10 @@ Foam::writeRegisteredObject::~writeRegisteredObject()
 
 void Foam::writeRegisteredObject::read(const dictionary& dict)
 {
-    dict.lookup("objectNames") >> objectNames_;
-    dict.readIfPresent("exclusiveWriting", exclusiveWriting_);
+    if (active_)
+    {
+        dict.lookup("objectNames") >> objectNames_;
+    }
 }
 
 
@@ -81,51 +83,34 @@ void Foam::writeRegisteredObject::end()
 }
 
 
-void Foam::writeRegisteredObject::timeSet()
-{
-    // Do nothing - only valid on write
-}
-
-
 void Foam::writeRegisteredObject::write()
 {
-    Info<< type() << " " << name_ << " output:" << nl;
-
-    DynamicList<word> allNames(obr_.toc().size());
-    forAll(objectNames_, i)
+    if (active_)
     {
-        wordList names(obr_.names<regIOobject>(objectNames_[i]));
-
-        if (names.size())
+        forAll(objectNames_, i)
         {
-            allNames.append(names);
+            if (obr_.foundObject<regIOobject>(objectNames_[i]))
+            {
+                regIOobject& obj =
+                    const_cast<regIOobject&>
+                    (
+                        obr_.lookupObject<regIOobject>(objectNames_[i])
+                    );
+                // Switch off automatic writing to prevent double write
+                obj.writeOpt() = IOobject::NO_WRITE;
+                obj.write();
+            }
+            else
+            {
+                WarningIn
+                (
+                    "Foam::writeRegisteredObject::read(const dictionary&)"
+                )   << "Object " << objectNames_[i] << " not found in "
+                    << "database. Available objects are:" << nl << obr_.toc()
+                    << endl;
+            }
+
         }
-        else
-        {
-            WarningIn("Foam::writeRegisteredObject::write()")
-                << "Object " << objectNames_[i] << " not found in "
-                << "database. Available objects:" << nl << obr_.sortedToc()
-                << endl;
-        }
-    }
-
-    forAll(allNames, i)
-    {
-        regIOobject& obj =
-            const_cast<regIOobject&>
-            (
-                obr_.lookupObject<regIOobject>(allNames[i])
-            );
-
-        if (exclusiveWriting_)
-        {
-            // Switch off automatic writing to prevent double write
-            obj.writeOpt() = IOobject::NO_WRITE;
-        }
-
-        Info<< "    writing object " << obj.name() << nl << endl;
-
-        obj.write();
     }
 }
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ namespace Foam
 class OFstream;
 
 /*---------------------------------------------------------------------------*\
-                      Class OFstreamAllocator Declaration
+                       Class OFstreamAllocator Declaration
 \*---------------------------------------------------------------------------*/
 
 //- A std::ostream with ability to handle compressed files
@@ -71,14 +71,22 @@ class OFstreamAllocator
 
         );
 
-    //- Destructor
-    ~OFstreamAllocator();
+    // Destructor
 
+        ~OFstreamAllocator();
+
+
+public:
+
+    // Member functions
+
+        //- Access to underlying std::ostream
+        ostream& stdStream();
 };
 
 
 /*---------------------------------------------------------------------------*\
-                          Class OFstream Declaration
+                           Class OFstream Declaration
 \*---------------------------------------------------------------------------*/
 
 class OFstream
@@ -130,15 +138,6 @@ public:
             {
                 return pathname_;
             }
-
-
-        // STL stream
-
-            //- Access to underlying std::ostream
-            virtual ostream& stdStream();
-
-            //- Const access to underlying std::ostream
-            virtual const ostream& stdStream() const;
 
 
         // Print

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -90,29 +90,10 @@ Foam::processorPolyPatch::processorPolyPatch
 Foam::processorPolyPatch::processorPolyPatch
 (
     const processorPolyPatch& pp,
-    const polyBoundaryMesh& bm,
-    const label index,
-    const label newSize,
-    const label newStart
+    const polyBoundaryMesh& bm
 )
 :
-    coupledPolyPatch(pp, bm, index, newSize, newStart),
-    myProcNo_(pp.myProcNo_),
-    neighbProcNo_(pp.neighbProcNo_),
-    neighbFaceCentres_(),
-    neighbFaceAreas_(),
-    neighbFaceCellCentres_(),
-    neighbPointsPtr_(NULL),
-    neighbEdgesPtr_(NULL)
-{}
-
-
-Foam::processorPolyPatch::processorPolyPatch
-(
-    const processorPolyPatch& pp
-)
-:
-    coupledPolyPatch(pp),
+    coupledPolyPatch(pp, bm),
     myProcNo_(pp.myProcNo_),
     neighbProcNo_(pp.neighbProcNo_),
     neighbFaceCentres_(),
@@ -126,10 +107,13 @@ Foam::processorPolyPatch::processorPolyPatch
 Foam::processorPolyPatch::processorPolyPatch
 (
     const processorPolyPatch& pp,
-    const polyBoundaryMesh& bm
+    const polyBoundaryMesh& bm,
+    const label index,
+    const label newSize,
+    const label newStart
 )
 :
-    coupledPolyPatch(pp, bm),
+    coupledPolyPatch(pp, bm, index, newSize, newStart),
     myProcNo_(pp.myProcNo_),
     neighbProcNo_(pp.neighbProcNo_),
     neighbFaceCentres_(),
@@ -487,7 +471,7 @@ void Foam::processorPolyPatch::initOrder(const primitivePatch& pp) const
 
     // Master side sends the data and slave side rotates the faces
     // HJ, 10/Mar/2011
-    if (master())
+    if (owner())
     {
         pointField ctrs(calcFaceCentres(pp, pp.points()));
 
@@ -554,7 +538,7 @@ bool Foam::processorPolyPatch::order
     rotation.setSize(pp.size());
     rotation = 0;
 
-    if (master())
+    if (owner())
     {
         // Do nothing (i.e. identical mapping, zero rotation).
         // See comment at top.
@@ -823,7 +807,7 @@ void Foam::processorPolyPatch::syncOrder() const
     }
 
     // Read and discard info from owner side from the neighbour
-    if (slave())
+    if (neighbour())
     {
         vectorField masterCtrs;
         vectorField masterAnchors;

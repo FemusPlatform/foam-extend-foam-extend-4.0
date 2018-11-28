@@ -13,7 +13,6 @@ EXE_LIBS = \
     -lspecie \
     -lradiation \
     -lcompressibleRASModels \
-    -lcompressibleTurbulenceModel \
     -lfiniteVolume \
     -lmeshTools \
     -llduSolvers

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -28,39 +28,51 @@ License
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#if WM_LABEL_SIZE == 32
-const char* const Foam::pTraits<int64_t>::typeName = "int64";
-const char* const Foam::pTraits<int32_t>::typeName = "label";
-#elif WM_LABEL_SIZE == 64
-const char* const Foam::pTraits<int64_t>::typeName = "label";
-const char* const Foam::pTraits<int32_t>::typeName = "int32";
-#endif
+namespace Foam
+{
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+const char* const pTraits<label>::typeName = "label";
+const label pTraits<label>::zero = 0;
+const label pTraits<label>::one = 1;
+const label pTraits<label>::min = labelMin;
+const label pTraits<label>::max = labelMax;
+
+const char* pTraits<label>::componentNames[] = { "x" };
+
+pTraits<label>::pTraits(Istream& is)
+{
+    is >> p_;
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-Foam::label Foam::pow(label a, label b)
+// Raise one label to the power of another (overloaded function call)
+label pow(label a, label b)
 {
-    label ans = 1;
-    for (label i=0; i<b; i++)
+    register label ans = 1;
+    for (register label i=0; i<b; i++)
     {
         ans *= a;
     }
 
-    #ifdef FULLDEBUG
+#   ifdef FULLDEBUG
     if (b < 0)
     {
         FatalErrorIn("pow(label a, label b)")
             << "negative value for b is not supported"
             << abort(FatalError);
     }
-    #endif
+#   endif
 
     return ans;
 }
 
 
-Foam::label Foam::factorial(label n)
+//- Return factorial(n) : 0 <= n <= 12
+label factorial(label n)
 {
     static label factTable[13] =
     {
@@ -68,17 +80,21 @@ Foam::label Foam::factorial(label n)
         362880, 3628800, 39916800, 479001600
     };
 
-    #ifdef FULLDEBUG
-    if (n > 12 && n < 0)
+#   ifdef FULLDEBUG
+    if (n > 12 || n < 0)
     {
         FatalErrorIn("factorial(label n)")
             << "n value out of range"
             << abort(FatalError);
     }
-    #endif
+#   endif
 
     return factTable[n];
 }
 
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
 
 // ************************************************************************* //

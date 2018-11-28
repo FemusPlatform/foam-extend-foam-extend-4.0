@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -172,7 +172,8 @@ public:
         virtual bool coarsen() const = 0;
 
         //- Restrict matrix
-        virtual autoPtr<BlockAMGLevel<Type> > restrictMatrix() const = 0;
+        virtual autoPtr<BlockAMGLevel<Type> > restrictMatrix
+        () const = 0;
 
         //- Restrict residual
         virtual void restrictResidual
@@ -188,8 +189,6 @@ public:
             const Field<Type>& coarseX
         ) const = 0;
 
-        //- Update coarse matrix using same coefficients
-        virtual void updateMatrix(BlockLduMatrix<Type>& coarseMatrix) const = 0;
 };
 
 
@@ -204,15 +203,15 @@ public:
 #endif
 
 #define makeBlockMatrixCoarsening(BlockMatrixCoarseningType, typeBlockMatrixCoarseningType) \
-                                                                               \
-defineNamedTemplateTypeNameAndDebug(typeBlockMatrixCoarseningType, 0);         \
-                                                                               \
+                                                                             \
+defineNamedTemplateTypeNameAndDebug(typeBlockMatrixCoarseningType, 0);              \
+                                                                             \
 addToRunTimeSelectionTable(BlockMatrixCoarseningType, typeBlockMatrixCoarseningType, matrix);
 
-#define makeBlockMatrixCoarsenings(blockAmgCoarseningType)                     \
-                                                                               \
-makeBlockMatrixCoarsening(blockScalarMatrixCoarsening, blockAmgCoarseningType##Scalar); \
-makeBlockMatrixCoarsening(blockVectorMatrixCoarsening, blockAmgCoarseningType##Vector); \
+#define makeBlockMatrixCoarsenings(blockAmgCoarseningType)                               \
+                                                                             \
+makeBlockMatrixCoarsening(blockScalarMatrixCoarsening, blockAmgCoarseningType##Scalar);         \
+makeBlockMatrixCoarsening(blockVectorMatrixCoarsening, blockAmgCoarseningType##Vector);         \
 makeBlockMatrixCoarsening(blockTensorMatrixCoarsening, blockAmgCoarseningType##Tensor);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

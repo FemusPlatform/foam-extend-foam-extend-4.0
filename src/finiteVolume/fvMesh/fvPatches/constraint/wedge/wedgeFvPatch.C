@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "wedgeFvPatch.H"
-#include "fvPatchFields.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -42,7 +41,7 @@ addToRunTimeSelectionTable(fvPatch, wedgeFvPatch, polyPatch);
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void wedgeFvPatch::makeCorrVecs(fvsPatchVectorField& cv) const
+void wedgeFvPatch::makeCorrVecs(vectorField& cv) const
 {
     // Non-orthogonal correction not allowed.  HJ, 16/Apr/2009
     cv = vector::zero;

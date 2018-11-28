@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,21 +25,27 @@ License
 
 #include <iostream>
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace Foam
+{
+
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-inline void Foam::token::clear()
+// Clear any allocated storage (word or string)
+inline void token::clear()
 {
     if (type_ == WORD)
     {
         delete wordTokenPtr_;
     }
-    else if (type_ == STRING || type_ == VARIABLE || type_ == VERBATIMSTRING)
+    else if (type_ == STRING)
     {
         delete stringTokenPtr_;
     }
     else if (type_ == COMPOUND)
     {
-        if (compoundTokenPtr_->unique())
+        if (compoundTokenPtr_->okToDelete())
         {
             delete compoundTokenPtr_;
         }
@@ -55,14 +61,15 @@ inline void Foam::token::clear()
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-inline Foam::token::token()
+// Construct null
+inline token::token()
 :
     type_(UNDEFINED),
     lineNumber_(0)
 {}
 
-
-inline Foam::token::token(const token& t)
+// Construct as copy
+inline token::token(const token& t)
 :
     type_(t.type_),
     lineNumber_(t.lineNumber_)
@@ -81,8 +88,6 @@ inline Foam::token::token(const token& t)
         break;
 
         case STRING:
-        case VARIABLE:
-        case VERBATIMSTRING:
             stringTokenPtr_ = new string(*t.stringTokenPtr_);
         break;
 
@@ -107,53 +112,53 @@ inline Foam::token::token(const token& t)
             compoundTokenPtr_->refCount::operator++();
         break;
 
-        case token::ERROR:
+        case token::FATALERROR:
         break;
     }
 }
 
-
-inline Foam::token::token(punctuationToken p, label lineNumber)
+// Construct punctuation character token
+inline token::token(punctuationToken p, label lineNumber)
 :
     type_(PUNCTUATION),
     punctuationToken_(p),
     lineNumber_(lineNumber)
 {}
 
-
-inline Foam::token::token(const word& w, label lineNumber)
+// Construct word token
+inline token::token(const word& w, label lineNumber)
 :
     type_(WORD),
     wordTokenPtr_(new word(w)),
     lineNumber_(lineNumber)
 {}
 
-
-inline Foam::token::token(const string& s, label lineNumber)
+// Construct string token
+inline token::token(const string& s, label lineNumber)
 :
     type_(STRING),
     stringTokenPtr_(new string(s)),
     lineNumber_(lineNumber)
 {}
 
-
-inline Foam::token::token(const label l, label lineNumber)
+// Construct label token
+inline token::token(const label l, label lineNumber)
 :
     type_(LABEL),
     labelToken_(l),
     lineNumber_(lineNumber)
 {}
 
-
-inline Foam::token::token(const floatScalar s, label lineNumber)
+// Construct floatScalar token
+inline token::token(const floatScalar s, label lineNumber)
 :
     type_(FLOAT_SCALAR),
     floatScalarToken_(s),
     lineNumber_(lineNumber)
 {}
 
-
-inline Foam::token::token(const doubleScalar s, label lineNumber)
+// Construct doubleScalar token
+inline token::token(const doubleScalar s, label lineNumber)
 :
     type_(DOUBLE_SCALAR),
     doubleScalarToken_(s),
@@ -161,7 +166,8 @@ inline Foam::token::token(const doubleScalar s, label lineNumber)
 {}
 
 
-inline Foam::token::token(const longDoubleScalar s, label lineNumber)
+// Construct longDoubleScalar token
+inline token::token(const longDoubleScalar s, label lineNumber)
 :
     type_(LONG_DOUBLE_SCALAR),
     longDoubleScalarToken_(s),
@@ -169,9 +175,10 @@ inline Foam::token::token(const longDoubleScalar s, label lineNumber)
 {}
 
 
-// * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * Destructors * * * * * * * * * * * * * * * //
 
-inline Foam::token::~token()
+// Delete token clearing the storage used by word or string
+inline token::~token()
 {
     clear();
 }
@@ -179,37 +186,32 @@ inline Foam::token::~token()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-inline Foam::token::tokenType  Foam::token::type() const
+inline token::tokenType token::type() const
 {
     return type_;
 }
 
-inline Foam::token::tokenType&  Foam::token::type()
+inline bool token::good() const
 {
-    return type_;
+    return (type_ != FATALERROR && type_ != UNDEFINED);
 }
 
-inline bool Foam::token::good() const
-{
-    return (type_ != ERROR && type_ != UNDEFINED);
-}
-
-inline bool Foam::token::undefined() const
+inline bool token::undefined() const
 {
     return (type_ == UNDEFINED);
 }
 
-inline bool Foam::token::error() const
+inline bool token::error() const
 {
-    return (type_ == ERROR);
+    return (type_ == FATALERROR);
 }
 
-inline bool Foam::token::isPunctuation() const
+inline bool token::isPunctuation() const
 {
     return (type_ == PUNCTUATION);
 }
 
-inline Foam::token::punctuationToken  Foam::token::pToken() const
+inline token::punctuationToken token::pToken() const
 {
     if (type_ == PUNCTUATION)
     {
@@ -222,12 +224,12 @@ inline Foam::token::punctuationToken  Foam::token::pToken() const
     }
 }
 
-inline bool Foam::token::isWord() const
+inline bool token::isWord() const
 {
     return (type_ == WORD);
 }
 
-inline const Foam::word& Foam::token::wordToken() const
+inline const word& token::wordToken() const
 {
     if (type_ == WORD)
     {
@@ -240,19 +242,14 @@ inline const Foam::word& Foam::token::wordToken() const
     }
 }
 
-inline bool Foam::token::isVariable() const
+inline bool token::isString() const
 {
-    return (type_ == VARIABLE);
+    return (type_ == STRING);
 }
 
-inline bool Foam::token::isString() const
+inline const string& token::stringToken() const
 {
-    return (type_ == STRING || type_ == VARIABLE || type_ == VERBATIMSTRING);
-}
-
-inline const Foam::string& Foam::token::stringToken() const
-{
-    if (type_ == STRING || type_ == VARIABLE || type_ == VERBATIMSTRING)
+    if (type_ == STRING)
     {
         return *stringTokenPtr_;
     }
@@ -263,12 +260,12 @@ inline const Foam::string& Foam::token::stringToken() const
     }
 }
 
-inline bool Foam::token::isLabel() const
+inline bool token::isLabel() const
 {
     return (type_ == LABEL);
 }
 
-inline Foam::label Foam::token::labelToken() const
+inline label token::labelToken() const
 {
     if (type_ == LABEL)
     {
@@ -281,12 +278,12 @@ inline Foam::label Foam::token::labelToken() const
     }
 }
 
-inline bool Foam::token::isFloatScalar() const
+inline bool token::isFloatScalar() const
 {
     return (type_ == FLOAT_SCALAR);
 }
 
-inline Foam::floatScalar Foam::token::floatScalarToken() const
+inline floatScalar token::floatScalarToken() const
 {
     if (type_ == FLOAT_SCALAR)
     {
@@ -300,12 +297,13 @@ inline Foam::floatScalar Foam::token::floatScalarToken() const
 }
 
 
-inline bool Foam::token::isDoubleScalar() const
+inline bool token::isDoubleScalar() const
 {
     return (type_ == DOUBLE_SCALAR);
 }
 
-inline Foam::doubleScalar Foam::token::doubleScalarToken() const
+
+inline doubleScalar token::doubleScalarToken() const
 {
     if (type_ == DOUBLE_SCALAR)
     {
@@ -319,13 +317,13 @@ inline Foam::doubleScalar Foam::token::doubleScalarToken() const
 }
 
 
-inline bool Foam::token::isLongDoubleScalar() const
+inline bool token::isLongDoubleScalar() const
 {
     return (type_ == LONG_DOUBLE_SCALAR);
 }
 
 
-inline Foam::longDoubleScalar Foam::token::longDoubleScalarToken() const
+inline longDoubleScalar token::longDoubleScalarToken() const
 {
     if (type_ == LONG_DOUBLE_SCALAR)
     {
@@ -339,12 +337,17 @@ inline Foam::longDoubleScalar Foam::token::longDoubleScalarToken() const
 }
 
 
-inline bool Foam::token::isScalar() const
+inline bool token::isScalar() const
 {
-    return (type_ == FLOAT_SCALAR || type_ == DOUBLE_SCALAR || type_ == LONG_DOUBLE_SCALAR);
+    return
+    (
+        type_ == FLOAT_SCALAR
+     || type_ == DOUBLE_SCALAR
+     || type_ == LONG_DOUBLE_SCALAR
+    );
 }
 
-inline Foam::scalar Foam::token::scalarToken() const
+inline scalar token::scalarToken() const
 {
     if (type_ == FLOAT_SCALAR)
     {
@@ -365,12 +368,12 @@ inline Foam::scalar Foam::token::scalarToken() const
     }
 }
 
-inline bool Foam::token::isNumber() const
+inline bool token::isNumber() const
 {
     return (type_ == LABEL || isScalar());
 }
 
-inline Foam::scalar Foam::token::number() const
+inline scalar token::number() const
 {
     if (type_ == LABEL)
     {
@@ -387,12 +390,12 @@ inline Foam::scalar Foam::token::number() const
     }
 }
 
-inline bool Foam::token::isCompound() const
+inline bool token::isCompound() const
 {
     return (type_ == COMPOUND);
 }
 
-inline const Foam::token::compound& Foam::token::compoundToken() const
+inline const token::compound& token::compoundToken() const
 {
     if (type_ == COMPOUND)
     {
@@ -406,27 +409,27 @@ inline const Foam::token::compound& Foam::token::compoundToken() const
 }
 
 
-inline Foam::label Foam::token::lineNumber() const
+inline label token::lineNumber() const
 {
     return lineNumber_;
 }
 
-inline Foam::label& Foam::token::lineNumber()
+inline label& token::lineNumber()
 {
     return lineNumber_;
 }
 
 
-inline void Foam::token::setBad()
+inline void token::setBad()
 {
     clear();
-    type_ = ERROR;
+    type_ = FATALERROR;
 }
 
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
-inline void Foam::token::operator=(const token& t)
+inline void token::operator=(const token& t)
 {
     clear();
     type_ = t.type_;
@@ -445,8 +448,6 @@ inline void Foam::token::operator=(const token& t)
         break;
 
         case STRING:
-        case VARIABLE:
-        case VERBATIMSTRING:
             stringTokenPtr_ = new string(*t.stringTokenPtr_);
         break;
 
@@ -471,73 +472,74 @@ inline void Foam::token::operator=(const token& t)
             compoundTokenPtr_->refCount::operator++();
         break;
 
-        case token::ERROR:
+        case token::FATALERROR:
         break;
     }
 
     lineNumber_ = t.lineNumber_;
 }
 
-inline void Foam::token::operator=(const punctuationToken p)
+
+inline void token::operator=(const punctuationToken p)
 {
     clear();
     type_ = PUNCTUATION;
     punctuationToken_ = p;
 }
 
-inline void Foam::token::operator=(word* wPtr)
+inline void token::operator=(word* wPtr)
 {
     clear();
     type_ = WORD;
     wordTokenPtr_ = wPtr;
 }
 
-inline void Foam::token::operator=(const word& w)
+inline void token::operator=(const word& w)
 {
     operator=(new word(w));
 }
 
-inline void Foam::token::operator=(string* sPtr)
+inline void token::operator=(string* sPtr)
 {
     clear();
     type_ = STRING;
     stringTokenPtr_ = sPtr;
 }
 
-inline void Foam::token::operator=(const string& s)
+inline void token::operator=(const string& s)
 {
     operator=(new string(s));
 }
 
-inline void Foam::token::operator=(const label l)
+inline void token::operator=(const label l)
 {
     clear();
     type_ = LABEL;
     labelToken_ = l;
 }
 
-inline void Foam::token::operator=(const floatScalar s)
+inline void token::operator=(const floatScalar s)
 {
     clear();
     type_ = FLOAT_SCALAR;
     floatScalarToken_ = s;
 }
 
-inline void Foam::token::operator=(const doubleScalar s)
+inline void token::operator=(const doubleScalar s)
 {
     clear();
     type_ = DOUBLE_SCALAR;
     doubleScalarToken_ = s;
 }
 
-inline void Foam::token::operator=(const longDoubleScalar s)
+inline void token::operator=(const longDoubleScalar s)
 {
     clear();
     type_ = LONG_DOUBLE_SCALAR;
     longDoubleScalarToken_ = s;
 }
 
-inline void Foam::token::operator=(Foam::token::compound* cPtr)
+inline void token::operator=(token::compound* cPtr)
 {
     clear();
     type_ = COMPOUND;
@@ -545,7 +547,7 @@ inline void Foam::token::operator=(Foam::token::compound* cPtr)
 }
 
 
-inline bool Foam::token::operator==(const token& t) const
+inline bool token::operator==(const token& t) const
 {
     if (type_ != t.type_)
     {
@@ -564,8 +566,6 @@ inline bool Foam::token::operator==(const token& t) const
             return *wordTokenPtr_ == *t.wordTokenPtr_;
 
         case STRING:
-        case VARIABLE:
-        case VERBATIMSTRING:
             return *stringTokenPtr_ == *t.stringTokenPtr_;
 
         case LABEL:
@@ -583,91 +583,91 @@ inline bool Foam::token::operator==(const token& t) const
         case COMPOUND:
             return compoundTokenPtr_ == t.compoundTokenPtr_;
 
-        case token::ERROR:
+        case token::FATALERROR:
             return true;
     }
 
     return false;
 }
 
-inline bool Foam::token::operator==(const punctuationToken p) const
+inline bool token::operator==(const punctuationToken p) const
 {
     return (type_ == PUNCTUATION && punctuationToken_ == p);
 }
 
-inline bool Foam::token::operator==(const word& w) const
+inline bool token::operator==(const word& w) const
 {
     return (type_ == WORD && wordToken() == w);
 }
 
-inline bool Foam::token::operator==(const string& s) const
+inline bool token::operator==(const string& s) const
 {
-    return
-    (
-        (type_ == STRING || type_ == VARIABLE || type_ == VERBATIMSTRING)
-     && stringToken() == s
-    );
+    return (type_ == STRING && stringToken() == s);
 }
 
-inline bool Foam::token::operator==(const label l) const
+inline bool token::operator==(const label l) const
 {
     return (type_ == LABEL && labelToken_ == l);
 }
 
-inline bool Foam::token::operator==(const floatScalar s) const
+inline bool token::operator==(const floatScalar s) const
 {
     return (type_ == FLOAT_SCALAR && equal(floatScalarToken_, s));
 }
 
-inline bool Foam::token::operator==(const doubleScalar s) const
+inline bool token::operator==(const doubleScalar s) const
 {
     return (type_ == DOUBLE_SCALAR && equal(doubleScalarToken_, s));
 }
 
-inline bool Foam::token::operator==(const longDoubleScalar s) const
+inline bool token::operator==(const longDoubleScalar s) const
 {
     return (type_ == LONG_DOUBLE_SCALAR && equal(longDoubleScalarToken_, s));
 }
 
-inline bool Foam::token::operator!=(const token& t) const
+inline bool token::operator!=(const token& t) const
 {
     return !operator==(t);
 }
 
-inline bool Foam::token::operator!=(const punctuationToken p) const
+inline bool token::operator!=(const punctuationToken p) const
 {
     return !operator==(p);
 }
 
-inline bool Foam::token::operator!=(const word& w) const
+inline bool token::operator!=(const word& w) const
 {
     return !operator==(w);
 }
 
-inline bool Foam::token::operator!=(const string& s) const
+inline bool token::operator!=(const string& s) const
 {
     return !operator==(s);
 }
 
-inline bool Foam::token::operator!=(const floatScalar s) const
+inline bool token::operator!=(const floatScalar s) const
 {
     return !operator==(s);
 }
 
-inline bool Foam::token::operator!=(const doubleScalar s) const
+inline bool token::operator!=(const doubleScalar s) const
 {
     return !operator==(s);
 }
 
-inline bool Foam::token::operator!=(const longDoubleScalar s) const
+inline bool token::operator!=(const longDoubleScalar s) const
 {
     return !operator==(s);
 }
 
-inline bool Foam::token::operator!=(const label l) const
+inline bool token::operator!=(const label l) const
 {
     return !operator==(l);
 }
 
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
 
 // ************************************************************************* //

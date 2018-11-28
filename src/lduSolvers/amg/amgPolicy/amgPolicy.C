@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -53,11 +53,8 @@ Foam::autoPtr<Foam::amgPolicy> Foam::amgPolicy::New
 (
     const word& policyType,
     const lduMatrix& matrix,
-    const FieldField<Field, scalar>& bouCoeffs,
-    const FieldField<Field, scalar>& intCoeffs,
-    const lduInterfaceFieldPtrsList& interfaceFields,
     const label groupSize,
-    const label minCoarseEqns
+    const label nCoarseCells
 )
 {
     matrixConstructorTable::iterator constructorIter =
@@ -71,11 +68,8 @@ Foam::autoPtr<Foam::amgPolicy> Foam::amgPolicy::New
             "(\n"
             "    const word& policyType,\n"
             "    const lduMatrix& matrix,\n"
-            "    const FieldField<Field, scalar>& bouCoeffs,\n"
-            "    const FieldField<Field, scalar>& intCoeffs,\n"
-            "    const lduInterfaceFieldPtrsList& interfaceFields,\n"
             "    const label groupSize\n"
-            "    const label minCoarseEqns\n"
+            "    const label nCoarseCells\n"
             ")"
         )   << "Unknown AMG policy " << policyType
             << endl << endl
@@ -89,11 +83,8 @@ Foam::autoPtr<Foam::amgPolicy> Foam::amgPolicy::New
         constructorIter()
         (
             matrix,
-            bouCoeffs,
-            intCoeffs,
-            interfaceFields,
             groupSize,
-            minCoarseEqns
+            nCoarseCells
         )
     );
 }

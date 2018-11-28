@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -263,24 +263,6 @@ void Foam::KinematicCloud<ParcelType>::evolve()
         info();
         Info<< endl;
     }
-}
-
-
-template<class CloudType>
-void Foam::KinematicCloud<CloudType>::updateMesh()
-{
-    UTrans_.setSize(this->pMesh().nCells());
-
-    injection().updateMesh();
-}
-
-
-template<class CloudType>
-void Foam::KinematicCloud<CloudType>::autoMap(const mapPolyMesh& mapper)
-{
-    Cloud<parcelType>::autoMap(mapper);
-
-    this->updateMesh();
 }
 
 

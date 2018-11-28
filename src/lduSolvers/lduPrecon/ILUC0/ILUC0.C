@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -44,12 +44,6 @@ Author
 namespace Foam
 {
     defineTypeNameAndDebug(ILUC0, 0);
-
-    // Register with symmetric and asymmetric run-time selection table
-    // HJ and VV, 31/Oct/2017
-    lduPreconditioner::
-        addsymMatrixConstructorToTable<ILUC0>
-        addILUC0ditionerSymMatrixConstructorToTable_;
 
     lduPreconditioner::
         addasymMatrixConstructorToTable<ILUC0>
@@ -131,13 +125,13 @@ void Foam::ILUC0::calcFactorization()
             )
             {
                 // Get losort coefficient for this face
-                const register label losortIndex = lsrPtr[faceLsrI];
+                const register label losortCoeff = lsrPtr[faceLsrI];
 
                 // Get corresponding row index for upper (i label)
-                const label i = lPtr[losortIndex];
+                const label i = lPtr[losortCoeff];
 
                 // Update diagonal
-                zDiag_ -= lowerPtr[losortIndex]*upperPtr[losortIndex];
+                zDiag_ -= lowerPtr[losortCoeff]*upperPtr[losortCoeff];
 
                 // Get end of row for cell i
                 const register label fEndRowi = ownStartPtr[i + 1];
@@ -146,14 +140,14 @@ void Foam::ILUC0::calcFactorization()
                 // existence of certain upper coeffs)
                 for
                 (
-                    // Diagonal is already updated (losortIndex + 1 = start)
-                    register label faceI = losortIndex + 1;
+                    // Diagonal is already updated (losortCoeff + 1 = start)
+                    register label faceI = losortCoeff + 1;
                     faceI < fEndRowi;
                     ++faceI
                 )
                 {
-                    zPtr[uPtr[faceI]] -= lowerPtr[losortIndex]*upperPtr[faceI];
-                    wPtr[uPtr[faceI]] -= upperPtr[losortIndex]*lowerPtr[faceI];
+                    zPtr[uPtr[faceI]] -= lowerPtr[losortCoeff]*upperPtr[faceI];
+                    wPtr[uPtr[faceI]] -= upperPtr[losortCoeff]*lowerPtr[faceI];
                 }
             }
 
@@ -188,17 +182,17 @@ void Foam::ILUC0::calcFactorization()
             )
             {
                 // Get losort coefficient for this face
-                const register label losortIndex = lsrPtr[faceLsrI];
+                const register label losortCoeff = lsrPtr[faceLsrI];
 
                 // Get corresponding row index for upper (i label)
-                const label i = lPtr[losortIndex];
+                const label i = lPtr[losortCoeff];
 
                 // Get end of row for cell i
                 const register label fEndRowi = ownStartPtr[i + 1];
 
                 for
                 (
-                    register label faceI = losortIndex + 1;
+                    register label faceI = losortCoeff + 1;
                     faceI < fEndRowi;
                     ++faceI
                 )
@@ -303,18 +297,18 @@ void Foam::ILUC0::precondition
         // Initialize x field
         x = b;
 
-        register label losortIndexI;
+        register label losortCoeffI;
         register label rowI;
 
         // Forward substitution loop
         forAll (preconLower_, coeffI)
         {
-            // Get current losortIndex to ensure row by row access
-            losortIndexI = losortAddr[coeffI];
+            // Get current losortCoeff to ensure row by row access
+            losortCoeffI = losortAddr[coeffI];
 
             // Subtract already updated lower part from the solution
-            x[upperAddr[losortIndexI]] -=
-                preconLower_[losortIndexI]*x[lowerAddr[losortIndexI]];
+            x[upperAddr[losortCoeffI]] -=
+                preconLower_[losortCoeffI]*x[lowerAddr[losortCoeffI]];
         }
 
         // Solve Ux = b with back substitution. U is chosen to be upper
@@ -379,21 +373,21 @@ void Foam::ILUC0::preconditionT
             x[i] = b[i]*preconDiag_[i];
         }
 
-        register label losortIndexI;
+        register label losortCoeffI;
         register label rowI;
 
         // Forward substitution loop
         forAll (preconUpper_, coeffI)
         {
-            // Get current losortIndex to ensure row by row access
-            losortIndexI = losortAddr[coeffI];
+            // Get current losortCoeff to ensure row by row access
+            losortCoeffI = losortAddr[coeffI];
 
             // Get row index
-            rowI = upperAddr[losortIndexI];
+            rowI = upperAddr[losortCoeffI];
 
             // Subtract already updated lower (upper transpose) part from the
             // solution
-            x[rowI] -= preconUpper_[losortIndexI]*x[lowerAddr[losortIndexI]]*
+            x[rowI] -= preconUpper_[losortCoeffI]*x[lowerAddr[losortCoeffI]]*
                 preconDiag_[rowI];
         }
 

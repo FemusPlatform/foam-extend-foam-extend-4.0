@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -313,13 +313,13 @@ MixingPlaneInterpolation<MasterPatch, SlavePatch>::calcProfile() const
     if (debug > 1)
     {
         // Write histograms
-        forAllConstIter (profileHistogram, masterHistogram, zHi)
+        forAllIter (profileHistogram, masterHistogram, zHi)
         {
             Info<< "master histo (z, n): (" << zHi->first << " "
                 << static_cast<int>(zHi->second.size()) << ")" << endl;
         }
 
-        forAllConstIter (profileHistogram, slaveHistogram, zHi)
+        forAllIter (profileHistogram, slaveHistogram, zHi)
         {
             Info<< "slave histo (z, n): (" << zHi->first << " "
                 << static_cast<int>(zHi->second.size()) << ")" << endl;

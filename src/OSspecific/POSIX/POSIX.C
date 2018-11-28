@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #ifdef solarisGcc
-    #define _SYS_VNODE_H
+# define _SYS_VNODE_H
 #endif
 
 #include "OSspecific.H"
@@ -36,7 +36,6 @@ Description
 #include "fileName.H"
 #include "fileStat.H"
 #include "timer.H"
-#include "DynamicList.H"
 
 #include <fstream>
 #include <cstdlib>
@@ -51,11 +50,6 @@ Description
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <dlfcn.h>
-
-#ifndef darwin
-#include <link.h>
-#endif
 
 #include <netinet/in.h>
 
@@ -106,7 +100,7 @@ Foam::string Foam::getEnv(const word& envName)
 bool Foam::setEnv
 (
     const word& envName,
-    const std::string& value,
+    const string& value,
     const bool overwrite
 )
 {
@@ -114,47 +108,16 @@ bool Foam::setEnv
 }
 
 
-Foam::string Foam::hostName(bool full)
+Foam::word Foam::hostName()
 {
-    char buf[256];
-    gethostname(buf, sizeof(buf));
+    char buffer[256];
+    gethostname(buffer, 256);
 
-    // implementation as per hostname from net-tools
-    if (full)
-    {
-        struct hostent *hp = gethostbyname(buf);
-        if (hp)
-        {
-            return hp->h_name;
-        }
-    }
-
-    return buf;
+    return buffer;
 }
 
 
-Foam::string Foam::domainName()
-{
-    char buf[128];
-    ::gethostname(buf, sizeof(buf));
-
-    // implementation as per hostname from net-tools
-    struct hostent *hp = ::gethostbyname(buf);
-    if (hp)
-    {
-        char *p = ::strchr(hp->h_name, '.');
-        if (p)
-        {
-            ++p;
-            return p;
-        }
-    }
-
-    return string::null;
-}
-
-
-Foam::string Foam::userName()
+Foam::word Foam::userName()
 {
     struct passwd* pw = getpwuid(getuid());
 
@@ -164,17 +127,12 @@ Foam::string Foam::userName()
     }
     else
     {
-        return string::null;
+        return word::null;
     }
 }
 
 
-bool Foam::isAdministrator()
-{
-    return (::geteuid() == 0);
-}
-
-
+// use $HOME environment variable or passwd info
 Foam::fileName Foam::home()
 {
     char* env = getenv("HOME");
@@ -199,7 +157,7 @@ Foam::fileName Foam::home()
 }
 
 
-Foam::fileName Foam::home(const string& userName)
+Foam::fileName Foam::home(const word& userName)
 {
     struct passwd* pw;
 
@@ -254,152 +212,54 @@ bool Foam::chDir(const fileName& dir)
 }
 
 
-Foam::fileNameList Foam::findEtcFiles
-(
-    const fileName& name,
-    bool mandatory,
-    bool findFirst
-)
+Foam::fileName Foam::findEtcFile(const fileName& name, bool mandatory)
 {
-    fileNameList results;
+    // Search user files: deprecated.  HJ, 11/Dec/2013
 
-    // Search for user files in
-    // * ~/.foam/VERSION
-    // * ~/.foam
-    //
-    fileName searchDir = home()/".foam";
+    // Search site files:
+    fileName searchDir = getEnv("WM_PROJECT_INST_DIR");
     if (isDir(searchDir))
     {
-        fileName fullName = searchDir/FOAMversion/name;
+        // Check for site file in $WM_PROJECT_INST_DIR/site/VERSION
+        fileName fullName = searchDir/"site"/FOAMversion/name;
         if (isFile(fullName))
         {
-            results.append(fullName);
-            if (findFirst)
-            {
-                return results;
-            }
+            return fullName;
         }
 
-        fullName = searchDir/name;
+        // Check for version-independent site file in $WM_PROJECT_INST_DIR/site
+        fullName = searchDir/"site"/name;
         if (isFile(fullName))
         {
-            results.append(fullName);
-            if (findFirst)
-            {
-                return results;
-            }
+            return fullName;
         }
     }
 
-    // Search for group (site) files in
-    // * $WM_PROJECT_SITE/VERSION
-    // * $WM_PROJECT_SITE
-    //
-    searchDir = getEnv("WM_PROJECT_SITE");
-    if (searchDir.size())
-    {
-        if (isDir(searchDir))
-        {
-            fileName fullName = searchDir/FOAMversion/name;
-            if (isFile(fullName))
-            {
-                results.append(fullName);
-                if (findFirst)
-                {
-                    return results;
-                }
-            }
-
-            fullName = searchDir/name;
-            if (isFile(fullName))
-            {
-                results.append(fullName);
-                if (findFirst)
-                {
-                    return results;
-                }
-            }
-        }
-    }
-    else
-    {
-        // OR search for group (site) files in
-        // * $WM_PROJECT_INST_DIR/site/VERSION
-        // * $WM_PROJECT_INST_DIR/site
-        //
-        searchDir = getEnv("WM_PROJECT_INST_DIR");
-        if (isDir(searchDir))
-        {
-            fileName fullName = searchDir/"site"/FOAMversion/name;
-            if (isFile(fullName))
-            {
-                results.append(fullName);
-                if (findFirst)
-                {
-                    return results;
-                }
-            }
-
-            fullName = searchDir/"site"/name;
-            if (isFile(fullName))
-            {
-                results.append(fullName);
-                if (findFirst)
-                {
-                    return results;
-                }
-            }
-        }
-    }
-
-    // Search for other (shipped) files in
-    // * $WM_PROJECT_DIR/etc
-    //
+    // Search installation files:
     searchDir = getEnv("WM_PROJECT_DIR");
     if (isDir(searchDir))
     {
+        // Check for shipped FOAM file in $WM_PROJECT_DIR/etc
         fileName fullName = searchDir/"etc"/name;
         if (isFile(fullName))
         {
-            results.append(fullName);
-            if (findFirst)
-            {
-                return results;
-            }
+            return fullName;
         }
     }
 
     // Not found
-    if (results.empty())
+    // abort if the file is mandatory, otherwise return null
+    if (mandatory)
     {
-        // Abort if the file is mandatory, otherwise return null
-        if (mandatory)
-        {
-            std::cerr
-                << "--> FOAM FATAL ERROR in Foam::findEtcFiles() :"
-                   " could not find mandatory file\n    '"
-                << name.c_str() << "'\n\n" << std::endl;
-            ::exit(1);
-        }
+        cerr<< "--> FOAM FATAL ERROR in Foam::findEtcFile() :"
+               " could not find mandatory file\n    '"
+            << name.c_str() << "'\n\n" << std::endl;
+        ::exit(1);
     }
 
-    // Return list of matching paths or empty list if none found
-    return results;
-}
-
-
-Foam::fileName Foam::findEtcFile(const fileName& name, bool mandatory)
-{
-    fileNameList results(findEtcFiles(name, mandatory, true));
-
-    if (results.size())
-    {
-        return results[0];
-    }
-    else
-    {
-        return fileName();
-    }
+    // Return null-constructed fileName rather than fileName::null
+    // to avoid cyclic dependencies in the construction of globals
+    return fileName();
 }
 
 
@@ -423,7 +283,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
         {
             case EPERM:
             {
-                FatalErrorInFunction
+                FatalErrorIn("Foam::mkDir(const fileName&, mode_t)")
                     << "The filesystem containing " << pathName
                     << " does not support the creation of directories."
                     << exit(FatalError);
@@ -439,7 +299,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
 
             case EFAULT:
             {
-                FatalErrorInFunction
+                FatalErrorIn("Foam::mkDir(const fileName&, mode_t)")
                     << "" << pathName
                     << " points outside your accessible address space."
                     << exit(FatalError);
@@ -449,7 +309,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
 
             case EACCES:
             {
-                FatalErrorInFunction
+                FatalErrorIn("Foam::mkDir(const fileName&, mode_t)")
                     << "The parent directory does not allow write "
                        "permission to the process,"<< nl
                     << "or one of the directories in " << pathName
@@ -461,7 +321,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
 
             case ENAMETOOLONG:
             {
-                FatalErrorInFunction
+                FatalErrorIn("Foam::mkDir(const fileName&, mode_t)")
                     << "" << pathName << " is too long."
                     << exit(FatalError);
 
@@ -477,7 +337,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
                 }
                 else
                 {
-                    FatalErrorInFunction
+                    FatalErrorIn("Foam::mkDir(const fileName&, mode_t)")
                         << "Couldn't create directory " << pathName
                         << exit(FatalError);
 
@@ -487,7 +347,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
 
             case ENOTDIR:
             {
-                FatalErrorInFunction
+                FatalErrorIn("Foam::mkDir(const fileName&, mode_t)")
                     << "A component used as a directory in " << pathName
                     << " is not, in fact, a directory."
                     << exit(FatalError);
@@ -497,7 +357,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
 
             case ENOMEM:
             {
-                FatalErrorInFunction
+                FatalErrorIn("Foam::mkDir(const fileName&, mode_t)")
                     << "Insufficient kernel memory was available to make "
                        "directory " << pathName << '.'
                     << exit(FatalError);
@@ -507,7 +367,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
 
             case EROFS:
             {
-                FatalErrorInFunction
+                FatalErrorIn("Foam::mkDir(const fileName&, mode_t)")
                     << "" << pathName
                     << " refers to a file on a read-only filesystem."
                     << exit(FatalError);
@@ -517,7 +377,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
 
             case ELOOP:
             {
-                FatalErrorInFunction
+                FatalErrorIn("Foam::mkDir(const fileName&, mode_t)")
                     << "Too many symbolic links were encountered in resolving "
                     << pathName << '.'
                     << exit(FatalError);
@@ -527,7 +387,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
 
             case ENOSPC:
             {
-                FatalErrorInFunction
+                FatalErrorIn("Foam::mkDir(const fileName&, mode_t)")
                     << "The device containing " << pathName
                     << " has no room for the new directory or "
                     << "the user's disk quota is exhausted."
@@ -538,7 +398,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
 
             default:
             {
-                FatalErrorInFunction
+                FatalErrorIn("Foam::mkDir(const fileName&, mode_t)")
                     << "Couldn't create directory " << pathName
                     << exit(FatalError);
 
@@ -549,6 +409,7 @@ bool Foam::mkDir(const fileName& pathName, mode_t mode)
 }
 
 
+// Set the file mode
 bool Foam::chMod(const fileName& name, const mode_t m)
 {
     return ::chmod(name.c_str(), m) == 0;
@@ -655,8 +516,8 @@ Foam::fileNameList Foam::readDir
 
     if (POSIX::debug)
     {
-        InfoInFunction
-            << "reading directory " << directory << endl;
+        Info<< "readDir(const fileName&, const fileType, const bool filtergz)"
+            << " : reading directory " << directory << endl;
     }
 
     // Setup empty string list MAXTVALUES long
@@ -676,8 +537,9 @@ Foam::fileNameList Foam::readDir
 
         if (POSIX::debug)
         {
-            InfoInFunction
-                << "cannot open directory " << directory << endl;
+            Info<< "readDir(const fileName&, const fileType, "
+                   "const bool filtergz) : cannot open directory "
+                << directory << endl;
         }
     }
     else
@@ -809,8 +671,7 @@ bool Foam::cp(const fileName& src, const fileName& dest)
         {
             if (POSIX::debug)
             {
-                InfoInFunction
-                    << "Copying : " << src/contents[i]
+                Info<< "Copying : " << src/contents[i]
                     << " to " << destFile/contents[i] << endl;
             }
 
@@ -842,22 +703,21 @@ bool Foam::ln(const fileName& src, const fileName& dst)
 {
     if (POSIX::debug)
     {
-        InfoInFunction
-            << "Create softlink from : " << src << " to " << dst
+        Info<< "Create softlink from : " << src << " to " << dst
             << endl;
     }
 
     if (exists(dst))
     {
-        WarningInFunction
+        WarningIn("ln(const fileName&, const fileName&)")
             << "destination " << dst << " already exists. Not linking."
             << endl;
         return false;
     }
 
-    if (src.isAbsolute() && !exists(src))
+    if (!exists(src))
     {
-        WarningInFunction
+        WarningIn("ln(const fileName&, const fileName&)")
             << "source " << src << " does not exist." << endl;
         return false;
     }
@@ -868,7 +728,7 @@ bool Foam::ln(const fileName& src, const fileName& dst)
     }
     else
     {
-        WarningInFunction
+        WarningIn("ln(const fileName&, const fileName&)")
             << "symlink from " << src << " to " << dst << " failed." << endl;
         return false;
     }
@@ -880,8 +740,7 @@ bool Foam::mv(const fileName& src, const fileName& dst)
 {
     if (POSIX::debug)
     {
-        InfoInFunction
-            << "Move : " << src << " to " << dst << endl;
+        Info<< "Move : " << src << " to " << dst << endl;
     }
 
     if
@@ -907,8 +766,7 @@ bool Foam::mvBak(const fileName& src, const std::string& ext)
 {
     if (POSIX::debug)
     {
-        InfoInFunction
-            << "mvBak : " << src << " to extension " << ext << endl;
+        Info<< "mvBak : " << src << " to extension " << ext << endl;
     }
 
     if (exists(src, false))
@@ -946,8 +804,7 @@ bool Foam::rm(const fileName& file)
 {
     if (POSIX::debug)
     {
-        InfoInFunction
-            << "Removing : " << file << endl;
+        Info<< "Removing : " << file << endl;
     }
 
     // Try returning plain file name; if not there, try with .gz
@@ -967,7 +824,7 @@ bool Foam::rmDir(const fileName& directory)
 {
     if (POSIX::debug)
     {
-        InfoInFunction
+        Info<< "rmDir(const fileName&) : "
             << "removing directory " << directory << endl;
     }
 
@@ -978,7 +835,7 @@ bool Foam::rmDir(const fileName& directory)
     // Attempt to open directory and set the structure pointer
     if ((source = opendir(directory.c_str())) == NULL)
     {
-        WarningInFunction
+        WarningIn("rmDir(const fileName&)")
             << "cannot open directory " << directory << endl;
 
         return false;
@@ -998,7 +855,7 @@ bool Foam::rmDir(const fileName& directory)
                 {
                     if (!rmDir(path))
                     {
-                        WarningInFunction
+                        WarningIn("rmDir(const fileName&)")
                             << "failed to remove directory " << fName
                             << " while removing directory " << directory
                             << endl;
@@ -1012,7 +869,7 @@ bool Foam::rmDir(const fileName& directory)
                 {
                     if (!rm(path))
                     {
-                        WarningInFunction
+                        WarningIn("rmDir(const fileName&)")
                             << "failed to remove file " << fName
                             << " while removing directory " << directory
                             << endl;
@@ -1028,7 +885,7 @@ bool Foam::rmDir(const fileName& directory)
 
         if (!rm(directory))
         {
-            WarningInFunction
+            WarningIn("rmDir(const fileName&)")
                 << "failed to remove directory " << directory << endl;
 
             closedir(source);
@@ -1053,8 +910,10 @@ void Foam::fdClose(const int fd)
 {
     if (close(fd) != 0)
     {
-        FatalErrorInFunction
-            << "close error on " << fd << endl
+        FatalErrorIn
+        (
+            "fdClose(const int fd)"
+        )   << "close error on " << fd << endl
             << abort(FatalError);
     }
 }
@@ -1062,7 +921,7 @@ void Foam::fdClose(const int fd)
 
 bool Foam::ping
 (
-    const string& destName,
+    const word& destName,
     const label destPort,
     const label timeOut
 )
@@ -1146,7 +1005,7 @@ bool Foam::ping
 }
 
 
-bool Foam::ping(const string& hostname, const label timeOut)
+bool Foam::ping(const word& hostname, const label timeOut)
 {
     return ping(hostname, 222, timeOut) || ping(hostname, 22, timeOut);
 }
@@ -1156,162 +1015,6 @@ int Foam::system(const std::string& command)
 {
     return ::system(command.c_str());
 }
-
-
-void* Foam::dlOpen(const fileName& lib, const bool check)
-{
-    if (POSIX::debug)
-    {
-        std::cout<< "dlOpen(const fileName&)"
-            << " : dlopen of " << lib << std::endl;
-    }
-    void* handle = ::dlopen(lib.c_str(), RTLD_LAZY|RTLD_GLOBAL);
-
-#ifdef darwin
-    // If failing to load under OS X, let's try some obvious variations
-    // before giving up completely
-    fileName osxFileName(lib);
-
-    if (!handle && lib.ext() == "so")
-    {
-        osxFileName = lib.lessExt() + ".dylib";
-        handle = ::dlopen(osxFileName.c_str(), RTLD_LAZY|RTLD_GLOBAL);
-    }
-
-    // If unsuccessful, which might be the case under Mac OSX 10.11 (El
-    // Capitan) with System Integrity Protection (SIP) enabled, let's try
-    // building a full path using well-known environment variables. This is
-    // the last resort, unless you provide the full pathname yourself.
-    if (!handle)
-    {
-        fileName l_LIBBIN_Name = getEnv("FOAM_LIBBIN")/osxFileName;
-        handle = ::dlopen(l_LIBBIN_Name.c_str(), RTLD_LAZY|RTLD_GLOBAL);
-    }
-    if (!handle)
-    {
-        fileName l_SITE_LIBBIN_Name = getEnv("FOAM_SITE_LIBBIN")/osxFileName;
-        handle = ::dlopen(l_SITE_LIBBIN_Name.c_str(), RTLD_LAZY|RTLD_GLOBAL);
-    }
-    if (!handle)
-    {
-        fileName l_USER_LIBBIN_Name = getEnv("FOAM_USER_LIBBIN")/osxFileName;
-        handle = ::dlopen(l_USER_LIBBIN_Name.c_str(), RTLD_LAZY|RTLD_GLOBAL);
-    }
-#endif
-
-    if (!handle && check)
-    {
-        WarningInFunction
-            << "dlopen error : " << ::dlerror()
-            << endl;
-    }
-
-    if (POSIX::debug)
-    {
-        std::cout
-            << "dlOpen(const fileName&)"
-            << " : dlopen of " << lib
-            << " handle " << handle << std::endl;
-    }
-
-    return handle;
-}
-
-
-bool Foam::dlClose(void* handle)
-{
-    if (POSIX::debug)
-    {
-        std::cout
-            << "dlClose(void*)"
-            << " : dlclose of handle " << handle << std::endl;
-    }
-    return ::dlclose(handle) == 0;
-}
-
-
-void* Foam::dlSym(void* handle, const std::string& symbol)
-{
-    if (POSIX::debug)
-    {
-        std::cout
-            << "dlSym(void*, const std::string&)"
-            << " : dlsym of " << symbol << std::endl;
-    }
-    // clear any old errors - see manpage dlopen
-    (void) ::dlerror();
-
-    // get address of symbol
-    void* fun = ::dlsym(handle, symbol.c_str());
-
-    // find error (if any)
-    char *error = ::dlerror();
-
-    if (error)
-    {
-        WarningInFunction
-            << "Cannot lookup symbol " << symbol << " : " << error
-            << endl;
-    }
-
-    return fun;
-}
-
-
-bool Foam::dlSymFound(void* handle, const std::string& symbol)
-{
-    if (handle && !symbol.empty())
-    {
-        if (POSIX::debug)
-        {
-            std::cout
-                << "dlSymFound(void*, const std::string&)"
-                << " : dlsym of " << symbol << std::endl;
-        }
-
-        // clear any old errors - see manpage dlopen
-        (void) ::dlerror();
-
-        // get address of symbol
-        (void) ::dlsym(handle, symbol.c_str());
-
-        // symbol can be found if there was no error
-        return !::dlerror();
-    }
-    else
-    {
-        return false;
-    }
-}
-
-#ifdef NOT_SURE_HOW_TO_USE_THIS
-static int collectLibsCallback
-(
-    struct dl_phdr_info *info,
-    size_t size,
-    void *data
-)
-{
-    Foam::DynamicList<Foam::fileName>* ptr =
-        reinterpret_cast<Foam::DynamicList<Foam::fileName>*>(data);
-    ptr->append(info->dlpi_name);
-    return 0;
-}
-
-
-Foam::fileNameList Foam::dlLoaded()
-{
-    DynamicList<fileName> libs;
-    dl_iterate_phdr(collectLibsCallback, &libs);
-    if (POSIX::debug)
-    {
-        std::cout
-            << "dlLoaded()"
-            << " : determined loaded libraries :" << libs.size() << std::endl;
-    }
-    return libs;
-}
-#endif
 
 
 void Foam::osRandomSeed(const label seed)

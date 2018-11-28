@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ namespace Foam
 void Foam::surfaceInterpolation::clearOut()
 {
     deleteDemandDrivenData(weightingFactors_);
-    deleteDemandDrivenData(deltaCoeffs_);
+    deleteDemandDrivenData(differenceFactors_);
     deleteDemandDrivenData(correctionVectors_);
 }
 
@@ -55,7 +55,7 @@ Foam::surfaceInterpolation::surfaceInterpolation(const fvMesh& fvm)
     schemesDict_(fvm),
     solutionDict_(fvm),
     weightingFactors_(NULL),
-    deltaCoeffs_(NULL),
+    differenceFactors_(NULL),
     orthogonal_(false),
     correctionVectors_(NULL)
 {}
@@ -84,12 +84,12 @@ const Foam::surfaceScalarField& Foam::surfaceInterpolation::weights() const
 
 const Foam::surfaceScalarField& Foam::surfaceInterpolation::deltaCoeffs() const
 {
-    if (!deltaCoeffs_)
+    if (!differenceFactors_)
     {
         makeDeltaCoeffs();
     }
 
-    return (*deltaCoeffs_);
+    return (*differenceFactors_);
 }
 
 
@@ -121,7 +121,7 @@ Foam::surfaceInterpolation::correctionVectors() const
 bool Foam::surfaceInterpolation::movePoints()
 {
     deleteDemandDrivenData(weightingFactors_);
-    deleteDemandDrivenData(deltaCoeffs_);
+    deleteDemandDrivenData(differenceFactors_);
 
     orthogonal_ = false;
     deleteDemandDrivenData(correctionVectors_);
@@ -138,6 +138,7 @@ void Foam::surfaceInterpolation::makeWeights() const
             << "Constructing weighting factors for face interpolation"
             << endl;
     }
+
 
     weightingFactors_ = new surfaceScalarField
     (
@@ -187,6 +188,7 @@ void Foam::surfaceInterpolation::makeWeights() const
         );
     }
 
+
     if (debug)
     {
         Info<< "surfaceInterpolation::makeWeights() : "
@@ -209,18 +211,18 @@ void Foam::surfaceInterpolation::makeDeltaCoeffs() const
     // needed to make sure deltaCoeffs are calculated for parallel runs.
     weights();
 
-    deltaCoeffs_ = new surfaceScalarField
+    differenceFactors_ = new surfaceScalarField
     (
         IOobject
         (
-            "deltaCoeffs",
+            "differenceFactors_",
             mesh_.pointsInstance(),
             mesh_
         ),
         mesh_,
         dimless/dimLength
     );
-    surfaceScalarField& DeltaCoeffs = *deltaCoeffs_;
+    surfaceScalarField& DeltaCoeffs = *differenceFactors_;
 
 
     // Set local references to mesh data

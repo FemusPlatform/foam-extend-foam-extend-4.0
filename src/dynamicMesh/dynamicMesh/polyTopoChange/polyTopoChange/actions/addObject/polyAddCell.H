@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -103,16 +103,6 @@ public:
             zoneID_(zoneID)
         {}
 
-        //- Construct Istream
-        polyAddCell(Istream& is)
-        :
-            masterPointID_(readLabel(is)),
-            masterEdgeID_(readLabel(is)),
-            masterFaceID_(readLabel(is)),
-            masterCellID_(readLabel(is)),
-            zoneID_(readLabel(is))
-        {}
-
         //- Construct and return a clone
         virtual autoPtr<topoAction> clone() const
         {
@@ -193,19 +183,6 @@ public:
             return zoneID_;
         }
 
-
-    // IOstream Operators
-
-        friend Ostream& operator<<(Ostream& os , const polyAddCell& pac)
-        {
-            os  << pac.masterPointID_
-                << pac.masterEdgeID_
-                << pac.masterFaceID_
-                << pac.masterCellID_
-                << pac.zoneID_;
-
-            return os;
-        }
 };
 
 

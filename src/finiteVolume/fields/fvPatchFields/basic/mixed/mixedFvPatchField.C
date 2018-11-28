@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -150,7 +150,8 @@ void mixedFvPatchField<Type>::evaluate(const Pstream::commsTypes)
     Field<Type>::operator=
     (
         valueFraction_*refValue_
-      + (1.0 - valueFraction_)*
+      +
+        (1.0 - valueFraction_)*
         (
             this->patchInternalField()
           + refGrad_/this->patch().deltaCoeffs()

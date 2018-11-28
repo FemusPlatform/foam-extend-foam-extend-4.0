@@ -8,5 +8,5 @@ application="elasticThermalSolidFoam"
 runApplication blockMesh
 runApplication $application
 
-compileApplication analyticalHotCylinder
+(cd analyticalHotCylinder && runApplication wmake)
 runApplication analyticalHotCylinder

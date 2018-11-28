@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -112,8 +112,8 @@ Foam::hPsiThermo<MixtureType>::hPsiThermo
             "h",
             mesh.time().timeName(),
             obj,
-            IOobject::READ_IF_PRESENT,
-            IOobject::AUTO_WRITE
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
         ),
         mesh,
         dimensionSet(0, 2, -2, 0, 0),

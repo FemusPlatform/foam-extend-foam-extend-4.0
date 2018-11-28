@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -43,21 +43,21 @@ SourceFiles
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#define VectorN_FieldFunctions(tensorType, diagTensorType, sphericalTensorType, \
-    vectorType, CmptType, args...)                                              \
-                                                                                \
-UNARY_FUNCTION(CmptType, vectorType, cmptSum)                                   \
-                                                                                \
-BINARY_FUNCTION(vectorType, vectorType, vectorType, cmptMultiply)               \
-BINARY_TYPE_FUNCTION(vectorType, vectorType, vectorType, cmptMultiply)          \
-                                                                                \
-BINARY_OPERATOR(vectorType, vectorType, CmptType, /,divide)                     \
-BINARY_TYPE_OPERATOR(vectorType, vectorType, CmptType, /,divide)                \
-                                                                                \
-BINARY_OPERATOR(vectorType, vectorType, vectorType, +, add)                     \
-BINARY_OPERATOR(vectorType, vectorType, vectorType, -, subtract)                \
-                                                                                \
-BINARY_TYPE_OPERATOR(vectorType, vectorType, vectorType, +, add)                \
+#define VectorN_FieldFunctions(tensorType, diagTensorType, sphericalTensorType,         \
+    vectorType, CmptType, args...)                                                      \
+                                                                                        \
+UNARY_FUNCTION(CmptType, vectorType, cmptSum)                                           \
+                                                                                        \
+BINARY_FUNCTION(vectorType, vectorType, vectorType, cmptMultiply)                       \
+BINARY_TYPE_FUNCTION(vectorType, vectorType, vectorType, cmptMultiply)                  \
+                                                                                        \
+BINARY_OPERATOR(vectorType, vectorType, CmptType, /,divide)                             \
+BINARY_TYPE_OPERATOR(vectorType, vectorType, CmptType, /,divide)                        \
+                                                                                        \
+BINARY_OPERATOR(vectorType, vectorType, vectorType, +, add)                             \
+BINARY_OPERATOR(vectorType, vectorType, vectorType, -, subtract)                        \
+                                                                                        \
+BINARY_TYPE_OPERATOR(vectorType, vectorType, vectorType, +, add)                        \
 BINARY_TYPE_OPERATOR(vectorType, vectorType, vectorType, -, subtract)
 
 

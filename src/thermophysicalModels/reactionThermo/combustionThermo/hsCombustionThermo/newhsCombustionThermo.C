@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ Foam::autoPtr<Foam::hsCombustionThermo> Foam::hsCombustionThermo::New
                 "thermophysicalProperties",
                 mesh.time().constant(),
                 obj,
-                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::MUST_READ,
                 IOobject::NO_WRITE
             )
         );
@@ -63,10 +63,8 @@ Foam::autoPtr<Foam::hsCombustionThermo> Foam::hsCombustionThermo::New
 
     if (cstrIter == fvMeshConstructorTablePtr_->end())
     {
-        FatalErrorIn
-        (
-            "hsCombustionThermo::New(const fvMesh&, const objectRegistry&)"
-        )   << "Unknown hsCombustionThermo type "
+        FatalErrorIn("hsCombustionThermo::New(const fvMesh&, const objectRegistry&)")
+            << "Unknown hsCombustionThermo type "
             << hsCombustionThermoTypeName << nl << nl
             << "Valid hsCombustionThermo types are:" << nl
             << fvMeshConstructorTablePtr_->sortedToc() << nl
@@ -97,7 +95,7 @@ Foam::autoPtr<Foam::hsCombustionThermo> Foam::hsCombustionThermo::NewType
                 "thermophysicalProperties",
                 mesh.time().constant(),
                 obj,
-                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::MUST_READ,
                 IOobject::NO_WRITE
             )
         );

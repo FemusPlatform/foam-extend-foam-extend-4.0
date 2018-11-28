@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -30,10 +30,10 @@ Description
     handling has been switched on (off by default).
 
 Usage
-    \code
+    @code
         error << "message1" << "message2" << FoamDataType << exit(error, errNo);
         error << "message1" << "message2" << FoamDataType << abort(error);
-    \endcode
+    @endcode
 
 \*---------------------------------------------------------------------------*/
 
@@ -48,6 +48,7 @@ namespace Foam
 {
 
 // Forward declaration of friend functions and operators
+
 template<class Err> class errorManip;
 template<class Err> Ostream& operator<<(Ostream&, errorManip<Err>);
 
@@ -57,7 +58,7 @@ Ostream& operator<<(Ostream&, errorManipArg<Err, T>);
 
 
 /*---------------------------------------------------------------------------*\
-                         Class errorManip Declaration
+                           Class errorManip Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Err>
@@ -87,7 +88,7 @@ inline Ostream& operator<<(Ostream& os, errorManip<Err> m)
 
 
 /*---------------------------------------------------------------------------*\
-                        Class errorManipArg Declaration
+                           Class errorManipArg Declaration
 \*---------------------------------------------------------------------------*/
 
 //- errorManipArg

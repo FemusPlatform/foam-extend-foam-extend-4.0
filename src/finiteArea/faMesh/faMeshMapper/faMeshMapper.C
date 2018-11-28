@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -46,8 +46,7 @@ Foam::faMeshMapper::faMeshMapper
     oldPatchEdgeFaces_(mesh.boundary().size()),
     areaMap_(mesh, mpm),
     edgeMap_(mesh, mpm),
-    boundaryMap_(mesh, mpm),
-    resetPatchFlag_(mesh.boundary().size(), false)  // Disabled
+    boundaryMap_(mesh, mpm)
 {
     // Capture old patch information
     const faBoundaryMesh& patches = mesh.boundary();

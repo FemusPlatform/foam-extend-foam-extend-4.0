@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -45,7 +45,6 @@ SourceFiles
 #include "bool.H"
 #include "label.H"
 #include "uLabel.H"
-#include "nullObject.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -59,9 +58,7 @@ template<class T> class SubList;
 // Forward declaration of friend functions and operators
 template<class T> class UList;
 template<class T> Ostream& operator<<(Ostream&, const UList<T>&);
-template<class T> Istream& operator>>(Istream&, UList<T>&);
 
-typedef UList<label> labelUList;
 
 /*---------------------------------------------------------------------------*\
                            Class UList Declaration
@@ -344,11 +341,13 @@ public:
     // Ostream operator
 
         // Write UList to Ostream.
+#ifndef SWIG
         friend Ostream& operator<< <T>
         (
             Ostream&,
             const UList<T>&
         );
+#endif
 };
 
 
@@ -379,7 +378,7 @@ inline void reverse(UList<T>&);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "UListI.H"
+#   include "UListI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

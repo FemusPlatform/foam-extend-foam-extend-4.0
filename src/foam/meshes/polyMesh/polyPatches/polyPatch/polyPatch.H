@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -237,6 +237,7 @@ public:
 
     // Declare run-time constructor selection tables
 
+#ifndef SWIG
         declareRunTimeSelectionTable
         (
             autoPtr,
@@ -265,6 +266,7 @@ public:
             ),
             (name, dict, index, bm)
         );
+#endif
 
 
     // Constructors
@@ -288,6 +290,9 @@ public:
             const polyBoundaryMesh& bm
         );
 
+        //- Construct as copy, resetting the boundary mesh
+        polyPatch(const polyPatch&, const polyBoundaryMesh&);
+
         //- Construct given the original patch and resetting the
         //  face list and boundary mesh information
         polyPatch
@@ -301,9 +306,6 @@ public:
 
         //- Construct as copy
         polyPatch(const polyPatch&);
-
-        //- Construct as copy, resetting the boundary mesh
-        polyPatch(const polyPatch&, const polyBoundaryMesh&);
 
         //- Construct and return a clone, resetting the boundary mesh
         virtual autoPtr<polyPatch> clone(const polyBoundaryMesh& bm) const
@@ -425,11 +427,8 @@ public:
             //- Return global edge index for local edges
             const labelList& meshEdges() const;
 
-            //- Clear geometry
-            virtual void clearGeom();
-
             //- Clear addressing
-            virtual void clearAddressing();
+            void clearAddressing();
 
 
         // Other patch operations
@@ -461,13 +460,6 @@ public:
         //  Used in cases when no topological change happens locally,
         //  but is happening on other processors
         virtual void syncOrder() const;
-
-        //- Reset patch
-        virtual void resetPatch
-        (
-            const label newSize,
-            const label newStart
-        );
 
 
     // Member operators

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -38,30 +38,52 @@ using namespace Foam;
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-// Global patch table combination class
+// Global patch combination class
 template<class Type>
-class globalPatchTableCombine
+class globalPatchCombine
 {
 
 public:
 
-    typedef HashTable<label, Type, Hash<Type> > HashTableType;
-
     void operator()
     (
-        HashTableType& globalObject,
-        const HashTableType& myObject
+        SLList<Type>& globalObjects,
+        const SLList<Type>& myObjects
     ) const
     {
-        label mySize = globalObject.size();
+        // For each of my points check whether it exists in the global
+        // points list; if not, add it to the global points
 
-        forAllConstIter (typename HashTableType, myObject, iter)
+        for
+        (
+            typename SLList<Type>::const_iterator myObjectsIter =
+                myObjects.begin();
+            myObjectsIter != myObjects.end();
+            ++myObjectsIter
+        )
         {
-            const Type& myCurType = iter.key();
+            const Type& curMyType = myObjectsIter();
 
-            if (!globalObject.found(myCurType))
+            bool found = false;
+
+            for
+            (
+                typename SLList<Type>::iterator globalObjectsIter =
+                    globalObjects.begin();
+                globalObjectsIter != globalObjects.end();
+                ++globalObjectsIter
+            )
             {
-                globalObject.insert(myCurType, mySize++);
+                if (globalObjectsIter() == curMyType)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                globalObjects.append(curMyType);
             }
         }
     }
@@ -167,56 +189,52 @@ void Foam::tetPolyMesh::addParallelPointPatch()
         // Get the list of local parallel processor edges
         const edgeList& localParEdges = parallelEdges();
 
-        // Label to store global parallel edges count
-        label nGlobalParEdges = 0;
+        // Extract global numbers for each of the parallel edges
+        SLList<edge> globalParEdges;
+
+        forAll (localParEdges, edgeI)
+        {
+            globalParEdges.append
+            (
+                edge
+                (
+                    pointProcAddressing[localParEdges[edgeI].start()],
+                    pointProcAddressing[localParEdges[edgeI].end()]
+                )
+            );
+        }
 
         // Create the local-to-global edge mapping
         labelList localEdgeMapping(localParEdges.size(), -1);
 
         if (Pstream::parRun())
         {
-            // Global numbers for each of the parallel edges
-            HashTable<label, edge, Hash<edge> > globalParEdgesTable;
+            // Create a global list of edges by reduction from all processors
+            combineReduce(globalParEdges, globalPatchCombine<edge>());
 
-            // Insert local parallel edges
+            // Find out which of the parallel edges are local.  For
+            // easier search indexing make a plain list out ot the
+            // singly linked list of global edges
+            edgeList ge(globalParEdges);
+
             forAll (localParEdges, edgeI)
             {
-                globalParEdgesTable.insert
-                (
-                    edge
-                    (
-                        pointProcAddressing[localParEdges[edgeI].start()],
-                        pointProcAddressing[localParEdges[edgeI].end()]
-                    ),
-                    edgeI
-                );
-            }
-
-            // Create a global set of edges by reduction from all processors
-            combineReduce
-            (
-                globalParEdgesTable,
-                globalPatchTableCombine<edge>()
-            );
-
-            // Find out which of the parallel edges are local
-            forAll (localParEdges, edgeI)
-            {
-                edge curGlobalEdge =
+                edge curGlobal =
                     edge
                     (
                         pointProcAddressing[localParEdges[edgeI].start()],
                         pointProcAddressing[localParEdges[edgeI].end()]
                     );
 
-                localEdgeMapping[edgeI] = globalParEdgesTable[curGlobalEdge];
+                forAll (ge, geI)
+                {
+                    if (curGlobal == ge[geI])
+                    {
+                        localEdgeMapping[edgeI] = geI;
+                        break;
+                    }
+                }
             }
-
-            // Store global parallel edges count
-            nGlobalParEdges = globalParEdgesTable.size();
-
-            // Clear global parallel edge table
-            globalParEdgesTable.clear();
         }
 
         // Debug check
@@ -273,13 +291,11 @@ void Foam::tetPolyMesh::addParallelPointPatch()
         const unallocLabelList& L = lduAddr().lowerAddr();
         const unallocLabelList& U = lduAddr().upperAddr();
 
-        labelHashSet localParPointsSet(localParPoints);
-
         forAll (localParPoints, pointI)
         {
             const label curPoint = localParPoints[pointI];
 
-            labelList curEdges = edgesForPoint(curPoint);
+            labelList curEdges = edgesForPoint(localParPoints[pointI]);
 
             forAll (curEdges, edgeI)
             {
@@ -295,9 +311,19 @@ void Foam::tetPolyMesh::addParallelPointPatch()
                     otherEnd = e.start();
                 }
 
-                // If the other end is not a local point,
-                // this is a cut edge
-                if (!localParPointsSet.found(otherEnd))
+                // If the other end is not a local point, this is a cut edge
+                bool found = false;
+
+                forAll (localParPoints, compI)
+                {
+                    if (localParPoints[compI] == otherEnd)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
                 {
                     // This is a cut edge. Add it to the list
                     localCutEdges[nCutEdges] = e;
@@ -305,9 +331,6 @@ void Foam::tetPolyMesh::addParallelPointPatch()
                 }
             }
         }
-
-        // Clear parallel points set
-        localParPointsSet.clear();
 
         // Reset the size of the local cut edge list
         localCutEdges.setSize(nCutEdges);
@@ -327,11 +350,11 @@ void Foam::tetPolyMesh::addParallelPointPatch()
             if (Pstream::master())
             {
                 // Master's mask is always one. Add all edges to the list
-                HashSet<edge, Hash<edge> > globalCutEdgesSet;
+                SLList<edge> globalCutEdges;
 
                 forAll (localCutEdges, edgeI)
                 {
-                    globalCutEdgesSet.insert
+                    globalCutEdges.append
                     (
                         edge
                         (
@@ -348,7 +371,7 @@ void Foam::tetPolyMesh::addParallelPointPatch()
                     Pstream::firstSlave()
                 );
 
-                toFirstSlave << globalCutEdgesSet;
+                toFirstSlave << globalCutEdges;
             }
             else
             {
@@ -375,7 +398,7 @@ void Foam::tetPolyMesh::addParallelPointPatch()
 
                         IPstream rf(Pstream::blocking, receiveFrom);
 
-                        HashSet<edge, Hash<edge> > globalCutEdgesSet(rf);
+                        SLList<edge> globalCutEdges(rf);
 
                         // Check local cut edges against the list
                         forAll (localCutEdges, edgeI)
@@ -387,7 +410,24 @@ void Foam::tetPolyMesh::addParallelPointPatch()
                                 pointProcAddressing[localCutEdges[edgeI].end()]
                             );
 
-                            if (globalCutEdgesSet.found(e))
+                            bool found = false;
+
+                            for
+                            (
+                                SLList<edge>::iterator gEdgeIter =
+                                    globalCutEdges.begin();
+                                gEdgeIter != globalCutEdges.end();
+                                ++gEdgeIter
+                            )
+                            {
+                                if (gEdgeIter() == e)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (found)
                             {
                                 // Edge already exists.  Set mask to zero
                                 localCutEdgeMask[edgeI] = 0;
@@ -395,15 +435,15 @@ void Foam::tetPolyMesh::addParallelPointPatch()
                             else
                             {
                                 // Edge not found. Add it to the list
-                                globalCutEdgesSet.insert(e);
+                                globalCutEdges.append(e);
                             }
                         }
 
                         // Re-transmit the list to the next processor
                         if (slave < Pstream::lastSlave())
                         {
-                            OPstream st(Pstream::blocking, sendTo);
-                            st << globalCutEdgesSet;
+                            OPstream passOnEdges(Pstream::blocking, sendTo);
+                            passOnEdges << globalCutEdges;
                         }
                     }
                 }
@@ -421,7 +461,7 @@ void Foam::tetPolyMesh::addParallelPointPatch()
                 mesh_.globalData().nGlobalPoints(),
                 localParPoints,
                 mesh_.globalData().sharedPointAddr(),
-                nGlobalParEdges,
+                globalParEdges.size(),
                 localParEdges,
                 localEdgeMapping,
                 localCutEdges,

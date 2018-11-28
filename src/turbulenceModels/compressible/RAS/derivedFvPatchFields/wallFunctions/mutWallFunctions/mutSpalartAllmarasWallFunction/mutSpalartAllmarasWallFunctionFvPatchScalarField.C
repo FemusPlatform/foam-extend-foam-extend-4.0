@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -40,46 +40,24 @@ namespace RASModels
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
-tmp<scalarField>
-mutSpalartAllmarasWallFunctionFvPatchScalarField::calcMut() const
-{
-    const label patchI = patch().index();
-
-    const turbulenceModel& turbModel =
-        db().lookupObject<turbulenceModel>("turbulenceModel");
-
-    const fvPatchVectorField& Uw = turbModel.U().boundaryField()[patchI];
-    const scalarField magGradU = mag(Uw.snGrad());
-    const scalarField& rhow = turbModel.rho().boundaryField()[patchI];
-    const scalarField& muw = turbModel.mu().boundaryField()[patchI];
-
-    return max
-    (
-        0.0,
-        rhow*sqr(calcUTau(magGradU))/(magGradU + ROOTVSMALL) - muw
-    );
-}
-
-
 tmp<scalarField> mutSpalartAllmarasWallFunctionFvPatchScalarField::calcUTau
 (
     const scalarField& magGradU
 ) const
 {
-    const label patchI = patch().index();
-
-    const turbulenceModel& turbModel =
-        db().lookupObject<turbulenceModel>("turbulenceModel");
-
-    const scalarField& y = turbModel.y()[patchI];
+    const RASModel& rasModel = db().lookupObject<RASModel>("RASProperties");
+    const scalarField& y = rasModel.y()[patch().index()];
 
     const fvPatchVectorField& Uw =
-        turbModel.U().boundaryField()[patchI];
-    const scalarField magUp = mag(Uw.patchInternalField() - Uw);
+        rasModel.U().boundaryField()[patch().index()];
 
-    const fvPatchScalarField& rhow = turbModel.rho().boundaryField()[patchI];
+    scalarField magUp = mag(Uw.patchInternalField() - Uw);
 
-    const fvPatchScalarField& muw = turbModel.mu().boundaryField()[patchI];
+    const fvPatchScalarField& rhow =
+        rasModel.rho().boundaryField()[patch().index()];
+
+    const fvPatchScalarField& muw =
+        rasModel.mu().boundaryField()[patch().index()];
     const scalarField& mutw = *this;
 
     tmp<scalarField> tuTau(new scalarField(patch().size(), 0.0));
@@ -87,32 +65,32 @@ tmp<scalarField> mutSpalartAllmarasWallFunctionFvPatchScalarField::calcUTau
 
     forAll(mutw, faceI)
     {
-        const scalar& magUpara = magUp[faceI];
+        scalar magUpara = magUp[faceI];
 
         scalar ut =
             sqrt((mutw[faceI] + muw[faceI])*magGradU[faceI]/rhow[faceI]);
 
         if (ut > VSMALL)
         {
-            label iter = 0;
+            int iter = 0;
             scalar err = GREAT;
 
             do
             {
-                const scalar kUu = min(kappa_*magUpara/ut, 50);
-                const scalar fkUu = exp(kUu) - 1 - kUu*(1 + 0.5*kUu);
+                scalar kUu = min(kappa_*magUpara/ut, 50);
+                scalar fkUu = exp(kUu) - 1 - kUu*(1 + 0.5*kUu);
 
-                const scalar f =
+                scalar f =
                     - ut*y[faceI]/(muw[faceI]/rhow[faceI])
                     + magUpara/ut
                     + 1/E_*(fkUu - 1.0/6.0*kUu*sqr(kUu));
 
-                const scalar df =
+                scalar df =
                     y[faceI]/(muw[faceI]/rhow[faceI])
                   + magUpara/sqr(ut)
                   + 1/E_*kUu*fkUu/ut;
 
-                const scalar uTauNew = ut + f/df;
+                scalar uTauNew = ut + f/df;
                 err = mag((ut - uTauNew)/ut);
                 ut = uTauNew;
 
@@ -123,6 +101,25 @@ tmp<scalarField> mutSpalartAllmarasWallFunctionFvPatchScalarField::calcUTau
     }
 
     return tuTau;
+}
+
+
+tmp<scalarField>
+mutSpalartAllmarasWallFunctionFvPatchScalarField::calcMut() const
+{
+    const label patchI = patch().index();
+
+    const RASModel& rasModel = db().lookupObject<RASModel>("RASProperties");
+    const fvPatchVectorField& Uw = rasModel.U().boundaryField()[patchI];
+    const scalarField magGradU = mag(Uw.snGrad());
+    const scalarField& rhow = rasModel.rho().boundaryField()[patchI];
+    const scalarField& muw = rasModel.mu().boundaryField()[patchI];
+
+    return max
+    (
+        scalar(0),
+        rhow*sqr(calcUTau(magGradU))/(magGradU + ROOTVSMALL) - muw
+    );
 }
 
 
@@ -142,18 +139,6 @@ mutSpalartAllmarasWallFunctionFvPatchScalarField
 mutSpalartAllmarasWallFunctionFvPatchScalarField::
 mutSpalartAllmarasWallFunctionFvPatchScalarField
 (
-    const fvPatch& p,
-    const DimensionedField<scalar, volMesh>& iF,
-    const dictionary& dict
-)
-:
-    mutWallFunctionFvPatchScalarField(p, iF, dict)
-{}
-
-
-mutSpalartAllmarasWallFunctionFvPatchScalarField::
-mutSpalartAllmarasWallFunctionFvPatchScalarField
-(
     const mutSpalartAllmarasWallFunctionFvPatchScalarField& ptf,
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF,
@@ -161,6 +146,18 @@ mutSpalartAllmarasWallFunctionFvPatchScalarField
 )
 :
     mutWallFunctionFvPatchScalarField(ptf, p, iF, mapper)
+{}
+
+
+mutSpalartAllmarasWallFunctionFvPatchScalarField::
+mutSpalartAllmarasWallFunctionFvPatchScalarField
+(
+    const fvPatch& p,
+    const DimensionedField<scalar, volMesh>& iF,
+    const dictionary& dict
+)
+:
+    mutWallFunctionFvPatchScalarField(p, iF, dict)
 {}
 
 
@@ -192,25 +189,30 @@ mutSpalartAllmarasWallFunctionFvPatchScalarField::yPlus() const
 {
     const label patchI = patch().index();
 
-    const turbulenceModel& turbModel =
-        db().lookupObject<turbulenceModel>("turbulenceModel");
-
-    const scalarField& y = turbModel.y()[patchI];
-    const fvPatchVectorField& Uw = turbModel.U().boundaryField()[patchI];
-    const scalarField& rhow = turbModel.rho().boundaryField()[patchI];
-    const scalarField& muw = turbModel.mu().boundaryField()[patchI];
+    const RASModel& rasModel = db().lookupObject<RASModel>("RASProperties");
+    const scalarField& y = rasModel.y()[patchI];
+    const fvPatchVectorField& Uw = rasModel.U().boundaryField()[patchI];
+    const scalarField& rhow = rasModel.rho().boundaryField()[patchI];
+    const scalarField& muw = rasModel.mu().boundaryField()[patchI];
 
     return y*calcUTau(mag(Uw.snGrad()))/(muw/rhow);
 }
 
 
+void mutSpalartAllmarasWallFunctionFvPatchScalarField::write
+(
+    Ostream& os
+) const
+{
+    fvPatchField<scalar>::write(os);
+    writeLocalEntries(os);
+    writeEntry("value", os);
+}
+
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-makePatchTypeField
-(
-    fvPatchScalarField,
-    mutSpalartAllmarasWallFunctionFvPatchScalarField
-);
+makePatchTypeField(fvPatchScalarField, mutSpalartAllmarasWallFunctionFvPatchScalarField);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

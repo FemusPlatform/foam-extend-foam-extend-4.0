@@ -29,7 +29,6 @@ derivedFvPatchFields/mixedInternalEnergy/mixedInternalEnergyFvPatchScalarField.C
 
 derivedFvPatchFields/ggiEnthalpyJump/ggiEnthalpyJumpFvPatchFields.C
 derivedFvPatchFields/mixingPlaneEnthalpyJump/mixingPlaneEnthalpyJumpFvPatchFields.C
-derivedFvPatchFields/overlapGgiEnthalpyJump/overlapGgiEnthalpyJumpFvPatchFields.C
 
 derivedFvPatchFields/wallHeatTransfer/wallHeatTransferFvPatchScalarField.C
 

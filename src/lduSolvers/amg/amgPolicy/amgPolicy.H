@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -59,18 +59,6 @@ class amgPolicy
 {
     // Private Data
 
-        //- Matrix
-        const lduMatrix& matrix_;
-
-        //- Boundary coeffs
-        const FieldField<Field, scalar>& bouCoeffs_;
-
-        //- Internal coeffs
-        const FieldField<Field, scalar>& intCoeffs_;
-
-        //- Interface fields
-        const lduInterfaceFieldPtrsList& interfaceFields_;
-
         //- Group size
         label groupSize_;
 
@@ -102,20 +90,10 @@ public:
             matrix,
             (
                 const lduMatrix& matrix,
-                const FieldField<Field, scalar>& bouCoeffs,
-                const FieldField<Field, scalar>& intCoeffs,
-                const lduInterfaceFieldPtrsList& interfaceFields,
                 const label groupSize,
                 const label minCoarseEqns
             ),
-            (
-                matrix,
-                bouCoeffs,
-                intCoeffs,
-                interfaceFields,
-                groupSize,
-                minCoarseEqns
-            )
+            (matrix, groupSize, minCoarseEqns)
         );
 
 
@@ -126,9 +104,6 @@ public:
         (
             const word& policyType,
             const lduMatrix& matrix,
-            const FieldField<Field, scalar>& bouCoeffs,
-            const FieldField<Field, scalar>& intCoeffs,
-            const lduInterfaceFieldPtrsList& interfaceFields,
             const label groupSize,
             const label minCoarseEqns
         );
@@ -139,56 +114,22 @@ public:
         //- Construct from components
         amgPolicy
         (
-            const lduMatrix& matrix,
-            const FieldField<Field, scalar>& bouCoeffs,
-            const FieldField<Field, scalar>& intCoeffs,
-            const lduInterfaceFieldPtrsList& interfaceFields,
             const label groupSize,
             const label minCoarseEqns
         )
         :
-            matrix_(matrix),
-            bouCoeffs_(bouCoeffs),
-            intCoeffs_(intCoeffs),
-            interfaceFields_(interfaceFields),
             groupSize_(groupSize),
             minCoarseEqns_(minCoarseEqns)
         {}
 
 
-    //- Destructor
-    virtual ~amgPolicy()
-    {}
+    // Destructor
+
+        virtual ~amgPolicy()
+        {}
 
 
     // Member Functions
-
-        // Matrix access
-
-            //- Return reference to matrix
-            const lduMatrix& matrix() const
-            {
-                return matrix_;
-            }
-
-            //- Return reference to boundary coeffs
-            const FieldField<Field, scalar>& bouCoeffs() const
-            {
-                return bouCoeffs_;
-            }
-
-            //- Return reference to internal coeffs
-            const FieldField<Field, scalar>& intCoeffs() const
-            {
-                return intCoeffs_;
-            }
-
-            //- Return reference to interface fields
-            const lduInterfaceFieldPtrsList& interfaceFields() const
-            {
-                return interfaceFields_;
-            }
-
 
         //- Return group size
         label groupSize() const
@@ -206,7 +147,12 @@ public:
         virtual bool coarsen() const = 0;
 
         //- Restrict matrix
-        virtual autoPtr<amgMatrix> restrictMatrix() const = 0;
+        virtual autoPtr<amgMatrix> restrictMatrix
+        (
+            const FieldField<Field, scalar>& bouCoeffs,
+            const FieldField<Field, scalar>& intCoeffs,
+            const lduInterfaceFieldPtrsList& interfaces
+        ) const = 0;
 
         //- Restrict residual
         virtual void restrictResidual

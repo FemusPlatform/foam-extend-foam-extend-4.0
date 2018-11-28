@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -55,7 +55,6 @@ class cyclicFvPatch
 {
     // Private data
 
-        //- Reference to cyclicPolyPatch
         const cyclicPolyPatch& cyclicPolyPatch_;
 
 
@@ -63,19 +62,11 @@ protected:
 
     // Protected Member functions
 
-        // Geometry correction functions
+        //- Make patch weighting factors
+        void makeWeights(scalarField&) const;
 
-            //- Make mesh cell centres.  Moved from fvMeshGeometry
-            virtual void makeC(slicedSurfaceVectorField&) const;
-
-
-    // Discretisation correction functions
-
-            //- Make patch weighting factors
-            void makeWeights(fvsPatchScalarField&) const;
-
-            //- Make patch face - neighbour cell distances
-            void makeDeltaCoeffs(fvsPatchScalarField&) const;
+        //- Make patch face - neighbour cell distances
+        void makeDeltaCoeffs(scalarField&) const;
 
 
 public:

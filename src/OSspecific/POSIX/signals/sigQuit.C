@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -23,8 +23,8 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "sigQuit.H"
 #include "error.H"
+#include "sigQuit.H"
 #include "JobInfo.H"
 #include "IOstreams.H"
 
@@ -32,17 +32,16 @@ License
 
 struct sigaction Foam::sigQuit::oldAction_;
 
-
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::sigQuit::sigHandler(int)
+void Foam::sigQuit::sigQuitHandler(int)
 {
     // Reset old handling
     if (sigaction(SIGQUIT, &oldAction_, NULL) < 0)
     {
         FatalErrorIn
         (
-            "Foam::sigQuit::sigHandler()"
+            "Foam::sigQuit::sigQuitHandler()"
         )   << "Cannot reset SIGQUIT trapping"
             << abort(FatalError);
     }
@@ -95,7 +94,7 @@ void Foam::sigQuit::set(const bool verbose)
     }
 
     struct sigaction newAction;
-    newAction.sa_handler = sigHandler;
+    newAction.sa_handler = sigQuitHandler;
     newAction.sa_flags = SA_NODEFER;
     sigemptyset(&newAction.sa_mask);
     if (sigaction(SIGQUIT, &newAction, &oldAction_) < 0)

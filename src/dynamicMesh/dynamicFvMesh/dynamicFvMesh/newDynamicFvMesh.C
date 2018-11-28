@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -37,12 +37,23 @@ Foam::autoPtr<Foam::dynamicFvMesh> Foam::dynamicFvMesh::New(const IOobject& io)
     forAll(libNames,i) {
         const word libName("lib"+libNames[i]+".so");
 
-        dlLibraryTable& ll = const_cast<Time&>(io.time()).libs();
+        bool libLoaded = false;
 
-        if (!ll.findLibrary(libName))
+        dlLibraryTable& ll = dlLibraryTable::loadedLibraries;
+
+        forAllConstIter(dlLibraryTable, ll, llI)
         {
-            if(!ll.open(libName))
+            if (ll(llI.key()) == libName)
             {
+                libLoaded = true;
+                break;
+            }
+        }
+
+        if (!libLoaded)
+        {
+            bool ok=dlLibraryTable::open(libName);
+            if(!ok) {
                 WarningIn("dynamicFvMesh::New(const IOobject& io)")
                     << "Loading of dynamic mesh library " << libName
                     << " unsuccesful. Some dynamic mesh  methods may not be "
@@ -63,7 +74,7 @@ Foam::autoPtr<Foam::dynamicFvMesh> Foam::dynamicFvMesh::New(const IOobject& io)
             io.time().constant(),
             (io.name() == dynamicFvMesh::defaultRegion ? "" : io.name() ),
             io.db(),
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
         )
@@ -73,7 +84,7 @@ Foam::autoPtr<Foam::dynamicFvMesh> Foam::dynamicFvMesh::New(const IOobject& io)
 
     Info<< "Selecting dynamicFvMesh " << dynamicFvMeshTypeName << endl;
 
-    const_cast<Time&>(io.time()).libs().open
+    dlLibraryTable::open
     (
         dynamicMeshDict,
         "dynamicFvMeshLibs",

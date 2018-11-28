@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -30,10 +30,6 @@ License
 
 template<class Type>
 const char* const Foam::CoeffField<Type>::typeName("CoeffField");
-
-template<class Type>
-const Foam::CoeffField<Type> Foam::CoeffField<Type>::zero(0);
-
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //

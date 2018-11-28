@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.1                                |
+|  \\    /   O peration     | Version:     4.0                                |
 |   \\  /    A nd           | Web:         http://www.foam-extend.org         |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -19,11 +19,12 @@ solvers
 {
     p
     {
-        solver          CG;
-        preconditioner  Cholesky;
+        solver          PCG;
+        preconditioner  DIC;
         tolerance       1e-06;
         relTol          0;
     }
+
     U
     {
         solver          BiCGStab;
@@ -35,9 +36,9 @@ solvers
 
 PIMPLE
 {
-    nOuterCorrectors            4;
+    nOuterCorrectors            10;
     nCorrectors                 2;
-    nNonOrthogonalCorrectors    0;
+    nNonOrthogonalCorrectors    1;
     pRefPoint (0.5 1.5 0);
     pRefValue 0;
 }

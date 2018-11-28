@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ Class
     BlockCholeskyPrecon
 
 Description
-    Incomplete Cholesky preconditioning with no fill-in for block matrices.
+    Incomplete Cholesky preconditioning with no fill-in.
 
 Author
     Hrvoje Jasak, Wikki Ltd.  All rights reserved.
@@ -96,16 +96,6 @@ class BlockCholeskyPrecon
             Field<DiagType>& dDiag,
             const Field<ULType>& lower,
             const Field<ULType>& upper
-        );
-
-        //- Diagonal interface multiplication
-        template<class DiagType, class ULType>
-        void diagInterfaceMultiply
-        (
-            const unallocLabelList& fc,
-            Field<DiagType>& dDiag,
-            const Field<ULType>& coupleUpper,
-            const Field<ULType>& coupleLower
         );
 
         //- ILU multiplication, symmetric matrix
@@ -196,8 +186,8 @@ public:
 
 
     // Destructor
-    virtual ~BlockCholeskyPrecon()
-    {}
+
+        virtual ~BlockCholeskyPrecon();
 
 
     // Member Functions
@@ -215,9 +205,6 @@ public:
             Field<Type>& xT,
             const Field<Type>& bT
         ) const;
-
-        //- Re-initialise preconditioner after matrix coefficient update
-        virtual void initMatrix();
 };
 
 

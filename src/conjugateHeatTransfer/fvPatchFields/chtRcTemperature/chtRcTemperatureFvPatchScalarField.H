@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -157,15 +157,6 @@ public:
             virtual const chtRcTemperatureFvPatchScalarField&
                 shadowPatchField() const;
 
-            //- Return neighbour field given internal cell data
-            virtual tmp<scalarField> patchNeighbourField() const;
-
-            //- Return wall temperature
-            virtual tmp<scalarField> Tw() const;
-
-            //- Return face-cell temperature
-            virtual tmp<scalarField> Tc() const;
-
 
         // Evaluation functions
 
@@ -183,7 +174,6 @@ public:
 
             //- Manipulate matrix
             virtual void manipulateMatrix(fvScalarMatrix& matrix);
-
 
         //- Write
         virtual void write(Ostream&) const;

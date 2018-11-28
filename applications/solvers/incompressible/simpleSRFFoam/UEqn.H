@@ -1,11 +1,15 @@
     // Solve the momentum equation
 
-    tmp<fvVectorMatrix> UrelEqn
+    tmp<fvVectorMatrix> HUrelEqn
     (
         fvm::div(phi, Urel)
       + turbulence->divDevReff()
       + SRF->Su()
     );
 
+    // Get under-relaxation factor
+    const scalar UUrf =
+        mesh.solutionDict().equationRelaxationFactor(Urel.name());
+
     // Momentum solution
-    solve(relax(UrelEqn()) == -fvc::grad(p));
+    solve(relax(HUrelEqn(), UUrf) == -fvc::grad(p));

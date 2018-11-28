@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -64,12 +64,10 @@ LaunderSharmaKE::LaunderSharmaKE
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
-    const word& turbulenceModelName,
-    const word& modelName
+    transportModel& lamTransportModel
 )
 :
-    RASModel(modelName, U, phi, transport, turbulenceModelName),
+    RASModel(typeName, U, phi, lamTransportModel),
 
     Cmu_
     (
@@ -200,12 +198,10 @@ tmp<volSymmTensorField> LaunderSharmaKE::devReff() const
 
 tmp<fvVectorMatrix> LaunderSharmaKE::divDevReff() const
 {
-    const volScalarField nuEffective = nuEff();
-
     return
     (
-      - fvm::laplacian(nuEffective, U_)
-      - (fvc::grad(U_) & fvc::grad(nuEffective))
+      - fvm::laplacian(nuEff(), U_)
+      - fvc::div(nuEff()*dev(T(fvc::grad(U_))))
     );
 }
 

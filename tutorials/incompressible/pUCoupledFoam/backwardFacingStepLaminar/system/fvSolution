@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.1                                |
+|  \\    /   O peration     | Version:     4.0                                |
 |   \\  /    A nd           | Web:         http://www.foam-extend.org         |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -31,13 +31,10 @@ solvers
     Up
     {
         solver          AMG;
-        cycle           W-cycle;
-        coarseningType  SAMG;
+        cycle           V-cycle;
+        coarseningType  AAMG;
         norm            componentNorm;
-        normComponent   3;
-
-        minGroupSize    4;
-        maxGroupSize    6;
+        normComponent   0;
 
         nPreSweeps      2;
         nPostSweeps     2;
@@ -45,7 +42,11 @@ solvers
         minCoarseEqns   4;
         nMaxLevels      100;
         scale           on;
-        smoother        ILUC0;
+        smoother
+        {
+            smoother        ILUCp;
+            fillInLevel     1;
+        }
 
         minIter         0;
         maxIter         100;
@@ -88,7 +89,7 @@ fieldBounds
 
 relaxationFactors
 {
-     U    0.95;
+//     U    0.95;
 }
 
 

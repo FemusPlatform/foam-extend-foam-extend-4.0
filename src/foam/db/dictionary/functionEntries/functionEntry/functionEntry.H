@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ Description
     A functionEntry causes entries to be added/manipulated on the specified
     dictionary given an input stream.
 
-    In dictionaries, a \c '\#' sigil is typically used for a functionEntry.
+    In dictionaries, a @c '\#' sigil is typically used for a functionEntry.
 
 SourceFiles
     functionEntry.C

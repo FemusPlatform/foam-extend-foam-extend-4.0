@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -23,8 +23,8 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "sigSegv.H"
 #include "error.H"
+#include "sigSegv.H"
 #include "JobInfo.H"
 #include "IOstreams.H"
 
@@ -34,14 +34,14 @@ struct sigaction Foam::sigSegv::oldAction_;
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::sigSegv::sigHandler(int)
+void Foam::sigSegv::sigSegvHandler(int)
 {
     // Reset old handling
     if (sigaction(SIGSEGV, &oldAction_, NULL) < 0)
     {
         FatalErrorIn
         (
-            "Foam::sigSegv::sigHandler()"
+            "Foam::sigSegv::sigSegvHandler()"
         )   << "Cannot reset SIGSEGV trapping"
             << abort(FatalError);
     }
@@ -82,7 +82,7 @@ Foam::sigSegv::~sigSegv()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::sigSegv::set(const bool)
+void Foam::sigSegv::set(const bool verbose)
 {
     if (oldAction_.sa_handler)
     {
@@ -94,7 +94,7 @@ void Foam::sigSegv::set(const bool)
     }
 
     struct sigaction newAction;
-    newAction.sa_handler = sigHandler;
+    newAction.sa_handler = sigSegvHandler;
     newAction.sa_flags = SA_NODEFER;
     sigemptyset(&newAction.sa_mask);
     if (sigaction(SIGSEGV, &newAction, &oldAction_) < 0)

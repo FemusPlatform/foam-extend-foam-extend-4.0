@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -104,11 +104,11 @@ void GGIInterpolation<MasterPatch, SlavePatch>::clearOut()
     deleteDemandDrivenData(slaveWeightsPtr_);
 
     deleteDemandDrivenData(uncoveredMasterAddrPtr_);
-    deleteDemandDrivenData(partiallyUncoveredMasterAddrPtr_);
-    deleteDemandDrivenData(masterFaceUncoveredFractionsPtr_);
+    deleteDemandDrivenData(partiallyCoveredMasterAddrPtr_);
+    deleteDemandDrivenData(masterFaceCoveredFractionsPtr_);
     deleteDemandDrivenData(uncoveredSlaveAddrPtr_);
-    deleteDemandDrivenData(partiallyUncoveredSlaveAddrPtr_);
-    deleteDemandDrivenData(slaveFaceUncoveredFractionsPtr_);
+    deleteDemandDrivenData(partiallyCoveredSlaveAddrPtr_);
+    deleteDemandDrivenData(slaveFaceCoveredFractionsPtr_);
 
     deleteDemandDrivenData(masterPointAddressingPtr_);
     deleteDemandDrivenData(masterPointWeightsPtr_);
@@ -159,11 +159,11 @@ GGIInterpolation<MasterPatch, SlavePatch>::GGIInterpolation
     slavePointWeightsPtr_(NULL),
     slavePointDistancePtr_(NULL),
     uncoveredMasterAddrPtr_(NULL),
-    partiallyUncoveredMasterAddrPtr_(NULL),
-    masterFaceUncoveredFractionsPtr_(NULL),
+    partiallyCoveredMasterAddrPtr_(NULL),
+    masterFaceCoveredFractionsPtr_(NULL),
     uncoveredSlaveAddrPtr_(NULL),
-    partiallyUncoveredSlaveAddrPtr_(NULL),
-    slaveFaceUncoveredFractionsPtr_(NULL)
+    partiallyCoveredSlaveAddrPtr_(NULL),
+    slaveFaceCoveredFractionsPtr_(NULL)
 {
     // Check size of transform.  They should be equal to slave patch size
     // if the transform is not constant
@@ -266,27 +266,27 @@ GGIInterpolation<MasterPatch, SlavePatch>::uncoveredMasterFaces() const
 
 template<class MasterPatch, class SlavePatch>
 const labelList&
-GGIInterpolation<MasterPatch, SlavePatch>::partiallyUncoveredMasterFaces() const
+GGIInterpolation<MasterPatch, SlavePatch>::partiallyCoveredMasterFaces() const
 {
-    if (!partiallyUncoveredMasterAddrPtr_)
+    if (!partiallyCoveredMasterAddrPtr_)
     {
         calcAddressing();
     }
 
-    return *partiallyUncoveredMasterAddrPtr_;
+    return *partiallyCoveredMasterAddrPtr_;
 }
 
 
 template<class MasterPatch, class SlavePatch>
 const scalarField&
-GGIInterpolation<MasterPatch, SlavePatch>::masterFaceUncoveredFractions() const
+GGIInterpolation<MasterPatch, SlavePatch>::masterFaceCoveredFractions() const
 {
-    if (!masterFaceUncoveredFractionsPtr_)
+    if (!masterFaceCoveredFractionsPtr_)
     {
         calcAddressing();
     }
 
-    return *masterFaceUncoveredFractionsPtr_;
+    return *masterFaceCoveredFractionsPtr_;
 }
 
 
@@ -305,27 +305,27 @@ GGIInterpolation<MasterPatch, SlavePatch>::uncoveredSlaveFaces() const
 
 template<class MasterPatch, class SlavePatch>
 const labelList&
-GGIInterpolation<MasterPatch, SlavePatch>::partiallyUncoveredSlaveFaces() const
+GGIInterpolation<MasterPatch, SlavePatch>::partiallyCoveredSlaveFaces() const
 {
-    if (!partiallyUncoveredSlaveAddrPtr_)
+    if (!partiallyCoveredSlaveAddrPtr_)
     {
         calcAddressing();
     }
 
-    return *partiallyUncoveredSlaveAddrPtr_;
+    return *partiallyCoveredSlaveAddrPtr_;
 }
 
 
 template<class MasterPatch, class SlavePatch>
 const scalarField&
-GGIInterpolation<MasterPatch, SlavePatch>::slaveFaceUncoveredFractions() const
+GGIInterpolation<MasterPatch, SlavePatch>::slaveFaceCoveredFractions() const
 {
-    if (!slaveFaceUncoveredFractionsPtr_)
+    if (!slaveFaceCoveredFractionsPtr_)
     {
         calcAddressing();
     }
 
-    return *slaveFaceUncoveredFractionsPtr_;
+    return *slaveFaceCoveredFractionsPtr_;
 }
 
 
@@ -436,7 +436,7 @@ slaveToMasterPointInterpolate
     {
         FatalErrorIn
         (
-            "GGIInterpolation::slaveToMasterPointInterpolate"
+            "ExtendedGGIInterpolation::slaveToMasterPointInterpolate"
             "(const Field<Type> pf)"
         )   << "given field does not correspond to patch. Patch size: "
             << this->slavePatch().nPoints() << " field size: " << pf.size()
@@ -487,7 +487,7 @@ slaveToMasterPointInterpolate
         {
             FatalErrorIn
             (
-                "GGIInterpolation::masterToSlavePointInterpolate"
+                "ExtendedGGIInterpolation::masterToSlavePointInterpolate"
                 "(const Field<Type> pf)"
             )   << "Master point addressing is not correct"
                 << abort(FatalError);
@@ -510,7 +510,7 @@ masterToSlavePointInterpolate
     {
         FatalErrorIn
         (
-            "GGIInterpolation::masterToSlavePointInterpolate"
+            "ExtendedGGIInterpolation::masterToSlavePointInterpolate"
             "(const Field<Type> pf)"
         )   << "given field does not correspond to patch. Patch size: "
             << this->masterPatch().nPoints() << " field size: " << pf.size()
@@ -561,7 +561,7 @@ masterToSlavePointInterpolate
         {
             FatalErrorIn
             (
-                "GGIInterpolation::masterToSlavePointInterpolate"
+                "ExtendedGGIInterpolation::masterToSlavePointInterpolate"
                 "(const Field<Type> pf)"
             )   << "Slave point addressing is not correct"
                 << abort(FatalError);

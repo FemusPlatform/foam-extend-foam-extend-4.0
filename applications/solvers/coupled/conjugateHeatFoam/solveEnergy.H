@@ -1,9 +1,11 @@
 {
+    // Solid side
+    simpleControl simpleSolid(solidMesh);
+
     while (simpleSolid.correctNonOrthogonal())
     {
         coupledFvScalarMatrix TEqns(2);
 
-        // Fluid side
         fvScalarMatrix* TFluidEqn = new fvScalarMatrix
         (
             rho*Cp*
@@ -18,7 +20,6 @@
           + 3.0*radiation->Rp()*pow4(T)
         );
 
-        // Solid side
         fvScalarMatrix* TSolidEqn = new fvScalarMatrix
         (
             fvm::ddt(rhoCpsolid, Tsolid)

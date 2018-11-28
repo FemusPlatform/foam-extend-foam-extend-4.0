@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.1                                |
+|  \\    /   O peration     | Version:     4.0                                |
 |   \\  /    A nd           | Web:         http://www.foam-extend.org         |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -16,41 +16,36 @@ FoamFile
 
 solvers
 {
-    U
+    U PCG
     {
-        solver           CG;
-        preconditioner   Cholesky;
+        preconditioner   DIC;
         tolerance        1e-06;
         relTol           0;
-    }
-    k
+    };
+    k BiCGStab
     {
-        solver           BiCGStab;
-        preconditioner   ILU0;
+        preconditioner   DILU;
         tolerance        1e-06;
         relTol           0;
-    }
-    epsilon
+    };
+    epsilon BiCGStab
     {
-        solver           BiCGStab;
-        preconditioner   ILU0;
+        preconditioner   DILU;
         tolerance        1e-06;
         relTol           0;
-    }
-    R
+    };
+    R BiCGStab
     {
-        solver           BiCGStab;
-        preconditioner   ILU0;
+        preconditioner   DILU;
         tolerance        1e-06;
         relTol           0;
-    }
-    nuTilda
+    };
+    nuTilda BiCGStab
     {
-        solver           BiCGStab;
-        preconditioner   ILU0;
+        preconditioner   DILU;
         tolerance        1e-06;
         relTol           0;
-    }
+    };
 }
 
 PISO

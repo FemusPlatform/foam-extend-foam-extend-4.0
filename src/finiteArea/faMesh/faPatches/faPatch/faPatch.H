@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -43,7 +43,6 @@ SourceFiles
 #include "faPatchFieldsFwd.H"
 #include "autoPtr.H"
 #include "runTimeSelectionTables.H"
-#include "tolerancesSwitch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -98,15 +97,6 @@ private:
 
 
 protected:
-
-    // Protected static data
-
-        //- Relative tolerance (for geometric matching). Is factor of
-        //  maximum edge length per face.
-        static const debug::tolerancesSwitch matchTol_;
-
-
-    // Protected Member functions
 
         // The faPatch geometry initialisation is called by faBoundaryMesh
         friend class faBoundaryMesh;

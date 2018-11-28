@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -135,15 +135,6 @@ public:
 
             //- Return neighbour field of internal field
             virtual tmp<Field<Type> > patchNeighbourField() const = 0;
-
-            //- Return neighbour field of internal field, untransformed
-            //  This is used for source compensation in the segregated
-            //  solver.  HJ and GC, 22/Aug/2018
-            virtual tmp<scalarField>
-            untransformedInterpolate(const direction cmpt) const
-            {
-                return this->patchNeighbourField()().component(cmpt);
-            }
 
 
         // Evaluation functions

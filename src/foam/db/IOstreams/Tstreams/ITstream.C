@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -90,16 +90,17 @@ Foam::Istream& Foam::ITstream::read(token& t)
             setEof();
         }
 
-        t = token::undefinedToken;
-
         if (size())
         {
-            t.lineNumber() = tokenList::last().lineNumber();
+            token::undefinedToken.lineNumber()
+                = operator[](size() - 1).lineNumber();
         }
         else
         {
-            t.lineNumber() = lineNumber();
+            token::undefinedToken.lineNumber() = lineNumber();
         }
+
+        t = token::undefinedToken;
     }
 
     return *this;
@@ -162,13 +163,14 @@ Foam::Istream& Foam::ITstream::read(char*, std::streamsize)
 }
 
 
+// Rewind the token stream so that it may be read again
 Foam::Istream& Foam::ITstream::rewind()
 {
     tokenIndex_ = 0;
 
     if (size())
     {
-        lineNumber_ = tokenList::first().lineNumber();
+        lineNumber_ = operator[](0).lineNumber();
     }
 
     setGood();

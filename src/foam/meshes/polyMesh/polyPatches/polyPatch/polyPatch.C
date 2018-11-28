@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -350,6 +350,30 @@ Foam::polyPatch::polyPatch
 Foam::polyPatch::polyPatch
 (
     const polyPatch& pp,
+    const polyBoundaryMesh& bm
+)
+:
+    patchIdentifier(pp),
+    primitivePatch
+    (
+        faceSubList
+        (
+            bm.mesh().allFaces(),
+            pp.size(),
+            pp.start()
+        ),
+        bm.mesh().allPoints()
+    ),
+    start_(pp.start()),
+    boundaryMesh_(bm),
+    faceCellsPtr_(NULL),
+    mePtr_(NULL)
+{}
+
+
+Foam::polyPatch::polyPatch
+(
+    const polyPatch& pp,
     const polyBoundaryMesh& bm,
     const label index,
     const label newSize,
@@ -380,30 +404,6 @@ Foam::polyPatch::polyPatch(const polyPatch& p)
     primitivePatch(p),
     start_(p.start_),
     boundaryMesh_(p.boundaryMesh_),
-    faceCellsPtr_(NULL),
-    mePtr_(NULL)
-{}
-
-
-Foam::polyPatch::polyPatch
-(
-    const polyPatch& pp,
-    const polyBoundaryMesh& bm
-)
-:
-    patchIdentifier(pp),
-    primitivePatch
-    (
-        faceSubList
-        (
-            bm.mesh().allFaces(),
-            pp.size(),
-            pp.start()
-        ),
-        bm.mesh().allPoints()
-    ),
-    start_(pp.start()),
-    boundaryMesh_(bm),
     faceCellsPtr_(NULL),
     mePtr_(NULL)
 {}
@@ -534,12 +534,6 @@ const Foam::labelList& Foam::polyPatch::meshEdges() const
 }
 
 
-void Foam::polyPatch::clearGeom()
-{
-    primitivePatch::clearGeom();
-}
-
-
 void Foam::polyPatch::clearAddressing()
 {
     // Missing base level clear-out  HJ, 1/Mar/2009
@@ -577,34 +571,6 @@ bool Foam::polyPatch::order
 
 void Foam::polyPatch::syncOrder() const
 {}
-
-
-void Foam::polyPatch::resetPatch
-(
-    const label newSize,
-    const label newStart
-)
-{
-    // Clear all data
-    clearAddressing();
-
-    // Reset start and primitive patch
-    start_ = newStart;
-
-    primitivePatch::operator=
-    (
-        primitivePatch
-        (
-            faceSubList
-            (
-                boundaryMesh_.mesh().allFaces(),
-                newSize,
-                newStart
-            ),
-            boundaryMesh_.mesh().allPoints()
-        )
-    );
-}
 
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //

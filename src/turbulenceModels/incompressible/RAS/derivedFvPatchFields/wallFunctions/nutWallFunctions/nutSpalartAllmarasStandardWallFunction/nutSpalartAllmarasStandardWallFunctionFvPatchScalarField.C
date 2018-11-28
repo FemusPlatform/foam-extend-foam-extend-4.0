@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -38,6 +38,76 @@ namespace incompressible
 namespace RASModels
 {
 
+// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
+
+tmp<scalarField>
+nutSpalartAllmarasStandardWallFunctionFvPatchScalarField::calcNut() const
+{
+    const label patchI = patch().index();
+
+    const RASModel& rasModel = db().lookupObject<RASModel>("RASProperties");
+    const fvPatchVectorField& Uw = rasModel.U().boundaryField()[patchI];
+    const scalarField magUp = mag(Uw.patchInternalField() - Uw);
+    const scalarField& nuw = rasModel.nu().boundaryField()[patchI];
+
+    tmp<scalarField> tyPlus = calcYPlus(magUp);
+    scalarField& yPlus = tyPlus();
+
+    tmp<scalarField> tnutw(new scalarField(patch().size(), 0.0));
+    scalarField& nutw = tnutw();
+
+    forAll(yPlus, facei)
+    {
+        if (yPlus[facei] > yPlusLam_)
+        {
+            nutw[facei] =
+                nuw[facei]*(yPlus[facei]*kappa_/log(E_*yPlus[facei]) - 1.0);
+        }
+    }
+
+    return tnutw;
+}
+
+
+tmp<scalarField>
+nutSpalartAllmarasStandardWallFunctionFvPatchScalarField::calcYPlus
+(
+    const scalarField& magUp
+) const
+{
+    const label patchI = patch().index();
+
+    const RASModel& rasModel = db().lookupObject<RASModel>("RASProperties");
+    const scalarField& y = rasModel.y()[patchI];
+    const scalarField& nuw = rasModel.nu().boundaryField()[patchI];
+
+    tmp<scalarField> tyPlus(new scalarField(patch().size(), 0.0));
+    scalarField& yPlus = tyPlus();
+
+    forAll(yPlus, facei)
+    {
+        scalar kappaRe = kappa_*magUp[facei]*y[facei]/nuw[facei];
+
+        scalar yp = yPlusLam_;
+        scalar ryPlusLam = 1.0/yp;
+
+        int iter = 0;
+        scalar yPlusLast = 0.0;
+
+        do
+        {
+            yPlusLast = yp;
+            yp = (kappaRe + yp)/(1.0 + log(E_*yp));
+
+        } while(mag(ryPlusLam*(yp - yPlusLast)) > 0.01 && ++iter < 10 );
+
+        yPlus[facei] = max(0.0, yp);
+    }
+
+    return tyPlus;
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 nutSpalartAllmarasStandardWallFunctionFvPatchScalarField::
@@ -47,7 +117,7 @@ nutSpalartAllmarasStandardWallFunctionFvPatchScalarField
     const DimensionedField<scalar, volMesh>& iF
 )
 :
-    nutUWallFunctionFvPatchScalarField(p, iF)
+    nutWallFunctionFvPatchScalarField(p, iF)
 {}
 
 
@@ -60,7 +130,7 @@ nutSpalartAllmarasStandardWallFunctionFvPatchScalarField
     const fvPatchFieldMapper& mapper
 )
 :
-    nutUWallFunctionFvPatchScalarField(ptf, p, iF, mapper)
+    nutWallFunctionFvPatchScalarField(ptf, p, iF, mapper)
 {}
 
 
@@ -72,7 +142,7 @@ nutSpalartAllmarasStandardWallFunctionFvPatchScalarField
     const dictionary& dict
 )
 :
-    nutUWallFunctionFvPatchScalarField(p, iF, dict)
+    nutWallFunctionFvPatchScalarField(p, iF, dict)
 {}
 
 
@@ -82,7 +152,7 @@ nutSpalartAllmarasStandardWallFunctionFvPatchScalarField
     const nutSpalartAllmarasStandardWallFunctionFvPatchScalarField& sawfpsf
 )
 :
-    nutUWallFunctionFvPatchScalarField(sawfpsf)
+    nutWallFunctionFvPatchScalarField(sawfpsf)
 {}
 
 
@@ -93,8 +163,33 @@ nutSpalartAllmarasStandardWallFunctionFvPatchScalarField
     const DimensionedField<scalar, volMesh>& iF
 )
 :
-    nutUWallFunctionFvPatchScalarField(sawfpsf, iF)
+    nutWallFunctionFvPatchScalarField(sawfpsf, iF)
 {}
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+tmp<scalarField>
+nutSpalartAllmarasStandardWallFunctionFvPatchScalarField::yPlus() const
+{
+    const label patchI = patch().index();
+    const RASModel& rasModel = db().lookupObject<RASModel>("RASProperties");
+    const fvPatchVectorField& Uw = rasModel.U().boundaryField()[patchI];
+    const scalarField magUp = mag(Uw.patchInternalField() - Uw);
+
+    return calcYPlus(magUp);
+}
+
+
+void nutSpalartAllmarasStandardWallFunctionFvPatchScalarField::write
+(
+    Ostream& os
+) const
+{
+    fvPatchField<scalar>::write(os);
+    writeLocalEntries(os);
+    writeEntry("value", os);
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

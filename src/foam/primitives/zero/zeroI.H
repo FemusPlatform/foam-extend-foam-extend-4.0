@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -59,19 +59,19 @@ inline Type operator-(const zero&, const Type& t)
 template<class Type>
 inline zero operator*(const Type& t, const zero&)
 {
-    return Zero;
+    return zero();
 }
 
 template<class Type>
 inline zero operator*(const zero&, const Type& t)
 {
-    return Zero;
+    return zero();
 }
 
 template<class Type>
 inline zero operator/(const zero&, const Type& t)
 {
-    return Zero;
+    return zero();
 }
 
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -34,10 +34,8 @@ Contributor
 \*---------------------------------------------------------------------------*/
 
 #include "mixingPlaneFvPatch.H"
-#include "fvPatchFields.H"
-#include "fvsPatchFields.H"
-#include "fvBoundaryMesh.H"
 #include "addToRunTimeSelectionTable.H"
+#include "fvBoundaryMesh.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -57,7 +55,7 @@ Foam::mixingPlaneFvPatch::~mixingPlaneFvPatch()
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 // Make patch weighting factors
-void Foam::mixingPlaneFvPatch::makeWeights(fvsPatchScalarField& w) const
+void Foam::mixingPlaneFvPatch::makeWeights(scalarField& w) const
 {
     // Calculation of weighting factors is performed from the master
     // position, using reconstructed shadow cell centres
@@ -78,12 +76,7 @@ void Foam::mixingPlaneFvPatch::makeWeights(fvsPatchScalarField& w) const
     else
     {
         // Pick up weights from the master side
-        fvsPatchScalarField masterWeights
-        (
-            shadow(),
-            w.dimensionedInternalField()
-        );
-
+        scalarField masterWeights(shadow().size());
         shadow().makeWeights(masterWeights);
 
         scalarField oneMinusW = 1 - masterWeights;
@@ -93,7 +86,7 @@ void Foam::mixingPlaneFvPatch::makeWeights(fvsPatchScalarField& w) const
 }
 
 
-void Foam::mixingPlaneFvPatch::makeDeltaCoeffs(fvsPatchScalarField& dc) const
+void Foam::mixingPlaneFvPatch::makeDeltaCoeffs(scalarField& dc) const
 {
     if (mixingPlanePolyPatch_.master())
     {
@@ -104,20 +97,14 @@ void Foam::mixingPlaneFvPatch::makeDeltaCoeffs(fvsPatchScalarField& dc) const
     }
     else
     {
-        fvsPatchScalarField masterDeltas
-        (
-            shadow(),
-            dc.dimensionedInternalField()
-        );
-
+        scalarField masterDeltas(shadow().size());
         shadow().makeDeltaCoeffs(masterDeltas);
-
         dc = interpolate(masterDeltas);
     }
 }
 
 
-void Foam::mixingPlaneFvPatch::makeCorrVecs(fvsPatchVectorField& cv) const
+void Foam::mixingPlaneFvPatch::makeCorrVecs(vectorField& cv) const
 {
     cv = vector::zero;
 #if 0
@@ -184,7 +171,7 @@ Foam::mixingPlaneFvPatch::shadowInterface() const
 }
 
 
-const Foam::labelListList& Foam::mixingPlaneFvPatch::ggiAddressing() const
+const Foam::labelListList& Foam::mixingPlaneFvPatch::addressing() const
 {
     if (mixingPlanePolyPatch_.master())
     {
@@ -197,7 +184,7 @@ const Foam::labelListList& Foam::mixingPlaneFvPatch::ggiAddressing() const
 }
 
 
-const Foam::scalarListList& Foam::mixingPlaneFvPatch::ggiWeights() const
+const Foam::scalarListList& Foam::mixingPlaneFvPatch::weights() const
 {
     if (mixingPlanePolyPatch_.master())
     {

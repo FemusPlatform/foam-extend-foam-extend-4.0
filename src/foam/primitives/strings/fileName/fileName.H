@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ Class
 Description
     A class for handling file names.
 
-    A fileName is a string of characters without whitespace or quotes.
     A fileName can be
       - constructed from a char*, a string or a word
       - concatenated by adding a '/' separator
@@ -130,71 +129,24 @@ public:
         inline static bool valid(char);
 
         //- Cleanup file name
-        //
-        // * Removes repeated slashes
-        //       /abc////def        -->   /abc/def
-        //
-        // * Removes '/./'
-        //       /abc/def/./ghi/.   -->   /abc/def/./ghi
-        //       abc/def/./         -->   abc/def
-        //
-        // * Removes '/../'
-        //       /abc/def/../ghi/jkl/nmo/..   -->   /abc/ghi/jkl
-        //       abc/../def/ghi/../jkl        -->   abc/../def/jkl
-        //
-        // * Removes trailing '/'
-        //
+        //  eg, remove repeated slashes, etc.
         bool clean();
 
         //- Cleanup file name
         //  eg, remove repeated slashes, etc.
         fileName clean() const;
 
-
-        // Interrogation
+        // Interogation
 
             //- Return the file type: FILE, DIRECTORY or UNDEFINED
             Type type() const;
 
-            //- Return true if file name is absolute
-            bool isAbsolute() const;
-
-            //- Convert from relative to absolute
-            fileName& toAbsolute();
-
-
         // Decomposition
 
             //- Return file name (part beyond last /)
-            //
-            //  Behaviour compared to /usr/bin/basename:
-            //    Input           name()          basename
-            //    -----           ------          --------
-            //    "foo"           "foo"           "foo"
-            //    "/foo"          "foo"           "foo"
-            //    "foo/bar"       "bar"           "bar"
-            //    "/foo/bar"      "bar"           "bar"
-            //    "/foo/bar/"     ""              "bar"
-            //
             word name() const;
 
-            //- Return file name (part beyond last /), subsitute for FOAM_CASE
-            string caseName() const;
-
-            //- Return file name, optionally without extension
-            word name(const bool noExt) const;
-
             //- Return directory path name (part before last /)
-            //
-            //  Behaviour compared to /usr/bin/dirname:
-            //    input           path()          dirname
-            //    -----           ------          -------
-            //    "foo"           "."             "."
-            //    "/foo"          "/"             "foo"
-            //    "foo/bar"       "foo"           "foo"
-            //    "/foo/bar"      "/foo"          "/foo"
-            //    "/foo/bar/"     "/foo/bar/"     "/foo"
-            //
             fileName path() const;
 
             //- Return file name without extension (part before last .)
@@ -204,30 +156,20 @@ public:
             word ext() const;
 
             //- Return path components as wordList
-            //
-            //  Behaviour:
-            //    Input           components()
-            //    -----           ------
-            //    "foo"           1("foo")
-            //    "/foo"          1("foo")
-            //    "foo/bar"       2("foo", "bar")
-            //    "/foo/bar"      2("foo", "bar")
-            //    "/foo/bar/"     2("foo", "bar")
             wordList components(const char delimiter='/') const;
 
             //- Return a single component of the path
             word component(const size_type, const char delimiter='/') const;
 
-
     // Member operators
 
         // Assignment
 
-            void operator=(const fileName&);
-            void operator=(const word&);
-            void operator=(const string&);
-            void operator=(const std::string&);
-            void operator=(const char*);
+            const fileName& operator=(const fileName&);
+            const fileName& operator=(const word&);
+            const fileName& operator=(const string&);
+            const fileName& operator=(const std::string&);
+            const fileName& operator=(const char*);
 
 
     // IOstream operators
@@ -239,12 +181,6 @@ public:
 
 //- Assemble words and fileNames as pathnames by adding a '/' separator
 fileName operator/(const string&, const string&);
-
-
-//- Recursively search the given directory for the file
-//  returning the path relative to the directory or
-//  fileName::null if not found
-fileName search(const word& file, const fileName& directory);
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

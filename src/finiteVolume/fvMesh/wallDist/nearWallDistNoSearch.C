@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -32,19 +32,41 @@ License
 
 void Foam::nearWallDistNoSearch::doAll()
 {
+    const volVectorField& cellCentres = mesh_.C();
     const fvPatchList& patches = mesh_.boundary();
 
-    forAll (patches, patchI)
+    forAll(patches, patchI)
     {
-        fvPatchScalarField& yPatch = operator[](patchI);
+        fvPatchScalarField& ypatch = operator[](patchI);
 
         if (patches[patchI].isWall())
         {
-            yPatch = 1/patches[patchI].deltaCoeffs();
+            const unallocLabelList& faceCells = patches[patchI].faceCells();
+
+            const fvPatchVectorField& patchCentres
+                = cellCentres.boundaryField()[patchI];
+
+            const fvsPatchVectorField& Apatch
+                = mesh_.Sf().boundaryField()[patchI];
+
+            const fvsPatchScalarField& magApatch
+                = mesh_.magSf().boundaryField()[patchI];
+
+            forAll(patchCentres, facei)
+            {
+                ypatch[facei] =
+                (
+                    Apatch[facei] &
+                    (
+                        patchCentres[facei]
+                      - cellCentres[faceCells[facei]]
+                    )
+                )/magApatch[facei];
+            }
         }
         else
         {
-            yPatch = 0.0;
+            ypatch = 0.0;
         }
     }
 }

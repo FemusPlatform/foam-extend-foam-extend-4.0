@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -85,9 +85,10 @@ public:
         {}
 
 
-    //- Destructor
-    virtual ~Istream()
-    {}
+    // Destructor
+
+        virtual ~Istream()
+        {}
 
 
     // Member functions
@@ -95,19 +96,12 @@ public:
         // Read functions
 
             //- Put back token
-            //  Only a single put back is permitted
             void putBack(const token&);
 
-            //- Get the put back token if there is one and return true.
-            //  Return false if no put back token is available.
+            //- Get the put back token
             bool getBack(token&);
 
-            //- Peek at the put back token without removing it.
-            //  Returns false if no put back token is available and set the
-            //  token to undefined.
-            bool peekBack(token&);
-
-            //- Return next token from stream
+             //- Return next token from stream
             virtual Istream& read(token&) = 0;
 
             //- Read a character

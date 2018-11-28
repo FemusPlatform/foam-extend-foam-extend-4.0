@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -155,20 +155,6 @@ Foam::fvPatchField<Type>::fvPatchField
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
-void Foam::fvPatchField<Type>::readPatchType(const dictionary& dict)
-{
-    patchType_ = dict.lookupOrDefault<word>("patchType", word::null);
-}
-
-
-template<class Type>
-void Foam::fvPatchField<Type>::setPatchType(const fvPatchField<Type>& ptf)
-{
-    patchType_ = ptf.patchType();
-}
-
-
-template<class Type>
 const Foam::objectRegistry& Foam::fvPatchField<Type>::db() const
 {
     //HR 12.3.10: Lookup fields from the field DB rather than the mesh
@@ -257,26 +243,6 @@ void Foam::fvPatchField<Type>::evaluate(const Pstream::commsTypes)
 
 template<class Type>
 void Foam::fvPatchField<Type>::manipulateMatrix(fvMatrix<Type>& matrix)
-{
-    // do nothing
-}
-
-
-template<class Type>
-void Foam::fvPatchField<Type>::manipulateValueCoeffs
-(
-    fvMatrix<Type>& matrix
-) const
-{
-    // do nothing
-}
-
-
-template<class Type>
-void Foam::fvPatchField<Type>::manipulateGradientCoeffs
-(
-    fvMatrix<Type>& matrix
-) const
 {
     // do nothing
 }

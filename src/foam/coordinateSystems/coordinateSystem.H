@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -260,6 +260,7 @@ public:
 
     // Declare run-time constructor selection table
 
+#ifndef SWIG
         declareRunTimeSelectionTable
         (
             autoPtr,
@@ -284,6 +285,7 @@ public:
             ),
             (name, origin, cr)
         );
+#endif
 
 
     // Selectors
@@ -308,8 +310,9 @@ public:
         static autoPtr<coordinateSystem> New(Istream& is);
 
 
-    //- Destructor
-    virtual ~coordinateSystem();
+    // Destructor
+
+        virtual ~coordinateSystem();
 
 
     // Member Functions
@@ -356,7 +359,7 @@ public:
         }
 
         //- Return local-to-global transformation tensor
-        const coordinateRotation& R() const
+        const tensor& R() const
         {
             return R_;
         }

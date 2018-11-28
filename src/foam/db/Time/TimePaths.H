@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -51,22 +51,10 @@ class TimePaths
 {
     // Private data
 
-        //- Processor case
         bool processorCase_;
-
-        //- Root path
         fileName rootPath_;
-
-        //- Global case name
-        fileName globalCaseName_;
-
-        //- Case name
         fileName case_;
-
-        //- System directory name
         word system_;
-
-        //- Constant directory name
         word constant_;
 
 
@@ -84,81 +72,63 @@ public:
         );
 
 
-        //- Construct given database name, rootPath and casePath
-        TimePaths
-        (
-            const bool processorCase,
-            const fileName& rootPath,
-            const fileName& globalCaseName,
-            const fileName& caseName,
-            const word& systemName,
-            const word& constantName
-        );
-
-
     // Member functions
 
-        //- Return true if this is a processor case
-        bool processorCase() const
-        {
-            return processorCase_;
-        }
+            //- Return true if this is a processor case
+            bool processorCase() const
+            {
+                return processorCase_;
+            }
 
-        //- Return root path
-        const fileName& rootPath() const
-        {
-            return rootPath_;
-        }
+            //- Return root path
+            const fileName& rootPath() const
+            {
+                return rootPath_;
+            }
 
-        //- Return global case name
-        const fileName& globalCaseName() const
-        {
-            return globalCaseName_;
-        }
+            //- Return case name
+            const fileName& caseName() const
+            {
+                return case_;
+            }
 
-        //- Return case name
-        const fileName& caseName() const
-        {
-            return case_;
-        }
+            //- Return system name
+            const word& system() const
+            {
+                return system_;
+            }
 
-        //- Return system name
-        const word& system() const
-        {
-            return system_;
-        }
+            //- Return system name for the case
+            //  which for parallel runs returns ../system()
+            fileName caseSystem() const;
 
-        //- Return system name for the case
-        //  which for parallel runs returns ../system()
-        fileName caseSystem() const;
+            //- Return constant name
+            const word& constant() const
+            {
+                return constant_;
+            }
 
-        //- Return constant name
-        const word& constant() const
-        {
-            return constant_;
-        }
+            //- Return constant name for the case
+            //  which for parallel runs returns ../constant()
+            fileName caseConstant() const;
 
-        //- Return constant name for the case
-        //  which for parallel runs returns ../constant()
-        fileName caseConstant() const;
+            //- Return path
+            fileName path() const
+            {
+                return rootPath()/caseName();
+            }
 
-        //- Return path
-        fileName path() const
-        {
-            return rootPath()/caseName();
-        }
+            //- Return system path
+            fileName systemPath() const
+            {
+                return path()/system();
+            }
 
-        //- Return system path
-        fileName systemPath() const
-        {
-            return path()/system();
-        }
-
-        //- Return constant path
-        fileName constantPath() const
-        {
-            return path()/constant();
-        }
+            //- Return constant path
+            fileName constantPath() const
+            {
+                return path()/constant();
+            }
 };
 
 

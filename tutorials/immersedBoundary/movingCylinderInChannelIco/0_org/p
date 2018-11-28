@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.1                                |
+|  \\    /   O peration     | Version:     4.0                                |
 |   \\  /    A nd           | Web:         http://www.foam-extend.org         |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -22,32 +22,40 @@ boundaryField
 {
     ibCylinder
     {
-        type mixedIb;
-        patchType immersedBoundary;
-        triValue uniform 0;
-        triGradient  uniform 0;
-        triValueFraction uniform 0;
-        setDeadValue   no;
-        deadValue      0;
+        type immersedBoundary;
+        refValue uniform 0;
+        refGradient  uniform 0;
+        fixesValue no;
+
+        setDeadCellValue   yes;
+        deadCellValue      0;
+
         value uniform 0;
     }
+
     in
     {
         type zeroGradient;
     }
+
     out
     {
+//         type zeroGradient;
+
         type fixedValue;
         value uniform 0;
     }
+
     top
     {
         type zeroGradient;
     }
+
     bottom
     {
         type zeroGradient;
     }
+
     frontAndBack
     {
         type empty;

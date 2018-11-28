@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -1270,12 +1270,6 @@ const Foam::lduAddressing& Foam::faMesh::lduAddr() const
 
 bool Foam::faMesh::movePoints() const
 {
-    if (debug)
-    {
-        InfoIn("bool faMesh::movePoints() const")
-            << "Moving points" << endl;
-    }
-
     // Grab point motion from polyMesh
     const vectorField& newPoints = mesh().allPoints();
 
@@ -1284,11 +1278,13 @@ bool Foam::faMesh::movePoints() const
     {
         if (S00Ptr_ && S0Ptr_)
         {
+            Info<< "Copy old-old S" << endl;
             *S00Ptr_ = *S0Ptr_;
         }
 
         if (S0Ptr_)
         {
+            Info<< "Copy old S" << endl;
             *S0Ptr_ = S();
         }
         else
@@ -1296,7 +1292,7 @@ bool Foam::faMesh::movePoints() const
             if (debug)
             {
                 InfoIn("bool faMesh::movePoints() const")
-                    << "Creating old face areas." << endl;
+                    << "Creating old cell volumes." << endl;
             }
 
             S0Ptr_ = new DimensionedField<scalar, areaMesh>

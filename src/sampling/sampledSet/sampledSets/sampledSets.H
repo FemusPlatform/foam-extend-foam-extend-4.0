@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -42,7 +42,6 @@ SourceFiles
 #include "interpolation.H"
 #include "coordSet.H"
 #include "writer.H"
-#include "wordReList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -54,7 +53,7 @@ class dictionary;
 class fvMesh;
 
 /*---------------------------------------------------------------------------*\
-                         Class sampledSets Declaration
+                      Class sampledSets Declaration
 \*---------------------------------------------------------------------------*/
 
 class sampledSets
@@ -67,45 +66,30 @@ class sampledSets
         template<class Type>
         class fieldGroup
         :
-            public DynamicList<word>
+            public wordList
         {
         public:
 
-            //- The set formatter
-            autoPtr< writer<Type> > formatter;
+            //- Set formatter
+            autoPtr<writer<Type> > formatter;
 
             //- Construct null
             fieldGroup()
             :
-                DynamicList<word>(0),
+                wordList(0),
                 formatter(NULL)
             {}
 
-            //- Construct for a particular format
-            fieldGroup(const word& writeFormat)
-            :
-                DynamicList<word>(0),
-                formatter(writer<Type>::New(writeFormat))
-            {}
-
-            //- Reset format and field list
             void clear()
             {
-                DynamicList<word>::clear();
+                wordList::clear();
                 formatter.clear();
             }
-
-            //- Assign a new formatter
-            void operator=(const word& writeFormat)
-            {
-                formatter = writer<Type>::New(writeFormat);
-            }
-
         };
 
 
         //- Class used for sampling volFields
-        template<class Type>
+        template <class Type>
         class volFieldSampler
         :
             public List<Field<Type> >
@@ -147,7 +131,7 @@ class sampledSets
 
     // Static data members
 
-        //- Output verbosity
+        //- output verbosity
         static bool verbose_;
 
 
@@ -176,7 +160,7 @@ class sampledSets
         // Read from dictonary
 
             //- Names of fields to sample
-            wordReList fieldSelection_;
+            wordList fieldNames_;
 
             //- Interpolation scheme to use
             word interpolationScheme_;
@@ -202,14 +186,16 @@ class sampledSets
 
     // Private Member Functions
 
-        //- Clear old field groups
-        void clearFieldGroups();
+        //- Classify field types, return true if nFields > 0
+        bool checkFieldTypes();
 
-        //- Append fieldName to the appropriate group
-        label appendFieldGroup(const word& fieldName, const word& fieldType);
-
-        //- Classify field types, returns the number of fields
-        label classifyFields();
+        //- Find the fields in the list of the given type, return count
+        template<class Type>
+        label grep
+        (
+            fieldGroup<Type>& fieldList,
+            const wordList& fieldTypes
+        ) const;
 
         //- Combine points from all processors. Sort by curveDist and produce
         //  index list. Valid result only on master processor.
@@ -267,8 +253,9 @@ public:
         );
 
 
-    //- Destructor
-    virtual ~sampledSets();
+    // Destructor
+
+        virtual ~sampledSets();
 
 
     // Member Functions
@@ -279,7 +266,7 @@ public:
             return name_;
         }
 
-        //- Set verbosity level
+        //- set verbosity level
         void verbose(const bool verbosity = true);
 
         //- Execute, currently does nothing
@@ -287,9 +274,6 @@ public:
 
         //- Execute at the final time-loop, currently does nothing
         virtual void end();
-
-        //- Called when time was set at the end of the Time::operator++
-        virtual void timeSet();
 
         //- Sample and write
         virtual void write();

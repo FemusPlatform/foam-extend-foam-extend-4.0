@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ License
 
 // * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
 
+// Construct from Istream
 template<class T>
 Foam::List<T>::List(Istream& is)
 :
@@ -58,7 +59,7 @@ Foam::Istream& Foam::operator>>(Istream& is, List<T>& L)
         (
             dynamicCast<token::Compound<List<T> > >
             (
-                firstToken.transferCompoundToken(is)
+                firstToken.transferCompoundToken()
             )
         );
     }
@@ -128,13 +129,13 @@ Foam::Istream& Foam::operator>>(Istream& is, List<T>& L)
     {
         if (firstToken.pToken() != token::BEGIN_LIST)
         {
-            FatalIOErrorInFunction(is)
+            FatalIOErrorIn("operator>>(Istream&, List<T>&)", is)
                 << "incorrect first token, expected '(', found "
                 << firstToken.info()
                 << exit(FatalIOError);
         }
 
-        // Putback the opening bracket
+        // Putback the openning bracket
         is.putBack(firstToken);
 
         // Now read as a singly-linked list
@@ -145,7 +146,7 @@ Foam::Istream& Foam::operator>>(Istream& is, List<T>& L)
     }
     else
     {
-        FatalIOErrorInFunction(is)
+        FatalIOErrorIn("operator>>(Istream&, List<T>&)", is)
             << "incorrect first token, expected <int> or '(', found "
             << firstToken.info()
             << exit(FatalIOError);
@@ -166,18 +167,18 @@ Foam::List<T> Foam::readList(Istream& is)
     {
         if (firstToken.pToken() != token::BEGIN_LIST)
         {
-            FatalIOErrorInFunction(is)
+            FatalIOErrorIn("readList<T>(Istream&)", is)
                 << "incorrect first token, expected '(', found "
                 << firstToken.info()
                 << exit(FatalIOError);
         }
 
-        // Read via a singly-linked list
+        // read via a singly-linked list
         L = SLList<T>(is);
     }
     else
     {
-        // Create list with a single item
+        // create list with a single item
         L.setSize(1);
 
         is >> L[0];

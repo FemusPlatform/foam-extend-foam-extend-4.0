@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -45,7 +45,6 @@ SourceFiles
 #include "IDLList.H"
 #include "fileName.H"
 #include "autoPtr.H"
-#include "infoSwitch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -81,9 +80,6 @@ class entry
 
 
 public:
-
-    static debug::infoSwitch disableFunctionEntries;
-
 
     // Constructors
 

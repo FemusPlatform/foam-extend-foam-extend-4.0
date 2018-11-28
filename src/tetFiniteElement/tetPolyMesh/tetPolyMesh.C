@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -40,10 +40,7 @@ Description
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-namespace Foam
-{
-    defineTypeNameAndDebug(tetPolyMesh, 0);
-}
+defineTypeNameAndDebug(Foam::tetPolyMesh, 0);
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -91,12 +88,6 @@ tetPolyMesh::tetPolyMesh(const polyMesh& pMesh)
     }
 
     addParallelPointPatch();
-
-    if (debug)
-    {
-        Pout<< "tetPolyMesh::tetPolyMesh(const polyMesh&) : "
-            << "Finished creating tetPolyMesh" << endl;
-    }
 }
 
 

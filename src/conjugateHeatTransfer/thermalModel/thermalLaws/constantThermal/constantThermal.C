@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -49,9 +49,7 @@ Foam::constantThermal::constantThermal
     thermalLaw(name, T, dict),
     rho_(dict.lookup("rho")),
     C_(dict.lookup("C")),
-    k_(dict.lookup("k")),
-    alpha_(dict.lookup("alpha")),
-    T0_(dict.lookup("T0"))
+    k_(dict.lookup("k"))
 {}
 
 
@@ -87,7 +85,6 @@ Foam::tmp<Foam::volScalarField> Foam::constantThermal::rho() const
 
     return tresult;
 }
-
 
 Foam::tmp<Foam::volScalarField> Foam::constantThermal::C() const
 {
@@ -131,58 +128,6 @@ Foam::tmp<Foam::volScalarField> Foam::constantThermal::k() const
             ),
             mesh(),
             k_,
-            zeroGradientFvPatchScalarField::typeName
-        )
-    );
-
-    tresult().correctBoundaryConditions();
-
-    return tresult;
-}
-
-
-Foam::tmp<Foam::volScalarField> Foam::constantThermal::alpha() const
-{
-    tmp<volScalarField> tresult
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "alpha",
-                mesh().time().timeName(),
-                mesh(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh(),
-            alpha_,
-            zeroGradientFvPatchScalarField::typeName
-        )
-    );
-
-    tresult().correctBoundaryConditions();
-
-    return tresult;
-}
-
-
-Foam::tmp<Foam::volScalarField> Foam::constantThermal::T0() const
-{
-    tmp<volScalarField> tresult
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "T0",
-                mesh().time().timeName(),
-                mesh(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh(),
-            T0_,
             zeroGradientFvPatchScalarField::typeName
         )
     );

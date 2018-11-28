@@ -3,13 +3,12 @@
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
 # Get application name
-application="potentialFoam"
+application="potentialIbFoam"
 
 runApplication blockMesh
 \cp save/boundary constant/polyMesh/boundary
 
-\rm -rf 0
-\cp -r 0_org 0
+mkdir 0
+\cp 0_org/* 0/
 
-runApplication $application -writep
-runApplication writeIbMasks
+runApplication $application

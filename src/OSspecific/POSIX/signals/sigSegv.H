@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -38,9 +38,7 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef sigSegv_H
-#define sigSegv_H
-
+#include "OSspecific.H"
 #include <signal.h>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -62,25 +60,23 @@ class sigSegv
 
     // Private Member Functions
 
-        //- Handler for caught signals
-        static void sigHandler(int);
+        static void sigSegvHandler(int);
 
 
 public:
 
     // Constructors
 
-        //- Construct null
         sigSegv();
 
 
-    //- Destructor
-    ~sigSegv();
+    // Destructor
+
+        ~sigSegv();
 
 
     // Member functions
 
-        //- Activate SIGSEGV signal handler
         void set(const bool verbose);
 };
 
@@ -88,9 +84,5 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

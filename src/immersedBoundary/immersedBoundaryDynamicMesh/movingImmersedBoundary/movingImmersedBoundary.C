@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ License
 
 #include "movingImmersedBoundary.H"
 #include "immersedBoundaryPolyPatch.H"
-#include "mixedIbFvPatchFields.H"
 #include "transformField.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -33,7 +32,7 @@ License
 Foam::movingImmersedBoundary::movingImmersedBoundary
 (
     const word& name,
-    const polyMesh& mesh,
+    const fvMesh& mesh,
     const dictionary& dict
 )
 :
@@ -78,6 +77,20 @@ void Foam::movingImmersedBoundary::movePoints() const
             << abort(FatalError);
     }
 
+    // Get non-const reference to velocity field
+    volVectorField& U = const_cast<volVectorField&>
+    (
+        mesh().lookupObject<volVectorField>("U")
+    );
+
+    // Get non-const reference to patch field
+    immersedBoundaryFvPatchVectorField& ibPatchField =
+        refCast<immersedBoundaryFvPatchVectorField>
+        (
+            U.boundaryField()[patchID]
+        );
+
+
     const immersedBoundaryPolyPatch& cibPatch =
         refCast<const immersedBoundaryPolyPatch>
         (
@@ -88,11 +101,18 @@ void Foam::movingImmersedBoundary::movePoints() const
     immersedBoundaryPolyPatch& ibPatch =
         const_cast<immersedBoundaryPolyPatch&>(cibPatch);
 
+    const vectorField oldIbPoints = ibPatch.ibMesh().coordinates();
+
     // Move points
     ibPatch.moveTriSurfacePoints
     (
         transform(sbmfPtr_->transformation(), refIbSurface_.points())
     );
+
+    // Set refValue_ to moving boundary velocity
+    ibPatchField.refValue() =
+        (ibPatch.ibMesh().coordinates() - oldIbPoints)/
+        mesh().time().deltaT().value();
 }
 
 

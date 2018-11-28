@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "fieldValue.H"
-#include "fvMesh.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
@@ -37,12 +36,6 @@ inline const Foam::word& Foam::fieldValue::name() const
 inline const Foam::objectRegistry& Foam::fieldValue::obr() const
 {
     return obr_;
-}
-
-
-inline const Foam::dictionary& Foam::fieldValue::dict() const
-{
-    return dict_;
 }
 
 
@@ -79,12 +72,6 @@ inline const Foam::Switch& Foam::fieldValue::valueOutput() const
 inline const Foam::fvMesh& Foam::fieldValue::mesh() const
 {
     return refCast<const fvMesh>(obr_);
-}
-
-
-inline const Foam::dictionary& Foam::fieldValue::resultDict() const
-{
-    return resultDict_;
 }
 
 

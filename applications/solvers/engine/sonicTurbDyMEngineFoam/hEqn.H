@@ -12,8 +12,4 @@
     hEqn.solve();
 
     thermo.correct();
-
-    // Recalculate density
-    rho = thermo.rho();
-    rho.correctBoundaryConditions();
 }

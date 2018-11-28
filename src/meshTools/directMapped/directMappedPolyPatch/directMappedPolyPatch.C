@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -123,23 +123,10 @@ Foam::directMappedPolyPatch::directMappedPolyPatch
 Foam::directMappedPolyPatch::directMappedPolyPatch
 (
     const directMappedPolyPatch& pp,
-    const polyBoundaryMesh& bm,
-    const label index,
-    const label newSize,
-    const label newStart
+    const polyBoundaryMesh& bm
 )
 :
-    polyPatch(pp, bm, index, newSize, newStart),
-    directMappedPatchBase(*this, pp)
-{}
-
-
-Foam::directMappedPolyPatch::directMappedPolyPatch
-(
-    const directMappedPolyPatch& pp
-)
-:
-    polyPatch(pp),
+    polyPatch(pp, bm),
     directMappedPatchBase(*this, pp)
 {}
 
@@ -147,10 +134,13 @@ Foam::directMappedPolyPatch::directMappedPolyPatch
 Foam::directMappedPolyPatch::directMappedPolyPatch
 (
     const directMappedPolyPatch& pp,
-    const polyBoundaryMesh& bm
+    const polyBoundaryMesh& bm,
+    const label index,
+    const label newSize,
+    const label newStart
 )
 :
-    polyPatch(pp, bm),
+    polyPatch(pp, bm, index, newSize, newStart),
     directMappedPatchBase(*this, pp)
 {}
 

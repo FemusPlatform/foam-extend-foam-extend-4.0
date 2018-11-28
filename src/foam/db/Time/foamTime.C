@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ License
 #include "objectRegistry.H"
 #include "foamTime.H"
 #include "PstreamReduceOps.H"
-#include "argList.H"
 
 #include "profilingPool.H"
 #include "profiling.H"
@@ -35,49 +34,35 @@ License
 
 // * * * * * * * * * * * * * Static Member Data  * * * * * * * * * * * * * * //
 
-namespace Foam
+defineTypeNameAndDebug(Foam::Time, 0);
+
+template<>
+const char* Foam::NamedEnum<Foam::Time::stopAtControls, 4>::names[] =
 {
-    defineTypeNameAndDebug(Time, 0);
-
-    template<>
-    const char* Foam::NamedEnum
-    <
-        Foam::Time::stopAtControls,
-        4
-    >::names[] =
-    {
-        "endTime",
-        "noWriteNow",
-        "writeNow",
-        "nextWrite"
-    };
-
-    template<>
-    const char* Foam::NamedEnum
-    <
-        Foam::Time::writeControls,
-        5
-    >::names[] =
-    {
-        "timeStep",
-        "runTime",
-        "adjustableRunTime",
-        "clockTime",
-        "cpuTime"
-    };
-}
+    "endTime",
+    "noWriteNow",
+    "writeNow",
+    "nextWrite"
+};
 
 const Foam::NamedEnum<Foam::Time::stopAtControls, 4>
     Foam::Time::stopAtControlNames_;
+
+template<>
+const char* Foam::NamedEnum<Foam::Time::writeControls, 5>::names[] =
+{
+    "timeStep",
+    "runTime",
+    "adjustableRunTime",
+    "clockTime",
+    "cpuTime"
+};
 
 const Foam::NamedEnum<Foam::Time::writeControls, 5>
     Foam::Time::writeControlNames_;
 
 Foam::Time::fmtflags Foam::Time::format_(Foam::Time::general);
-
 int Foam::Time::precision_(6);
-
-const int Foam::Time::maxPrecision_(3 - log10(SMALL));
 
 Foam::word Foam::Time::controlDictName("controlDict");
 
@@ -86,51 +71,35 @@ Foam::word Foam::Time::controlDictName("controlDict");
 
 void Foam::Time::adjustDeltaT()
 {
-    bool adjustTime = false;
-    scalar timeToNextWrite = VGREAT;
-
     if (writeControl_ == wcAdjustableRunTime)
     {
-        adjustTime = true;
-        timeToNextWrite = max
+        scalar timeToNextWrite = max
         (
             scalar(0),
             (outputTimeIndex_ + 1)*writeInterval_ - (value() - startTime_)
         );
-    }
 
-    if (adjustTime)
-    {
-        scalar nSteps = timeToNextWrite/deltaT_ - SMALL;
+        label nStepsToNextWrite = label(timeToNextWrite/deltaT_ - SMALL) + 1;
+        scalar newDeltaT = timeToNextWrite/nStepsToNextWrite;
 
-        // For tiny deltaT the label can overflow!
-        if (nSteps < labelMax)
+        // Control the increase of the time step to within a factor of 2
+        // and the decrease within a factor of 5.
+        if (newDeltaT >= deltaT_)
         {
-            label nStepsToNextWrite = label(nSteps) + 1;
-
-            scalar newDeltaT = timeToNextWrite/nStepsToNextWrite;
-
-            // Control the increase of the time step to within a factor of 2
-            // and the decrease within a factor of 5.
-            if (newDeltaT >= deltaT_)
-            {
-                deltaT_ = min(newDeltaT, 2.0*deltaT_);
-            }
-            else
-            {
-                deltaT_ = max(newDeltaT, 0.2*deltaT_);
-            }
+            deltaT_ = min(newDeltaT, 2.0*deltaT_);
+        }
+        else
+        {
+            deltaT_ = max(newDeltaT, 0.2*deltaT_);
         }
     }
-
-    functionObjects_.adjustTimeStep();
 }
 
 
 void Foam::Time::setControls()
 {
     // default is to resume calculation from "latestTime"
-    const word startFrom = controlDict_.lookupOrDefault<word>
+    word startFrom = controlDict_.lookupOrDefault<word>
     (
         "startFrom",
         "latestTime"
@@ -143,27 +112,20 @@ void Foam::Time::setControls()
     else
     {
         // Search directory for valid time directories
-        instantList timeDirs = findTimes(path(), constant());
+        instantList timeDirs = findTimes(path());
 
         if (startFrom == "firstTime")
         {
             if (timeDirs.size())
             {
-                if (timeDirs[0].name() == constant() && timeDirs.size() >= 2)
-                {
-                    startTime_ = timeDirs[1].value();
-                }
-                else
-                {
-                    startTime_ = timeDirs[0].value();
-                }
+                startTime_ = timeDirs[0].value();
             }
         }
         else if (startFrom == "latestTime")
         {
             if (timeDirs.size())
             {
-                startTime_ = timeDirs.last().value();
+                startTime_ = timeDirs[timeDirs.size()-1].value();
             }
         }
         else
@@ -179,57 +141,7 @@ void Foam::Time::setControls()
 
     readDict();
     deltaTSave_ = deltaT_;
-    deltaT0_ = deltaT_;
-
-    // Check if time directory exists
-    // If not increase time precision to see if it is formatted differently.
-    if (!exists(timePath(), false))
-    {
-        int oldPrecision = precision_;
-        int requiredPrecision = -1;
-        bool found = false;
-        for
-        (
-            precision_ = maxPrecision_;
-            precision_ > oldPrecision;
-            precision_--
-        )
-        {
-            // Update the time formatting
-            setTime(startTime_, 0);
-
-            // Check the existence of the time directory with the new format
-            found = exists(timePath(), false);
-
-            if (found)
-            {
-                requiredPrecision = precision_;
-            }
-        }
-
-        if (requiredPrecision > 0)
-        {
-            // Update the time precision
-            precision_ = requiredPrecision;
-
-            // Update the time formatting
-            setTime(startTime_, 0);
-
-            WarningIn("Time::setControls()")
-                << "Increasing the timePrecision from " << oldPrecision
-                << " to " << precision_
-                << " to support the formatting of the current time directory "
-                << timeName() << nl << endl;
-        }
-        else
-        {
-            // Could not find time directory so assume it is not present
-            precision_ = oldPrecision;
-
-            // Revert the time formatting
-            setTime(startTime_, 0);
-        }
-    }
+    deltaT0_ = deltaTSave_;
 
     if (Pstream::parRun())
     {
@@ -256,68 +168,20 @@ void Foam::Time::setControls()
             timeName(),
             "uniform",
             *this,
-            IOobject::READ_IF_PRESENT_IF_MODIFIED,
+            IOobject::READ_IF_PRESENT,
             IOobject::NO_WRITE,
             false
         )
     );
 
-    // Read and set the deltaT only if time-step adjustment is active
-    // otherwise use the deltaT from the controlDict
-    if (controlDict_.lookupOrDefault<Switch>("adjustTimeStep", false))
+    if (timeDict.readIfPresent("deltaT", deltaTSave_))
     {
-        if (timeDict.readIfPresent("deltaT", deltaT_))
-        {
-            deltaTSave_ = deltaT_;
-            deltaT0_ = deltaT_;
-        }
+        deltaT0_ = deltaTSave_;
     }
-
-    timeDict.readIfPresent("deltaT0", deltaT0_);
 
     if (timeDict.readIfPresent("index", startTimeIndex_))
     {
         timeIndex_ = startTimeIndex_;
-    }
-
-
-    // Check if values stored in time dictionary are consistent
-
-    // 1. Based on time name
-    bool checkValue = true;
-
-    string storedTimeName;
-    if (timeDict.readIfPresent("name", storedTimeName))
-    {
-        if (storedTimeName == timeName())
-        {
-            // Same time. No need to check stored value
-            checkValue = false;
-        }
-    }
-
-    // 2. Based on time value
-    //    (consistent up to the current time writing precision so it won't
-    //     trigger if we just change the write precision)
-    if (checkValue)
-    {
-        scalar storedTimeValue;
-        if (timeDict.readIfPresent("value", storedTimeValue))
-        {
-            word storedTimeName(timeName(storedTimeValue));
-
-            if (storedTimeName != timeName())
-            {
-                IOWarningIn("Time::setControls()", timeDict)
-                    << "Time read from time dictionary " << storedTimeName
-                    << " differs from actual time " << timeName() << '.' << nl
-                    << "    This may cause unexpected database behaviour."
-                    << " If you are not interested" << nl
-                    << "    in preserving time state delete"
-                    << " the time dictionary."
-                    << endl;
-            }
-        }
     }
 }
 
@@ -344,8 +208,6 @@ Foam::Time::Time
 
     objectRegistry(*this),
 
-    libs_(),
-
     controlDict_
     (
         IOobject
@@ -353,7 +215,7 @@ Foam::Time::Time
             controlDictName,
             system(),
             *this,
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
         )
@@ -367,160 +229,18 @@ Foam::Time::Time
     writeControl_(wcTimeStep),
     writeInterval_(GREAT),
     purgeWrite_(0),
-    writeOnce_(false),
     subCycling_(false),
 
     writeFormat_(IOstream::ASCII),
     writeVersion_(IOstream::currentVersion),
     writeCompression_(IOstream::UNCOMPRESSED),
     graphFormat_("raw"),
-    runTimeModifiable_(false),
+    runTimeModifiable_(true),
 
+    readLibs_(controlDict_, "libs"),
     functionObjects_(*this, enableFunctionObjects)
 {
-    libs_.open(controlDict_, "libs");
-
-    // Explicitly set read flags on objectRegistry so anything constructed
-    // from it reads as well (e.g. fvSolution).
-    readOpt() = IOobject::MUST_READ_IF_MODIFIED;
-
     setControls();
-
-    // Time objects not registered so do like objectRegistry::checkIn ourselves.
-    if (runTimeModifiable_)
-    {
-        monitorPtr_.reset
-        (
-            new fileMonitor
-            (
-                regIOobject::fileModificationChecking == inotify
-             || regIOobject::fileModificationChecking == inotifyMaster
-            )
-        );
-
-        // File might not exist yet.
-        fileName f(controlDict_.filePath());
-
-        if (!f.size())
-        {
-            // We don't have this file but would like to re-read it.
-            // Possibly if in master-only reading mode. Use a non-existing
-            // file to keep fileMonitor synced.
-            f = controlDict_.objectPath();
-        }
-
-        controlDict_.watchIndex() = addWatch(f);
-    }
-
-    profilingPool::initProfiling
-    (
-        IOobject
-        (
-            "profilingInfo",
-            timeName(),
-            "uniform",
-            *this,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        *this
-    );
-}
-
-
-Foam::Time::Time
-(
-    const word& controlDictName,
-    const argList& args,
-    const word& systemName,
-    const word& constantName
-)
-:
-    TimePaths
-    (
-        args.parRunControl().parRun(),
-        args.rootPath(),
-        args.globalCaseName(),
-        args.caseName(),
-        systemName,
-        constantName
-    ),
-
-    objectRegistry(*this),
-
-    libs_(),
-
-    controlDict_
-    (
-        IOobject
-        (
-            controlDictName,
-            system(),
-            *this,
-            IOobject::MUST_READ_IF_MODIFIED,
-            IOobject::NO_WRITE,
-            false
-        )
-    ),
-
-    startTimeIndex_(0),
-    startTime_(0),
-    endTime_(0),
-
-    stopAt_(saEndTime),
-    writeControl_(wcTimeStep),
-    writeInterval_(GREAT),
-    purgeWrite_(0),
-    writeOnce_(false),
-    subCycling_(false),
-
-    writeFormat_(IOstream::ASCII),
-    writeVersion_(IOstream::currentVersion),
-    writeCompression_(IOstream::UNCOMPRESSED),
-    graphFormat_("raw"),
-    runTimeModifiable_(false),
-
-    functionObjects_
-    (
-        *this,
-        argList::validOptions.found("withFunctionObjects")
-      ? args.optionFound("withFunctionObjects")
-      : !args.optionFound("noFunctionObjects")
-    )
-{
-    libs_.open(controlDict_, "libs");
-
-    // Explicitly set read flags on objectRegistry so anything constructed
-    // from it reads as well (e.g. fvSolution).
-    readOpt() = IOobject::MUST_READ_IF_MODIFIED;
-
-    setControls();
-
-    // Time objects not registered so do like objectRegistry::checkIn ourselves.
-    if (runTimeModifiable_)
-    {
-        monitorPtr_.reset
-        (
-            new fileMonitor
-            (
-                regIOobject::fileModificationChecking == inotify
-             || regIOobject::fileModificationChecking == inotifyMaster
-            )
-        );
-
-        // File might not exist yet.
-        fileName f(controlDict_.filePath());
-
-        if (!f.size())
-        {
-            // We don't have this file but would like to re-read it.
-            // Possibly if in master-only reading mode. Use a non-existing
-            // file to keep fileMonitor synced.
-            f = controlDict_.objectPath();
-        }
-
-        controlDict_.watchIndex() = addWatch(f);
-    }
 
     profilingPool::initProfiling
     (
@@ -558,8 +278,6 @@ Foam::Time::Time
 
     objectRegistry(*this),
 
-    libs_(),
-
     controlDict_
     (
         IOobject
@@ -582,7 +300,6 @@ Foam::Time::Time
     writeControl_(wcTimeStep),
     writeInterval_(GREAT),
     purgeWrite_(0),
-    writeOnce_(false),
     subCycling_(false),
 
     writeFormat_(IOstream::ASCII),
@@ -591,45 +308,10 @@ Foam::Time::Time
     graphFormat_("raw"),
     runTimeModifiable_(true),
 
+    readLibs_(controlDict_, "libs"),
     functionObjects_(*this, enableFunctionObjects)
 {
-    libs_.open(controlDict_, "libs");
-
-
-    // Explicitly set read flags on objectRegistry so anything constructed
-    // from it reads as well (e.g. fvSolution).
-    readOpt() = IOobject::MUST_READ_IF_MODIFIED;
-
-    // Since could not construct regIOobject with setting:
-    controlDict_.readOpt() = IOobject::MUST_READ_IF_MODIFIED;
-
     setControls();
-
-    // Time objects not registered so do like objectRegistry::checkIn ourselves.
-    if (runTimeModifiable_)
-    {
-        monitorPtr_.reset
-        (
-            new fileMonitor
-            (
-                regIOobject::fileModificationChecking == inotify
-             || regIOobject::fileModificationChecking == inotifyMaster
-            )
-        );
-
-        // File might not exist yet.
-        fileName f(controlDict_.filePath());
-
-        if (!f.size())
-        {
-            // We don't have this file but would like to re-read it.
-            // Possibly if in master-only reading mode. Use a non-existing
-            // file to keep fileMonitor synced.
-            f = controlDict_.objectPath();
-        }
-
-        controlDict_.watchIndex() = addWatch(f);
-    }
 
     profilingPool::initProfiling
     (
@@ -666,8 +348,6 @@ Foam::Time::Time
 
     objectRegistry(*this),
 
-    libs_(),
-
     controlDict_
     (
         IOobject
@@ -689,7 +369,6 @@ Foam::Time::Time
     writeControl_(wcTimeStep),
     writeInterval_(GREAT),
     purgeWrite_(0),
-    writeOnce_(false),
     subCycling_(false),
 
     writeFormat_(IOstream::ASCII),
@@ -698,10 +377,9 @@ Foam::Time::Time
     graphFormat_("raw"),
     runTimeModifiable_(true),
 
+    readLibs_(controlDict_, "libs"),
     functionObjects_(*this, enableFunctionObjects)
 {
-    libs_.open(controlDict_, "libs");
-
     profilingPool::initProfiling
     (
         IOobject
@@ -722,11 +400,6 @@ Foam::Time::Time
 
 Foam::Time::~Time()
 {
-    if (controlDict_.watchIndex() != -1)
-    {
-        removeWatch(controlDict_.watchIndex());
-    }
-
     // destroy function objects first
     functionObjects_.clear();
 
@@ -736,39 +409,7 @@ Foam::Time::~Time()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::label Foam::Time::addWatch(const fileName& fName) const
-{
-    return monitorPtr_().addWatch(fName);
-}
-
-
-bool Foam::Time::removeWatch(const label watchIndex) const
-{
-    return monitorPtr_().removeWatch(watchIndex);
-}
-
-const Foam::fileName& Foam::Time::getFile(const label watchIndex) const
-{
-    return monitorPtr_().getFile(watchIndex);
-}
-
-
-Foam::fileMonitor::fileState Foam::Time::getState
-(
-    const label watchFd
-) const
-{
-    return monitorPtr_().getState(watchFd);
-}
-
-
-void Foam::Time::setUnmodified(const label watchFd) const
-{
-    monitorPtr_().setUnmodified(watchFd);
-}
-
-
-Foam::word Foam::Time::timeName(const scalar t, const int precision)
+Foam::word Foam::Time::timeName(const scalar t)
 {
     std::ostringstream buf;
     buf.setf(ios_base::fmtflags(format_), ios_base::floatfield);
@@ -787,33 +428,19 @@ Foam::word Foam::Time::timeName() const
 // Search the construction path for times
 Foam::instantList Foam::Time::times() const
 {
-    return findTimes(path(), constant());
+    return findTimes(path());
 }
 
 
 Foam::word Foam::Time::findInstancePath(const instant& t) const
 {
-    const fileName directory = path();
-    const word& constantName = constant();
+    instantList timeDirs = findTimes(path());
 
-    // Read directory entries into a list
-    fileNameList dirEntries(readDir(directory, fileName::DIRECTORY));
-
-    forAll(dirEntries, i)
+    forAllReverse(timeDirs, timeI)
     {
-        scalar timeValue;
-        if (readScalar(dirEntries[i].c_str(), timeValue) && t.equal(timeValue))
+        if (timeDirs[timeI] == t)
         {
-            return dirEntries[i];
-        }
-    }
-
-    if (t.equal(0.0))
-    {
-        // Looking for 0 or constant. 0 already checked above.
-        if (isDir(directory/constantName))
-        {
-            return constantName;
+            return timeDirs[timeI].name();
         }
     }
 
@@ -823,7 +450,7 @@ Foam::word Foam::Time::findInstancePath(const instant& t) const
 
 Foam::instant Foam::Time::findClosestTime(const scalar t) const
 {
-    instantList timeDirs = findTimes(path(), constant());
+    instantList timeDirs = findTimes(path());
 
     // there is only one time (likely "constant") so return it
     if (timeDirs.size() == 1)
@@ -835,21 +462,21 @@ Foam::instant Foam::Time::findClosestTime(const scalar t) const
     {
         return timeDirs[1];
     }
-    else if (t > timeDirs.last().value())
+    else if (t > timeDirs[timeDirs.size()-1].value())
     {
-        return timeDirs.last();
+        return timeDirs[timeDirs.size()-1];
     }
 
     label nearestIndex = -1;
     scalar deltaT = GREAT;
 
-    for (label timei=1; timei < timeDirs.size(); ++timei)
+    for (label timeI=1; timeI < timeDirs.size(); ++timeI)
     {
-        scalar diff = mag(timeDirs[timei].value() - t);
+        scalar diff = mag(timeDirs[timeI].value() - t);
         if (diff < deltaT)
         {
             deltaT = diff;
-            nearestIndex = timei;
+            nearestIndex = timeI;
         }
     }
 
@@ -862,30 +489,29 @@ Foam::instant Foam::Time::findClosestTime(const scalar t) const
 //
 // Foam::instant Foam::Time::findClosestTime(const scalar t) const
 // {
-//     instantList timeDirs = findTimes(path(), constant());
-//     label timeIndex = min(findClosestTimeIndex(timeDirs, t), 0, constant());
+//     instantList timeDirs = findTimes(path());
+//     label timeIndex = min(findClosestTimeIndex(timeDirs, t), 0);
 //     return timeDirs[timeIndex];
 // }
 
 Foam::label Foam::Time::findClosestTimeIndex
 (
     const instantList& timeDirs,
-    const scalar t,
-    const word& constantName
+    const scalar t
 )
 {
     label nearestIndex = -1;
     scalar deltaT = GREAT;
 
-    forAll(timeDirs, timei)
+    forAll(timeDirs, timeI)
     {
-        if (timeDirs[timei].name() == constantName) continue;
+        if (timeDirs[timeI].name() == "constant") continue;
 
-        scalar diff = mag(timeDirs[timei].value() - t);
+        scalar diff = mag(timeDirs[timeI].value() - t);
         if (diff < deltaT)
         {
             deltaT = diff;
-            nearestIndex = timei;
+            nearestIndex = timeI;
         }
     }
 
@@ -928,27 +554,6 @@ bool Foam::Time::run() const
         }
     }
 
-    if (running)
-    {
-        if (!subCycling_)
-        {
-            const_cast<Time&>(*this).readModifiedObjects();
-
-            if (timeIndex_ == startTimeIndex_)
-            {
-                functionObjects_.start();
-            }
-            else
-            {
-                functionObjects_.execute();
-            }
-        }
-
-        // Update the "running" status following the
-        // possible side-effects from functionObjects
-        running = value() < (endTime_ - 0.5*deltaT_);
-    }
-
     return running;
 }
 
@@ -969,24 +574,6 @@ bool Foam::Time::loop()
 bool Foam::Time::end() const
 {
     return value() > (endTime_ + 0.5*deltaT_);
-}
-
-
-bool Foam::Time::stopAt(const stopAtControls sa) const
-{
-    const bool changed = (stopAt_ != sa);
-    stopAt_ = sa;
-
-    // adjust endTime
-    if (sa == saEndTime)
-    {
-        controlDict_.lookup("endTime") >> endTime_;
-    }
-    else
-    {
-        endTime_ = GREAT;
-    }
-    return changed;
 }
 
 
@@ -1012,7 +599,7 @@ void Foam::Time::setTime(const instant& inst, const label newIndex)
             timeName(),
             "uniform",
             *this,
-            IOobject::READ_IF_PRESENT_IF_MODIFIED,
+            IOobject::READ_IF_PRESENT,
             IOobject::NO_WRITE,
             false
         )
@@ -1024,7 +611,11 @@ void Foam::Time::setTime(const instant& inst, const label newIndex)
 }
 
 
-void Foam::Time::setTime(const dimensionedScalar& newTime, const label newIndex)
+void Foam::Time::setTime
+(
+    const dimensionedScalar& newTime,
+    const label newIndex
+)
 {
     setTime(newTime.value(), newIndex);
 }
@@ -1132,192 +723,126 @@ Foam::Time& Foam::Time::operator+=(const scalar deltaT)
 
 Foam::Time& Foam::Time::operator++()
 {
-    deltaT0_ = deltaTSave_;
-    deltaTSave_ = deltaT_;
-
-    // Save old time value and name
-    const scalar oldTimeValue = timeToUserTime(value());
-    const word oldTimeName = dimensionedScalar::name();
-
-    // Increment time
-    setTime(value() + deltaT_, timeIndex_ + 1);
+    readModifiedObjects();
 
     if (!subCycling_)
     {
-        // If the time is very close to zero reset to zero
-        if (mag(value()) < 10*SMALL*deltaT_)
+        if (timeIndex_ == startTimeIndex_)
         {
-            setTime(0.0, timeIndex_);
+            addProfile2(fo,"functionObjects_.start()");
+
+            functionObjects_.start();
         }
-
-
-        outputTime_ = false;
-        primaryOutputTime_ = false;
-
-        switch (writeControl_)
+        else
         {
-            case wcTimeStep:
-                primaryOutputTime_ = !(timeIndex_ % label(writeInterval_));
-            break;
+            addProfile2(fo,"functionObjects_.execute()");
 
-            case wcRunTime:
-            case wcAdjustableRunTime:
-            {
-                label outputIndex = label
-                (
-                    ((value() - startTime_) + 0.5*deltaT_)
-                  / writeInterval_
-                );
-
-                if (outputIndex > outputTimeIndex_)
-                {
-                    primaryOutputTime_ = true;
-                    outputTimeIndex_ = outputIndex;
-                }
-            }
-            break;
-
-            case wcCpuTime:
-            {
-                label outputIndex = label
-                (
-                    returnReduce(elapsedCpuTime(), maxOp<double>())
-                  / writeInterval_
-                );
-                if (outputIndex > outputTimeIndex_)
-                {
-                    primaryOutputTime_ = true;
-                    outputTimeIndex_ = outputIndex;
-                }
-            }
-            break;
-
-            case wcClockTime:
-            {
-                label outputIndex = label
-                (
-                    returnReduce(label(elapsedClockTime()), maxOp<label>())
-                  / writeInterval_
-                );
-                if (outputIndex > outputTimeIndex_)
-                {
-                    primaryOutputTime_ = true;
-                    outputTimeIndex_ = outputIndex;
-                }
-            }
-            break;
+            functionObjects_.execute();
         }
+    }
 
+    deltaT0_ = deltaTSave_;
+    deltaTSave_ = deltaT_;
 
-        outputTime_ = primaryOutputTime_;
+    const word oldTimeName = dimensionedScalar::name();
 
+    setTime(value() + deltaT_, timeIndex_ + 1);
 
-        // Check if endTime needs adjustment to stop at the next run()/end()
-        if (!end())
+    // If the time is very close to zero reset to zero
+    if (mag(value()) < 10*SMALL*deltaT_)
+    {
+        setTime(0.0, timeIndex_);
+    }
+
+    // Check that new time representation differs from old one
+    if (dimensionedScalar::name() == oldTimeName)
+    {
+        int oldPrecision = precision_;
+        do
         {
-            if (stopAt_ == saNoWriteNow)
+            precision_++;
+            setTime(value(), timeIndex());
+        }
+        while (precision_ < 100 && dimensionedScalar::name() == oldTimeName);
+
+        WarningIn("Time::operator++()")
+            << "Increased the timePrecision from " << oldPrecision
+            << " to " << precision_
+            << " to distinguish between timeNames at time " << value()
+            << endl;
+    }
+
+    switch (writeControl_)
+    {
+        case wcTimeStep:
+            outputTime_ = !(timeIndex_ % label(writeInterval_));
+        break;
+
+        case wcRunTime:
+        case wcAdjustableRunTime:
+        {
+            label outputIndex =
+                label(((value() - startTime_) + 0.5*deltaT_)/writeInterval_);
+
+            if (outputIndex > outputTimeIndex_)
             {
-                endTime_ = value();
-            }
-            else if (stopAt_ == saWriteNow)
-            {
-                endTime_ = value();
                 outputTime_ = true;
-                primaryOutputTime_ = true;
+                outputTimeIndex_ = outputIndex;
             }
-            else if (stopAt_ == saNextWrite && outputTime_ == true)
+            else
             {
-                endTime_ = value();
+                outputTime_ = false;
             }
         }
+        break;
 
-        // Override outputTime if one-shot writing
-        if (writeOnce_)
+        case wcCpuTime:
         {
-            primaryOutputTime_ = true;
+            label outputIndex = label(elapsedCpuTime()/writeInterval_);
+            if (outputIndex > outputTimeIndex_)
+            {
+                outputTime_ = true;
+                outputTimeIndex_ = outputIndex;
+            }
+            else
+            {
+                outputTime_ = false;
+            }
+        }
+        break;
+
+        case wcClockTime:
+        {
+            label outputIndex = label(elapsedClockTime()/writeInterval_);
+            if (outputIndex > outputTimeIndex_)
+            {
+                outputTime_ = true;
+                outputTimeIndex_ = outputIndex;
+            }
+            else
+            {
+                outputTime_ = false;
+            }
+        }
+        break;
+    }
+
+    // see if endTime needs adjustment to stop at the next run()/end() check
+    if (!end())
+    {
+        if (stopAt_ == saNoWriteNow)
+        {
+            endTime_ = value();
+        }
+        else if (stopAt_ == saWriteNow)
+        {
+            endTime_ = value();
             outputTime_ = true;
-            writeOnce_ = false;
         }
-
-        // Adjust the precision of the time directory name if necessary
-        if (outputTime_)
+        else if (stopAt_ == saNextWrite && outputTime_ == true)
         {
-            // Tolerance used when testing time equivalence
-            const scalar timeTol =
-                max(min(pow(10.0, -precision_), 0.1*deltaT_), SMALL);
-
-            // User-time equivalent of deltaT
-            const scalar userDeltaT = timeToUserTime(deltaT_);
-
-            // Time value obtained by reading timeName
-            scalar timeNameValue = -VGREAT;
-
-            // Check that new time representation differs from old one
-            // reinterpretation of the word
-            if
-            (
-                readScalar(dimensionedScalar::name().c_str(), timeNameValue)
-             && (mag(timeNameValue - oldTimeValue - userDeltaT) > timeTol)
-            )
-            {
-                int oldPrecision = precision_;
-                while
-                (
-                    precision_ < maxPrecision_
-                 && readScalar(dimensionedScalar::name().c_str(), timeNameValue)
-                 && (mag(timeNameValue - oldTimeValue - userDeltaT) > timeTol)
-                )
-                {
-                    precision_++;
-                    setTime(value(), timeIndex());
-                }
-
-                if (precision_ != oldPrecision)
-                {
-                    WarningIn("Time::operator++()")
-                        << "Increased the timePrecision from " << oldPrecision
-                        << " to " << precision_
-                        << " to distinguish between timeNames at time "
-                        << dimensionedScalar::name()
-                        << endl;
-
-                    if (precision_ == maxPrecision_)
-                    {
-                        // Reached maxPrecision limit
-                        WarningIn("Time::operator++()")
-                            << "Current time name " << dimensionedScalar::name()
-                            << nl
-                            << "    The maximum time precision has been reached"
-                               " which might result in overwriting previous"
-                               " results."
-                            << endl;
-                    }
-
-                    // Check if round-off error caused time-reversal
-                    scalar oldTimeNameValue = -VGREAT;
-                    if
-                    (
-                        readScalar(oldTimeName.c_str(), oldTimeNameValue)
-                     && (
-                            sign(timeNameValue - oldTimeNameValue)
-                         != sign(deltaT_)
-                        )
-                    )
-                    {
-                        WarningIn("Time::operator++()")
-                            << "Current time name " << dimensionedScalar::name()
-                            << " is set to an instance prior to the "
-                               "previous one "
-                            << oldTimeName << nl
-                            << "    This might result in temporal "
-                               "discontinuities."
-                            << endl;
-                    }
-                }
-            }
+            endTime_ = value();
         }
-
-        functionObjects_.timeSet();
     }
 
     return *this;

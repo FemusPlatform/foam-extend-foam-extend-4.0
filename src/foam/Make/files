@@ -23,16 +23,11 @@ $(bools)/Switch/SwitchIO.C
 primitives/char/charIO.C
 
 ints = primitives/ints
-$(ints)/uint32/uint32.C
-$(ints)/uint32/uint32IO.C
-$(ints)/uint64/uint64.C
-$(ints)/uint64/uint64IO.C
-$(ints)/uint/uintIO.C
-$(ints)/int32/int32.C
-$(ints)/int32/int32IO.C
-$(ints)/int64/int64.C
-$(ints)/int64/int64IO.C
 $(ints)/int/intIO.C
+$(ints)/uint/uintIO.C
+$(ints)/long/longIO.C
+$(ints)/longLong/longLongIO.C
+$(ints)/ulong/ulongIO.C
 $(ints)/label/label.C
 $(ints)/uLabel/uLabel.C
 
@@ -63,10 +58,6 @@ primitives/complex/complex.C
 primitives/quaternion/quaternion.C
 primitives/septernion/septernion.C
 
-/* functions, data entries */
-primitives/functions/Function1/makeDataEntries.C
-primitives/functions/Polynomial/polynomialFunction.C
-
 strings = primitives/strings
 $(strings)/string/foamString.C
 $(strings)/string/foamStringIO.C
@@ -74,9 +65,8 @@ $(strings)/word/word.C
 $(strings)/word/wordIO.C
 $(strings)/fileName/fileName.C
 $(strings)/fileName/fileNameIO.C
-$(strings)/keyType/keyType.C
-$(strings)/wordRe/wordRe.C
-$(strings)/stringOps/stringOps.C
+$(strings)/keyType/keyTypeIO.C
+$(strings)/wordRe/wordReIO.C
 
 primitives/hashes/Hasher/Hasher.C
 
@@ -101,6 +91,8 @@ primitives/random/Random.C
 
 containers/HashTables/HashTable/HashTableCore.C
 containers/HashTables/StaticHashTable/StaticHashTableCore.C
+containers/Lists/SortableList/ParSortableListName.C
+containers/Lists/PackedList/PackedListName.C
 containers/Lists/ListOps/ListOps.C
 containers/LinkedLists/linkTypes/SLListBase/SLListBase.C
 containers/LinkedLists/linkTypes/DLListBase/DLListBase.C
@@ -118,8 +110,6 @@ $(primitiveLists)/symmTensor4thOrderList.C
 $(primitiveLists)/tensorList.C
 $(primitiveLists)/VectorNLists.C
 $(primitiveLists)/wordIOList.C
-$(primitiveLists)/hashedWordList.C
-$(primitiveLists)/PackedBoolList.C
 
 Streams = db/IOstreams
 $(Streams)/token/tokenIO.C
@@ -176,11 +166,8 @@ $(dictionaryEntry)/dictionaryEntry.C
 $(dictionaryEntry)/dictionaryEntryIO.C
 
 functionEntries = $(dictionary)/functionEntries
-$(functionEntries)/calcEntry/calcEntry.C
-$(functionEntries)/codeStream/codeStream.C
 $(functionEntries)/functionEntry/functionEntry.C
 $(functionEntries)/includeEntry/includeEntry.C
-$(functionEntries)/includeEtcEntry/includeEtcEntry.C
 $(functionEntries)/includeIfPresentEntry/includeIfPresentEntry.C
 $(functionEntries)/inputModeEntry/inputModeEntry.C
 $(functionEntries)/removeEntry/removeEntry.C
@@ -206,16 +193,10 @@ db/IOobjectList/IOobjectList.C
 db/objectRegistry/objectRegistry.C
 db/postfixedSubRegistry/postfixedSubRegistry.C
 db/CallbackRegistry/CallbackRegistryName.C
-
-dll = db/dynamicLibrary
-$(dll)/dlLibraryTable/dlLibraryTable.C
-$(dll)/dynamicCode/dynamicCode.C
-$(dll)/dynamicCode/dynamicCodeContext.C
-$(dll)/codedBase/codedBase.C
+db/dlLibraryTable/dlLibraryTable.C
 
 db/functionObjects/functionObject/functionObject.C
 db/functionObjects/functionObjectList/functionObjectList.C
-db/functionObjects/functionObjectFile/functionObjectFile.C
 db/functionObjects/outputFilterOutputControl/outputFilterOutputControl.C
 
 Time = db/Time
@@ -256,10 +237,6 @@ LUscalarMatrix = matrices/LUscalarMatrix
 $(LUscalarMatrix)/LUscalarMatrix.C
 $(LUscalarMatrix)/procLduMatrix.C
 $(LUscalarMatrix)/procLduInterface.C
-
-crMatrix = matrices/crMatrix
-$(crMatrix)/crAddressing.C
-$(crMatrix)/crMatrix.C
 
 lduMatrix = matrices/lduMatrix
 $(lduMatrix)/lduMatrix/lduMatrix.C
@@ -319,7 +296,7 @@ $(AMG)/GAMGSolverAgglomerateMatrix.C
 $(AMG)/GAMGSolverScalingFactor.C
 $(AMG)/GAMGSolverSolve.C
 
-AMGInterfaces = $(AMG)/interfaces/AMGInterfaces
+AMGInterfaces = $(AMG)/interfaces
 $(AMGInterfaces)/AMGInterface/AMGInterface.C
 $(AMGInterfaces)/AMGInterface/newAMGInterface.C
 $(AMGInterfaces)/processorAMGInterface/processorAMGInterface.C
@@ -329,13 +306,7 @@ $(AMGInterfaces)/cyclicGGIAMGInterface/cyclicGGIAMGInterface.C
 $(AMGInterfaces)/regionCoupleAMGInterface/regionCoupleAMGInterface.C
 $(AMGInterfaces)/mixingPlaneAMGInterface/mixingPlaneAMGInterface.C
 
-SAMGInterfaces = $(AMG)/interfaces/SAMGInterfaces
-$(SAMGInterfaces)/SAMGInterface/SAMGInterface.C
-$(SAMGInterfaces)/SAMGInterface/newSAMGInterface.C
-$(SAMGInterfaces)/processorSAMGInterface/processorSAMGInterface.C
-$(SAMGInterfaces)/ggiSAMGInterface/ggiSAMGInterface.C
-
-AMGInterfaceFields = $(AMG)/interfaceFields/AMGInterfaceFields
+AMGInterfaceFields = $(AMG)/interfaceFields
 $(AMGInterfaceFields)/AMGInterfaceField/AMGInterfaceField.C
 $(AMGInterfaceFields)/AMGInterfaceField/newAMGInterfaceField.C
 $(AMGInterfaceFields)/processorAMGInterfaceField/processorAMGInterfaceField.C
@@ -344,12 +315,6 @@ $(AMGInterfaceFields)/ggiAMGInterfaceField/ggiAMGInterfaceField.C
 $(AMGInterfaceFields)/cyclicGgiAMGInterfaceField/cyclicGgiAMGInterfaceField.C
 $(AMGInterfaceFields)/regionCoupleAMGInterfaceField/regionCoupleAMGInterfaceField.C
 $(AMGInterfaceFields)/mixingPlaneAMGInterfaceField/mixingPlaneAMGInterfaceField.C
-
-SAMGInterfaceFields = $(AMG)/interfaceFields/SAMGInterfaceFields
-$(SAMGInterfaceFields)/SAMGInterfaceField/SAMGInterfaceField.C
-$(SAMGInterfaceFields)/SAMGInterfaceField/newSAMGInterfaceField.C
-$(SAMGInterfaceFields)/processorSAMGInterfaceField/processorSAMGInterfaceField.C
-$(SAMGInterfaceFields)/ggiSAMGInterfaceField/ggiSAMGInterfaceField.C
 
 AMGAgglomerations = $(AMG)/AMGAgglomerations
 
@@ -446,7 +411,6 @@ globalMeshData = $(polyMesh)/globalMeshData
 $(globalMeshData)/globalMeshData.C
 $(globalMeshData)/globalPoints.C
 $(globalMeshData)/globalIndex.C
-$(globalMeshData)/globalProcFaceIndex.C
 
 $(polyMesh)/syncTools/syncTools.C
 
@@ -567,7 +531,6 @@ $(meshTools)/mergePoints.C
 
 fields/UniformDimensionedFields/uniformDimensionedFields.C
 fields/cloud/cloud.C
-fields/cloudDistribute/cloudDistribute.C
 
 Fields = fields/Fields
 $(Fields)/labelField/labelField.C
@@ -631,10 +594,6 @@ interpolations = interpolations
 interpolation = $(interpolations)/interpolation
 $(interpolations)/splineInterpolateXY/splineInterpolateXY.C
 $(interpolations)/patchToPatchInterpolation/PatchToPatchInterpolationName.C
-$(interpolations)/interpolationTable/tableReaders/tableReaders.C
-$(interpolations)/interpolationTable/tableReaders/openFoam/openFoamTableReaders.C
-$(interpolations)/interpolationTable/tableReaders/csv/csvTableReaders.C
-
 $(interpolations)/GGIInterpolation/GGIInterpolationName.C
 $(interpolations)/MixingPlaneInterpolation/MixingPlaneInterpolationName.C
 $(interpolations)/RBFInterpolation/RBFInterpolation.C
@@ -645,10 +604,6 @@ $(interpolations)/RBFInterpolation/RBFFunctions/Gauss/Gauss.C
 $(interpolations)/RBFInterpolation/RBFFunctions/TPS/TPS.C
 $(interpolations)/RBFInterpolation/RBFFunctions/IMQB/IMQB.C
 
-interpolationWeights = $(interpolations)/interpolationWeights
-$(interpolationWeights)/interpolationWeights/interpolationWeights.C
-$(interpolationWeights)/linearInterpolationWeights/linearInterpolationWeights.C
-$(interpolationWeights)/splineInterpolationWeights/splineInterpolationWeights.C
 
 algorithms/MeshWave/MeshWaveName.C
 algorithms/MeshWave/FaceCellWaveName.C
@@ -739,16 +694,9 @@ $(BlockAMGInterfaceFields)/BlockAMGInterfaceField/blockVectorNAMGInterfaceFields
 $(BlockAMGInterfaceFields)/ProcessorBlockAMGInterfaceField/ProcessorBlockAMGInterfaceFields.C
 $(BlockAMGInterfaceFields)/GGIBlockAMGInterfaceField/GGIBlockAMGInterfaceFields.C
 
-BlockSAMGInterfaceFields = $(BlockAMG)/BlockSAMGInterfaceFields
-$(BlockSAMGInterfaceFields)/BlockSAMGInterfaceField/blockSAMGInterfaceFields.C
-$(BlockSAMGInterfaceFields)/BlockSAMGInterfaceField/blockVectorNSAMGInterfaceFields.C
-$(BlockSAMGInterfaceFields)/ProcessorBlockSAMGInterfaceField/ProcessorBlockSAMGInterfaceFields.C
-$(BlockSAMGInterfaceFields)/GGIBlockSAMGInterfaceField/GGIBlockSAMGInterfaceFields.C
-
 BlockMatrixCoarsening = $(BlockAMG)/BlockMatrixCoarsening
 $(BlockMatrixCoarsening)/BlockMatrixCoarsening/blockMatrixCoarsenings.C
-$(BlockMatrixCoarsening)/BlockMatrixClustering/blockMatrixClusterings.C
-$(BlockMatrixCoarsening)/BlockMatrixSelection/blockMatrixSelections.C
+$(BlockMatrixCoarsening)/BlockMatrixAgglomeration/blockMatrixAgglomerations.C
 
 BlockLduPrecons = matrices/blockLduMatrix/BlockLduPrecons
 $(BlockLduPrecons)/BlockLduPrecon/blockLduPrecons.C
@@ -768,10 +716,6 @@ $(BlockLduPrecons)/BlockCholeskyPrecon/blockCholeskyPrecons.C
 
 $(BlockLduPrecons)/BlockAMGPrecon/blockAMGPrecons.C
 
-$(BlockLduPrecons)/BlockILUC0Precon/scalarBlockILUC0Precon.C
-$(BlockLduPrecons)/BlockILUC0Precon/tensorBlockILUC0Precon.C
-$(BlockLduPrecons)/BlockILUC0Precon/blockILUC0Precons.C
-
 $(BlockLduPrecons)/BlockILUCpPrecon/scalarBlockILUCpPrecon.C
 $(BlockLduPrecons)/BlockILUCpPrecon/tensorBlockILUCpPrecon.C
 $(BlockLduPrecons)/BlockILUCpPrecon/blockILUCpPrecons.C
@@ -780,7 +724,6 @@ BlockLduSmoothers = matrices/blockLduMatrix/BlockLduSmoothers
 $(BlockLduSmoothers)/BlockLduSmoother/blockLduSmoothers.C
 $(BlockLduSmoothers)/BlockGaussSeidelSmoother/blockGaussSeidelSmoothers.C
 $(BlockLduSmoothers)/BlockILUSmoother/blockILUSmoothers.C
-$(BlockLduSmoothers)/BlockILUC0Smoother/blockILUC0Smoothers.C
 $(BlockLduSmoothers)/BlockILUCpSmoother/blockILUCpSmoothers.C
 
 BlockLduSolvers = matrices/blockLduMatrix/BlockLduSolvers
@@ -788,7 +731,6 @@ $(BlockLduSolvers)/blockVectorNSolvers.C
 $(BlockLduSolvers)/BlockLduSolver/blockLduSolvers.C
 $(BlockLduSolvers)/BlockDiagonal/blockDiagonalSolvers.C
 $(BlockLduSolvers)/BlockGaussSeidel/blockGaussSeidelSolvers.C
-$(BlockLduSolvers)/BlockILU/blockILUSolvers.C
 $(BlockLduSolvers)/BlockCG/blockCGSolvers.C
 $(BlockLduSolvers)/BlockBiCGStab/blockBiCGStabSolvers.C
 $(BlockLduSolvers)/BlockGMRES/blockGMRESSolvers.C

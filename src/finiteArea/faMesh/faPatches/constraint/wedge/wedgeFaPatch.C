@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -36,49 +36,48 @@ Description
 
 namespace Foam
 {
-    defineTypeNameAndDebug(Foam::wedgeFaPatch, 0);
-    addToRunTimeSelectionTable(faPatch, wedgeFaPatch, dictionary);
-}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+defineTypeNameAndDebug(wedgeFaPatch, 0);
+addToRunTimeSelectionTable(faPatch, wedgeFaPatch, dictionary);
 
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
 
-void Foam::wedgeFaPatch::findAxisPoints() const
+void wedgeFaPatch::findAxisPoint() const
 {
     // Find axis point
 
-    const labelList& ptLabels = pointLabels();
+    labelList ptLabels = pointLabels();
 
-    const labelListList& ptEdges = pointEdges();
+    labelListList ptEdges = pointEdges();
 
     const vectorField& points = boundaryMesh().mesh().points();
 
     const scalarField& magL = magEdgeLengths();
 
-    labelHashSet axisPointsSet;
-
-    forAll (ptEdges, pointI)
+    forAll(ptEdges, pointI)
     {
-        if (ptEdges[pointI].size() == 1 )
+        if( ptEdges[pointI].size() == 1 )
         {
             scalar r = mag((I-axis()*axis())&points[ptLabels[pointI]]);
 
             if( r < magL[ptEdges[pointI][0]] )
             {
-                axisPointsSet.insert(ptLabels[pointI]);
+                axisPoint_ = ptLabels[pointI];
+                break;
             }
         }
     }
 
-    axisPoints_ = axisPointsSet.toc();
-
-    axisPointsChecked_ = true;
+    axisPointChecked_ = true;
 }
 
 
 // * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * * * * * //
 
 //- Construct from polyPatch
-Foam::wedgeFaPatch::wedgeFaPatch
+wedgeFaPatch::wedgeFaPatch
 (
     const word& name,
     const dictionary& dict,
@@ -88,14 +87,14 @@ Foam::wedgeFaPatch::wedgeFaPatch
 :
     faPatch(name, dict, index, bm),
     wedgePolyPatchPtr_(NULL),
-    axisPointsChecked_(false)
+    axisPoint_(-1),
+    axisPointChecked_(false)
 {
     if(ngbPolyPatchIndex() == -1)
     {
         FatalErrorIn
         (
-            "wedgeFaPatch::wedgeFaPatch(const word&, const dictionary&,"
-            " const label, const faBoundaryMesh&)"
+            "wedgeFaPatch::wedgeFaPatch(const word&, const dictionary&, const label, const faBoundaryMesh&)"
         )   << "Neighbour polyPatch index is not specified for faPatch "
             << this->name() << exit(FatalError);
     }
@@ -118,12 +117,16 @@ Foam::wedgeFaPatch::wedgeFaPatch
     {
         FatalErrorIn
         (
-            "wedgeFaPatch::wedgeFaPatch(const word&, const dictionary&,"
-            "const label, const faBoundaryMesh&)"
+            "wedgeFaPatch::wedgeFaPatch(const word&, const dictionary&, const label, const faBoundaryMesh&)"
         )   << "Neighbour polyPatch is not of type "
             << wedgePolyPatch::typeName
             << exit(FatalError);
     }
 }
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
 
 // ************************************************************************* //

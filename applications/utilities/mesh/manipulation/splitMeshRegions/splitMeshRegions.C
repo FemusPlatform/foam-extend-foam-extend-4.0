@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ using namespace Foam;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 template<class GeoField>
-void addPatchFields(const fvMesh& mesh, const word& patchFieldType)
+void addPatchFields(fvMesh& mesh, const word& patchFieldType)
 {
     HashTable<const GeoField*> flds
     (
@@ -136,7 +136,7 @@ void addPatchFields(const fvMesh& mesh, const word& patchFieldType)
 
 // Remove last patch field
 template<class GeoField>
-void trimPatchFields(const fvMesh& mesh, const label nPatches)
+void trimPatchFields(fvMesh& mesh, const label nPatches)
 {
     HashTable<const GeoField*> flds
     (
@@ -163,7 +163,7 @@ void trimPatchFields(const fvMesh& mesh, const label nPatches)
 
 // Reorder patch field
 template<class GeoField>
-void reorderPatchFields(const fvMesh& mesh, const labelList& oldToNew)
+void reorderPatchFields(fvMesh& mesh, const labelList& oldToNew)
 {
     HashTable<const GeoField*> flds
     (
@@ -660,8 +660,7 @@ autoPtr<mapPolyMesh> createRegionMesh
     const EdgeMap<label>& interfaceToPatch,
     const fvMesh& mesh,
     const label regionI,
-    const word& regionName,
-    const word& newMeshInstance
+    const word& regionName
 )
 {
     // Neighbour cellRegion.
@@ -759,7 +758,7 @@ autoPtr<mapPolyMesh> createRegionMesh
         IOobject
         (
             regionName,
-            newMeshInstance,
+            mesh.time().timeName(),
             mesh.time(),
             IOobject::NO_READ,
             IOobject::AUTO_WRITE
@@ -978,8 +977,7 @@ void createAndWriteRegion
         interfaceToPatch,
         mesh,
         regionI,
-        regionNames[regionI],
-        newMeshInstance
+        regionNames[regionI]
     );
 
     // Read in mesh as fvMesh for mapping.  HJ, 19/May/2011

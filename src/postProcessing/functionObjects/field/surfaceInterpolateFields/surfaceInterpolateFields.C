@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "surfaceInterpolateFields.H"
+//#include "dictionary.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -49,11 +50,7 @@ Foam::surfaceInterpolateFields::surfaceInterpolateFields
     fieldSet_()
 {
     // Check if the available mesh is an fvMesh otherise deactivate
-    if (isA<fvMesh>(obr_))
-    {
-        read(dict);
-    }
-    else
+    if (!isA<fvMesh>(obr_))
     {
         active_ = false;
         WarningIn
@@ -65,9 +62,11 @@ Foam::surfaceInterpolateFields::surfaceInterpolateFields
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating " << name_
+        )   << "No fvMesh available, deactivating."
             << endl;
     }
+
+    read(dict);
 }
 
 
@@ -90,38 +89,24 @@ void Foam::surfaceInterpolateFields::read(const dictionary& dict)
 
 void Foam::surfaceInterpolateFields::execute()
 {
-    if (active_)
-    {
-        Info<< type() << " " << name_ << " output:" << nl;
+    //Info<< type() << " " << name_ << ":" << nl;
 
-        // Clear out any previously loaded fields
-        ssf_.clear();
-        svf_.clear();
-        sSpheretf_.clear();
-        sSymmtf_.clear();
-        stf_.clear();
+    // Clear out any previously loaded fields
+    ssf_.clear();
+    svf_.clear();
+    sSpheretf_.clear();
+    sSymmtf_.clear();
+    stf_.clear();
 
-        interpolateFields<scalar>(ssf_);
-        interpolateFields<vector>(svf_);
-        interpolateFields<sphericalTensor>(sSpheretf_);
-        interpolateFields<symmTensor>(sSymmtf_);
-        interpolateFields<tensor>(stf_);
-
-        Info<< endl;
-    }
+    interpolateFields<scalar>(ssf_);
+    interpolateFields<vector>(svf_);
+    interpolateFields<sphericalTensor>(sSpheretf_);
+    interpolateFields<symmTensor>(sSymmtf_);
+    interpolateFields<tensor>(stf_);
 }
 
 
 void Foam::surfaceInterpolateFields::end()
-{
-    if (active_)
-    {
-        execute();
-    }
-}
-
-
-void Foam::surfaceInterpolateFields::timeSet()
 {
     // Do nothing
 }
@@ -129,34 +114,7 @@ void Foam::surfaceInterpolateFields::timeSet()
 
 void Foam::surfaceInterpolateFields::write()
 {
-    if (active_)
-    {
-        Info<< type() << " " << name_ << " output:" << nl;
-
-        Info<< "    Writing interpolated surface fields to "
-            << obr_.time().timeName() << endl;
-
-        forAll(ssf_, i)
-        {
-            ssf_[i].write();
-        }
-        forAll(svf_, i)
-        {
-            svf_[i].write();
-        }
-        forAll(sSpheretf_, i)
-        {
-            sSpheretf_[i].write();
-        }
-        forAll(sSymmtf_, i)
-        {
-            sSymmtf_[i].write();
-        }
-        forAll(stf_, i)
-        {
-            stf_[i].write();
-        }
-    }
+    // Do nothing
 }
 
 

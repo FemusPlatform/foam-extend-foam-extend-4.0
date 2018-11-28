@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -99,10 +99,10 @@ public:
         instant(const scalar, const word&);
 
         //- Construct from time value
-        explicit instant(const scalar);
+        instant(const scalar);
 
         //- Construct from word
-        explicit instant(const word&);
+        instant(const word&);
 
 
     // Member Functions
@@ -132,9 +132,6 @@ public:
             {
                 return name_;
             }
-
-            //- Comparison used for instants to be equal
-            bool equal(const scalar) const;
 
 
     // Friend Operators

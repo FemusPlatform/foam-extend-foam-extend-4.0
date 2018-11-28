@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,42 +24,9 @@ License
 Class
     Foam::surfaceInterpolateFields
 
-Group grpFieldFunctionObjects
-
 Description
-    This function object linearly interpolates volume fields to generate
-    surface fields
-
-    Fields are stored
-    - every time step the field is updated with new values
-    - at output it writes the fields
-
-    This functionObject can either be used
-    - to calculate a new field as a  post-processing step or
-    - since the fields are registered, used in another functionObject
-
-    Example of function object specification:
-    \verbatim
-    surfaceInterpolateFields1
-    {
-        type        surfaceInterpolateFields;
-        functionObjectLibs ("libfieldFunctionObjects.so");
-        ...
-        fields      ((p pNear)(U UNear));
-    }
-    \endverbatim
-
-    \heading Function object usage
-    \table
-        Property | Description               | Required    | Default value
-        type     | type name: nearWallFields | yes         |
-        fields   | list of fields with correspoding output field names | yes |
-    \endtable
-
-
-SeeAlso
-    Foam::functionObject
-    Foam::OutputFilterFunctionObject
+    Reads fields from the time folders and adds them to the mesh database
+    for further post-processing.
 
 SourceFiles
     surfaceInterpolateFields.C
@@ -71,6 +38,7 @@ SourceFiles
 #define surfaceInterpolateFields_H
 
 #include "OFstream.H"
+//#include "pointFieldFwd.H"
 #include "surfaceFields.H"
 #include "Tuple2.H"
 
@@ -85,7 +53,7 @@ class dictionary;
 class mapPolyMesh;
 
 /*---------------------------------------------------------------------------*\
-                  Class surfaceInterpolateFields Declaration
+                         Class surfaceInterpolateFields Declaration
 \*---------------------------------------------------------------------------*/
 
 class surfaceInterpolateFields
@@ -168,9 +136,6 @@ public:
 
         //- Execute at the final time-loop, currently does nothing
         virtual void end();
-
-        //- Called when time was set at the end of the Time::operator++
-        virtual void timeSet();
 
         //- Write
         virtual void write();

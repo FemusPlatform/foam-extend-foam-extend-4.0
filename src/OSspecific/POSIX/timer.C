@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -32,17 +32,13 @@ Description
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-namespace Foam
-{
-defineTypeNameAndDebug(timer, 0);
+defineTypeNameAndDebug(Foam::timer, 0);
 
-jmp_buf timer::envAlarm;
+jmp_buf Foam::timer::envAlarm;
 
-struct sigaction timer::oldAction_;
+struct sigaction Foam::timer::oldAction_;
 
-unsigned int timer::oldTimeOut_ = 0;
-}
-
+unsigned int Foam::timer::oldTimeOut_ = 0;
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
@@ -59,6 +55,8 @@ void Foam::timer::signalHandler(int)
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
+
+// Construct from components
 Foam::timer::timer(const unsigned int newTimeOut)
 :
     newTimeOut_(newTimeOut)

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -36,8 +36,6 @@ SourceFiles
 #ifndef zero_H
 #define zero_H
 
-#include "label.H"
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -51,46 +49,9 @@ class zero
 {
 public:
 
-    typedef zero value_type;
-
-    // Constructors
-
-        //- Construct null
-        zero()
-        {}
-
-
-    // Member operators
-
-        //- Return 0 for bool
-        inline operator bool() const
-        {
-            return 0;
-        }
-
-        //- Return 0 for label
-        inline operator label() const
-        {
-            return 0;
-        }
-
-        //- Return 0 for float
-        inline operator float() const
-        {
-            return 0;
-        }
-
-        //- Return 0 for double
-        inline operator double() const
-        {
-            return 0;
-        }
+    zero()
+    {}
 };
-
-
-// Global zero
-static const zero Zero;
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -98,7 +59,7 @@ static const zero Zero;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "zeroI.H"
+#   include "zeroI.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

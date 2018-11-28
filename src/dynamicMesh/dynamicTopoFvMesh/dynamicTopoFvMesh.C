@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -4253,11 +4253,6 @@ bool dynamicTopoFvMesh::resetMesh()
             }
         }
 
-        // Patch reset map is currently dummy: does not support change
-        // in number of boundary patches
-        // HJ, 23/Apr/2018
-        boolList resetPatchFlag(boundaryMesh().size(), false);
-
         // Generate new mesh mapping information
         mapPolyMesh mpm
         (
@@ -4265,39 +4260,30 @@ bool dynamicTopoFvMesh::resetMesh()
             nOldPoints_,
             nOldFaces_,
             nOldCells_,
-
             pointMap_,
             pointsFromPoints_,
-
             faceMap_,
             facesFromPoints_,
             facesFromEdges_,
             facesFromFaces_,
-
             cellMap_,
             cellsFromPoints_,
             cellsFromEdges_,
             cellsFromFaces_,
             cellsFromCells_,
-
             reversePointMap_,
             reverseFaceMap_,
             reverseCellMap_,
-
             flipFaces_,
-
             patchPointMap,
             pointZoneMap,
             faceZonePointMap,
             faceZoneFaceMap,
             cellZoneMap,
-
-            resetPatchFlag,
-
             preMotionPoints,
             oldPatchStarts,
             oldPatchNMeshPoints,
-            true                   // Re-use storage
+            true
         );
 
         // Update the underlying mesh, and map all related fields

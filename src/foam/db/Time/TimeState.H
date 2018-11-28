@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -61,11 +61,8 @@ protected:
         bool deltaTchanged_;
 
         label outputTimeIndex_;
+        bool  outputTime_;
 
-        //- Is outputTime because of primary?
-        bool primaryOutputTime_;
-
-        bool outputTime_;
 
 public:
 
@@ -74,8 +71,10 @@ public:
         TimeState();
 
 
-    //- Destructor
-    virtual ~TimeState();
+    // Destructor
+
+        //- Virtual destructor
+        virtual ~TimeState();
 
 
     // Member functions

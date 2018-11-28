@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -69,28 +69,9 @@ public:
         ITstream
         (
             const string& name,
-            const UList<token>& tokens,
-            streamFormat format=ASCII,
-            versionNumber version=currentVersion
-        )
-        :
-            Istream(format, version),
-            tokenList(tokens),
-            name_(name),
-            tokenIndex_(0)
-        {
-            setOpened();
-            setGood();
-        }
-
-
-        //- Construct from components, transferring the tokens
-        ITstream
-        (
-            const string& name,
-            const Xfer<List<token> >& tokens,
-            streamFormat format=ASCII,
-            versionNumber version=currentVersion
+            const tokenList& tokens,
+            streamFormat format = ASCII,
+            versionNumber version = currentVersion
         )
         :
             Istream(format, version),
@@ -116,7 +97,8 @@ public:
         }
 
 
-        //- Destructor
+    // Destructor
+
         virtual ~ITstream()
         {}
 

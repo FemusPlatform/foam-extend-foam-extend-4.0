@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -51,8 +51,8 @@ Foam::hsCombustionThermo::hsCombustionThermo
             "hs",
             mesh.time().timeName(),
             obj,
-            IOobject::READ_IF_PRESENT,
-            IOobject::AUTO_WRITE
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
         ),
         mesh,
         dimEnergy/dimMass,

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -70,8 +70,10 @@ template<class T> class SLList;
 template<class T, unsigned Size>
 class FixedList
 {
+#ifndef SWIG
     //- Size must be positive (non-zero) and also fit as a signed value
     StaticAssert(Size && Size <= INT_MAX);
+#endif
 
 
     // Private data
@@ -338,6 +340,8 @@ public:
     // IOstream operators
 
         //- Read List from Istream, discarding contents of existing List.
+
+#ifndef SWIG
         friend Istream& operator>> <T, Size>
         (Istream&, FixedList<T, Size>&);
 
@@ -347,6 +351,7 @@ public:
             Ostream&,
             const FixedList<T, Size>&
         );
+#endif
 };
 
 

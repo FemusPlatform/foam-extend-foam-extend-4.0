@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -28,13 +28,13 @@ Description
     Specify an include file when reading dictionaries, expects a
     single string to follow.
 
-    An example of the \c \#include directive:
-    \verbatim
+    An example of the @c \#include directive:
+    @verbatim
         #include "includeFile"
-    \endverbatim
+    @endverbatim
 
     The usual expansion of environment variables and other constructs
-    (eg, the \c ~OpenFOAM/ expansion) is retained.
+    (eg, the @c ~foam/ expansion) is retained.
 
 See Also
     fileName, string::expand()
@@ -77,23 +77,10 @@ protected:
     // Protected Member Functions
 
         //- Read the include fileName from Istream, expand and return
-        static fileName includeFileName(Istream&, const dictionary&);
+        static fileName includeFileName(Istream&);
 
-        //- Expand include fileName and return
-        static fileName includeFileName
-        (
-            const fileName& dir,
-            const fileName&,
-            const dictionary&
-        );
 
 public:
-
-    // Static data members
-
-        //- Report which file is included to stdout
-        static bool report;
-
 
     //- Runtime type information
     ClassName("include");

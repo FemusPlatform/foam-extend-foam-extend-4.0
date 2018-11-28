@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -64,10 +64,10 @@ Foam::GaussSeidelSmoother::GaussSeidelSmoother
 void Foam::GaussSeidelSmoother::smooth
 (
     scalarField& x,
-    const lduMatrix& matrix,
+    const lduMatrix& matrix_,
     const scalarField& b,
-    const FieldField<Field, scalar>& coupleBouCoeffs,
-    const lduInterfaceFieldPtrsList& interfaces,
+    const FieldField<Field, scalar>& coupleBouCoeffs_,
+    const lduInterfaceFieldPtrsList& interfaces_,
     const direction cmpt,
     const label nSweeps
 )
@@ -79,17 +79,17 @@ void Foam::GaussSeidelSmoother::smooth
     scalarField bPrime(nCells);
     register scalar* __restrict__ bPrimePtr = bPrime.begin();
 
-    register const scalar* const __restrict__ diagPtr = matrix.diag().begin();
+    register const scalar* const __restrict__ diagPtr = matrix_.diag().begin();
     register const scalar* const __restrict__ upperPtr =
-        matrix.upper().begin();
+        matrix_.upper().begin();
     register const scalar* const __restrict__ lowerPtr =
-        matrix.lower().begin();
+        matrix_.lower().begin();
 
     register const label* const __restrict__ uPtr =
-        matrix.lduAddr().upperAddr().begin();
+        matrix_.lduAddr().upperAddr().begin();
 
     register const label* const __restrict__ ownStartPtr =
-        matrix.lduAddr().ownerStartAddr().begin();
+        matrix_.lduAddr().ownerStartAddr().begin();
 
 
     // Coupled boundary initialisation.  The coupled boundary is treated
@@ -112,10 +112,10 @@ void Foam::GaussSeidelSmoother::smooth
         bPrime = b;
 
         // Update from lhs
-        matrix.initMatrixInterfaces
+        matrix_.initMatrixInterfaces
         (
-            coupleBouCoeffs,
-            interfaces,
+            coupleBouCoeffs_,
+            interfaces_,
             x,
             bPrime,
             cmpt,
@@ -123,10 +123,10 @@ void Foam::GaussSeidelSmoother::smooth
         );
 
         // Update from lhs
-        matrix.updateMatrixInterfaces
+        matrix_.updateMatrixInterfaces
         (
-            coupleBouCoeffs,
-            interfaces,
+            coupleBouCoeffs_,
+            interfaces_,
             x,
             bPrime,
             cmpt,

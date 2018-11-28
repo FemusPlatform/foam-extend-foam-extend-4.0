@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -79,8 +79,9 @@ public:
         IOPtrList(const IOobject&, const Xfer<PtrList<T> >&);
 
 
-    //- Destructor
-    virtual ~IOPtrList();
+    // Destructor
+
+        virtual ~IOPtrList();
 
 
     // Member functions

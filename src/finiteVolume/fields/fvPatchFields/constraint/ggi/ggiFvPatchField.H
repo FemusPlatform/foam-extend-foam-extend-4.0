@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -46,11 +46,6 @@ SourceFiles
 
 namespace Foam
 {
-
-// Forward declaration
-template<class Type>
-class fvMatrix;
-
 
 /*---------------------------------------------------------------------------*\
                       Class ggiFvPatchField Declaration
@@ -203,13 +198,11 @@ public:
                 Field<Type>& f
             ) const
             {
-                FatalErrorIn
+                notImplemented
                 (
                     "ggiFvPatchField<Type>::transformCoupleField"
                     "(Field<Type>& f) const"
-                )   << "transformCoupleField not implemented for patch "
-                    << this->patch().name()
-                    << abort(FatalError);
+                );
             }
 
             //- Initialise neighbour matrix update
@@ -233,29 +226,6 @@ public:
                 const Pstream::commsTypes commsType,
                 const bool switchToLhs
             ) const;
-
-
-        // Patch interpolation and patch flux
-
-            //- Calculate patch flux
-            virtual void patchFlux
-            (
-                GeometricField<Type, fvsPatchField, surfaceMesh>& flux,
-                const fvMatrix<Type>& matrix
-            ) const;
-
-
-        // Matrix manipulation
-
-            //- Manipulate value and boundary coefficients for convection. Used
-            //  to ensure conservation across partially overlapping GGI faces if
-            //  the bridging is switched on
-            virtual void manipulateValueCoeffs(fvMatrix<Type>& matrix) const;
-
-            //- Manipulate value and boundary coefficients for diffusion. Used
-            //  to ensure conservation across partially overlapping GGI faces if
-            //  the bridging is switched on
-            virtual void manipulateGradientCoeffs(fvMatrix<Type>& matrix) const;
 
 
         // GGI coupled interface functions
@@ -291,8 +261,6 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include "ggiFvPatchScalarField.H"
 
 #ifdef NoRepository
 #   include "ggiFvPatchField.C"

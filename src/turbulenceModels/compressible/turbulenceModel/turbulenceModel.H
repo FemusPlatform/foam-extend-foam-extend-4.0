@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -50,7 +50,6 @@ SourceFiles
 #include "surfaceFieldsFwd.H"
 #include "fvMatricesFwd.H"
 #include "basicThermo.H"
-#include "nearWallDist.H"
 #include "autoPtr.H"
 #include "runTimeSelectionTables.H"
 
@@ -70,8 +69,6 @@ namespace compressible
 \*---------------------------------------------------------------------------*/
 
 class turbulenceModel
-:
-    public regIOobject
 {
 
 protected:
@@ -86,9 +83,6 @@ protected:
         const surfaceScalarField& phi_;
 
         const basicThermo& thermophysicalModel_;
-
-        //- Near wall distance boundary field
-        nearWallDist y_;
 
 
 private:
@@ -110,6 +104,7 @@ public:
 
     // Declare run-time constructor selection table
 
+#ifndef SWIG
         declareRunTimeNewSelectionTable
         (
             autoPtr,
@@ -119,11 +114,11 @@ public:
                 const volScalarField& rho,
                 const volVectorField& U,
                 const surfaceScalarField& phi,
-                const basicThermo& thermoPhysicalModel,
-                const word& turbulenceModelName
+                const basicThermo& thermoPhysicalModel
             ),
-            (rho, U, phi, thermoPhysicalModel, turbulenceModelName)
+            (rho, U, phi, thermoPhysicalModel)
         );
+#endif
 
 
     // Constructors
@@ -134,21 +129,19 @@ public:
             const volScalarField& rho,
             const volVectorField& U,
             const surfaceScalarField& phi,
-            const basicThermo& thermoPhysicalModel,
-            const word& turbulenceModelName = typeName
+            const basicThermo& thermoPhysicalModel
         );
 
 
     // Selectors
 
         //- Return a reference to the selected turbulence model
-        static autoPtr<turbulenceModel> New
+        static autoPtr<compressible::turbulenceModel> New
         (
             const volScalarField& rho,
             const volVectorField& U,
             const surfaceScalarField& phi,
-            const basicThermo& thermoPhysicalModel,
-            const word& turbulenceModelName = typeName
+            const basicThermo& thermoPhysicalModel
         );
 
 
@@ -183,15 +176,6 @@ public:
              return thermophysicalModel_;
         }
 
-        //- Return the near wall distances
-        const nearWallDist& y() const
-        {
-            return y_;
-        }
-
-        //- Calculate y+ at the edge of the laminar sublayer
-        scalar yPlusLam(const scalar kappa, const scalar E) const;
-
         //- Return the laminar viscosity
         const volScalarField& mu() const
         {
@@ -210,10 +194,7 @@ public:
         //- Return the effective viscosity
         virtual tmp<volScalarField> muEff() const = 0;
 
-        //- Return the turbulence thermal diffusivity
-        virtual tmp<volScalarField> alphat() const = 0;
-
-        //- Return the effective turbulence thermal diffusivity
+        //- Return the effective turbulent thermal diffusivity
         virtual tmp<volScalarField> alphaEff() const = 0;
 
         //- Return the turbulence kinetic energy
@@ -221,10 +202,6 @@ public:
 
         //- Return the turbulence kinetic energy dissipation rate
         virtual tmp<volScalarField> epsilon() const = 0;
-
-        //- Return the laminar+turbulence kinetic energy dissipation rate
-        //  Used as the viscous contribution to the energy equations
-        virtual tmp<volScalarField> rhoEpsilonEff() const;
 
         //- Return the Reynolds stress tensor
         virtual tmp<volSymmTensorField> R() const = 0;
@@ -236,17 +213,10 @@ public:
         virtual tmp<fvVectorMatrix> divDevRhoReff() const = 0;
 
         //- Solve the turbulence equations and correct the turbulence viscosity
-        virtual void correct();
+        virtual void correct() = 0;
 
         //- Read turbulenceProperties dictionary
         virtual bool read() = 0;
-
-        //- Default dummy write function
-        virtual bool writeData(Ostream&) const
-        {
-            return true;
-        }
-
 };
 
 

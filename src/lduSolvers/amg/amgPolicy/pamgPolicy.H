@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -57,6 +57,9 @@ class pamgPolicy
 {
     // Private Data
 
+        //- Reference to matrix
+        const lduMatrix& matrix_;
+
         //- Child array: for each fine equation give coarse cluster index
         labelField child_;
 
@@ -100,16 +103,13 @@ public:
         pamgPolicy
         (
             const lduMatrix& matrix,
-            const FieldField<Field, scalar>& bouCoeffs,
-            const FieldField<Field, scalar>& intCoeffs,
-            const lduInterfaceFieldPtrsList& interfaceFields,
             const label groupSize,
             const label minCoarseEqns
         );
 
+    // Destructor
 
-    //- Destructor
-    virtual ~pamgPolicy();
+        virtual ~pamgPolicy();
 
 
     // Member Functions
@@ -121,7 +121,12 @@ public:
         }
 
         //- Restrict matrix
-        virtual autoPtr<amgMatrix> restrictMatrix() const;
+        virtual autoPtr<amgMatrix> restrictMatrix
+        (
+            const FieldField<Field, scalar>& bouCoeffs,
+            const FieldField<Field, scalar>& intCoeffs,
+            const lduInterfaceFieldPtrsList& interfaces
+        )  const;
 
         //- Restrict residual
         virtual void restrictResidual

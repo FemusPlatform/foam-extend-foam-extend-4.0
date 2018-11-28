@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -32,44 +32,6 @@ template<class OutputFilter>
 Foam::IOOutputFilter<OutputFilter>::IOOutputFilter
 (
     const word& outputFilterName,
-    const IOobject& ioDict,
-    const bool readFromFiles
-)
-:
-    IOdictionary(ioDict),
-    OutputFilter(outputFilterName, ioDict.db(), *this, readFromFiles)
-{}
-
-
-template<class OutputFilter>
-Foam::IOOutputFilter<OutputFilter>::IOOutputFilter
-(
-    const word& outputFilterName,
-    const objectRegistry& obr,
-    const word& dictName,
-    const IOobject::readOption rOpt,
-    const bool readFromFiles
-)
-:
-    IOdictionary
-    (
-        IOobject
-        (
-            dictName,
-            obr.time().system(),
-            obr,
-            rOpt,
-            IOobject::NO_WRITE
-        )
-    ),
-    OutputFilter(outputFilterName, obr, *this, readFromFiles)
-{}
-
-
-template<class OutputFilter>
-Foam::IOOutputFilter<OutputFilter>::IOOutputFilter
-(
-    const word& outputFilterName,
     const objectRegistry& obr,
     const fileName& dictName,
     const IOobject::readOption rOpt,
@@ -81,6 +43,7 @@ Foam::IOOutputFilter<OutputFilter>::IOOutputFilter
         IOobject
         (
             dictName,
+            obr.time().system(),
             obr,
             rOpt,
             IOobject::NO_WRITE

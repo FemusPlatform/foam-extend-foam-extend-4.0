@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -39,13 +39,6 @@ namespace Foam
     defineRunTimeSelectionTable(faPatch, dictionary);
     addToRunTimeSelectionTable(faPatch, faPatch, dictionary);
 }
-
-
-const Foam::debug::tolerancesSwitch Foam::faPatch::matchTol_
-(
-    "faPatchFaceMatchTol",
-    1e-5
-);
 
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -144,20 +144,6 @@ void Foam::isentropicTotalTemperatureFvPatchScalarField::updateCoeffs()
         return;
     }
 
-    if (!this->db().objectRegistry::found(pName_))
-    {
-        // Flux not available, do not update
-        InfoIn
-        (
-            "void isentropicTotalPressureFvPatchScalarField::updateCoeffs()"
-        )   << "Pressure field " << pName_ << " not found.  "
-            << "Performing fixed value update" << endl;
-
-        fixedValueFvPatchScalarField::updateCoeffs();
-
-        return;
-    }
-
     // Get pressure and temperature
     const scalarField& T = *this;
 
@@ -185,6 +171,38 @@ void Foam::isentropicTotalTemperatureFvPatchScalarField::updateCoeffs
 )
 {
     updateCoeffs();
+}
+
+
+Foam::tmp<Foam::scalarField>
+Foam::isentropicTotalTemperatureFvPatchScalarField::snGrad() const
+{
+    return tmp<scalarField>
+    (
+        new scalarField(this->size(), 0.0)
+    );
+}
+
+
+Foam::tmp<Foam::scalarField>
+Foam::isentropicTotalTemperatureFvPatchScalarField::
+gradientInternalCoeffs() const
+{
+    return tmp<scalarField>
+    (
+        new scalarField(this->size(), 0.0)
+    );
+}
+
+
+Foam::tmp<Foam::scalarField>
+Foam::isentropicTotalTemperatureFvPatchScalarField::
+gradientBoundaryCoeffs() const
+{
+    return tmp<scalarField>
+    (
+        new scalarField(this->size(), 0.0)
+    );
 }
 
 

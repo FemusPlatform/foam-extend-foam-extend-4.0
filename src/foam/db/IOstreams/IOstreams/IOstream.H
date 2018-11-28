@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -50,6 +50,8 @@ SourceFiles
 #include "fileName.H"
 #include "InfoProxy.H"
 #include "infoSwitch.H"
+
+#include "debug.H"
 
 #include <iostream>
 
@@ -213,7 +215,7 @@ public:
         static const versionNumber currentVersion;
 
         //- Default precision
-        static debug::infoSwitch precision_;
+        static Foam::debug::infoSwitch precision_;
 
 private:
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -77,6 +77,17 @@ Foam::IFstreamAllocator::~IFstreamAllocator()
 }
 
 
+std::istream& Foam::IFstreamAllocator::stdStream()
+{
+    if (!ifPtr_)
+    {
+        FatalErrorIn("IFstreamAllocator::stdStream()")
+            << "No stream allocated" << abort(FatalError);
+    }
+    return *ifPtr_;
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::IFstream::IFstream
@@ -130,28 +141,6 @@ Foam::IFstream::~IFstream()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-std::istream& Foam::IFstream::stdStream()
-{
-    if (!ifPtr_)
-    {
-        FatalErrorIn("IFstream::stdStream()")
-            << "No stream allocated" << abort(FatalError);
-    }
-    return *ifPtr_;
-}
-
-
-const std::istream& Foam::IFstream::stdStream() const
-{
-    if (!ifPtr_)
-    {
-        FatalErrorIn("IFstream::stdStream() const")
-            << "No stream allocated" << abort(FatalError);
-    }
-    return *ifPtr_;
-}
-
 
 void Foam::IFstream::print(Ostream& os) const
 {

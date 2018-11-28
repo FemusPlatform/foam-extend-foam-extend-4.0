@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -240,32 +240,37 @@ void Foam::Time::readModifiedObjects()
 {
     if (runTimeModifiable_)
     {
-        // Get state of all monitored objects (=registered objects with a
-        // valid filePath).
-        // Note: requires same ordering in objectRegistries on different
-        // processors!
-        monitorPtr_().updateStates
-        (
-            (
-                regIOobject::fileModificationChecking == inotifyMaster
-             || regIOobject::fileModificationChecking == timeStampMaster
-            ),
-            Pstream::parRun()
-        );
+        // For parallel runs check if any object's file has been modified
+        // and only call readIfModified on each object if this is the case
+        // to avoid unnecessary reductions in readIfModified for each object
 
-        // Time handling is special since controlDict_ is the one dictionary
-        // that is not registered to any database.
+        bool anyModified = true;
 
-        if (controlDict_.readIfModified())
+        if (Pstream::parRun())
         {
-            readDict();
-            functionObjects_.read();
+            anyModified = controlDict_.modified()
+                || objectRegistry::modified();
+
+            bool anyModifiedOnThisProc = anyModified;
+            reduce(anyModified, andOp<bool>());
+
+            if (anyModifiedOnThisProc && !anyModified)
+            {
+                WarningIn("Time::readModifiedObjects()")
+                    << "Delaying reading objects due to inconsistent "
+                       "file time-stamps between processors"
+                    << endl;
+            }
         }
 
-        bool registryModified = objectRegistry::modified();
-
-        if (registryModified)
+        if (anyModified)
         {
+            if (controlDict_.readIfModified())
+            {
+                readDict();
+                functionObjects_.read();
+            }
+
             objectRegistry::readModifiedObjects();
         }
     }
@@ -338,12 +343,6 @@ bool Foam::Time::writeAndEnd()
     endTime_ = value();
 
     return writeNow();
-}
-
-
-void Foam::Time::writeOnce()
-{
-    writeOnce_ = true;
 }
 
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -156,73 +156,18 @@ tmp<Field<Type> > cyclicGgiFvPatchField<Type>::patchNeighbourField() const
 
     if (cyclicGgiPatch_.bridgeOverlap())
     {
-        // Use mirrored neighbour field for interpolation. Note: mirroring needs
-        // to take into account the weights, i.e. how "far" we are actually
-        // mirroring. VV, 19/Jan/2018.
-        const Field<Type> mirrorField =
-        transform
-        (
-            (I - sqr(this->patch().nf())/
-            (1.0 - cyclicGgiPatch_.fvPatch::weights())),
-            this->patchInternalField()
-        );
+        // Symmetry treatment used for overlap
+        vectorField nHat = this->patch().nf();
 
-        // Set mirror values to fully uncovered faces
-        cyclicGgiPatch_.setUncoveredFaces(mirrorField, pnf);
+        // Use mirrored internal field for neighbour
+        // HJ, 27/Jan/2009
+        Field<Type> bridgeField =
+            transform(I - 2.0*sqr(nHat), this->patchInternalField());
 
-        // Add part of the mirror field to partially covered faces
-        cyclicGgiPatch_.addToPartialFaces(mirrorField, pnf);
+        cyclicGgiPatch_.bridge(bridgeField, pnf);
     }
 
     return tpnf;
-}
-
-
-template<class Type>
-tmp<scalarField>
-cyclicGgiFvPatchField<Type>::untransformedInterpolate
-(
-    const direction cmpt
-) const
-{
-    const Field<Type>& iField = this->internalField();
-
-    // Get shadow face-cells and assemble shadow field
-    const unallocLabelList& sfc = cyclicGgiPatch_.shadow().faceCells();
-
-    scalarField sField(sfc.size());
-
-    forAll (sField, i)
-    {
-        sField[i] = component(iField[sfc[i]], cmpt);
-    }
-
-    tmp<scalarField> tresult
-    (
-        new scalarField(cyclicGgiPatch_.size())
-    );
-
-    scalarField& result = tresult();
-
-    result = cyclicGgiPatch_.interpolate(sField);
-
-    if (cyclicGgiPatch_.bridgeOverlap())
-    {
-        scalarField cmptMirrorField =
-            this->patchInternalField()().component(cmpt);
-
-        // Set mirror values to fully uncovered faces
-        cyclicGgiPatch_.setUncoveredFaces
-        (
-            cmptMirrorField,
-            result
-        );
-
-        // Add part of the mirror field to partially covered faces
-        cyclicGgiPatch_.addToPartialFaces(cmptMirrorField, result);
-    }
-
-    return tresult;
 }
 
 
@@ -243,8 +188,19 @@ void cyclicGgiFvPatchField<Type>::initEvaluate
       + (1.0 - this->patch().weights())*this->patchNeighbourField()
     );
 
-    // Note: bridging and correction of partially overlapping faces taken into
-    // account in patchNeighbourField(). VV, 16/Oct/2017.
+    if (cyclicGgiPatch_.bridgeOverlap())
+    {
+        // Symmetry treatment used for overlap
+        vectorField nHat = this->patch().nf();
+
+        Field<Type> bridgeField =
+        (
+            this->patchInternalField()
+          + transform(I - 2.0*sqr(nHat), this->patchInternalField())
+        )/2.0;
+
+        cyclicGgiPatch_.bridge(bridgeField, pf);
+    }
 
     Field<Type>::operator=(pf);
 }

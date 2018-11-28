@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -62,11 +62,6 @@ void pointPatchInterpolation::interpolate
 
     const fvBoundaryMesh& bm = fvMesh_.boundary();
 
-    // Get patch interpolators
-    const PtrList<primitivePatchInterpolation>& patchInterp =
-        patchInterpolators();
-
-
     forAll(bm, patchi)
     {
         if (!isA<emptyFvPatch>(bm[patchi]) && !bm[patchi].coupled())
@@ -78,7 +73,7 @@ void pointPatchInterpolation::interpolate
             ppf.setInInternalField
             (
                 pf.internalField(),
-                patchInterp[patchi].faceToPointInterpolate
+                patchInterpolators_[patchi].faceToPointInterpolate
                 (
                     vf.boundaryField()[patchi]
                 )()
@@ -119,13 +114,9 @@ void pointPatchInterpolation::interpolate
     // Correct patch-patch boundary points by interpolation "around" corners
     const labelListList& PointFaces = fvMesh_.pointFaces();
 
-    // Get patch-patch edge points and weights
-    const labelList& patchPatchPts = patchPatchPoints();
-    const scalarListList& patchPatchPtsWeights = patchPatchPointWeights();
-
-    forAll(patchPatchPts, pointi)
+    forAll(patchPatchPoints_, pointi)
     {
-        const label curPoint = patchPatchPts[pointi];
+        const label curPoint = patchPatchPoints_[pointi];
         const labelList& curFaces = PointFaces[curPoint];
 
         label fI = 0;
@@ -147,7 +138,7 @@ void pointPatchInterpolation::interpolate
                         bm[patchi].patch().whichFace(curFaces[facei]);
 
                     pf[curPoint] +=
-                        patchPatchPtsWeights[pointi][fI]
+                        patchPatchPointWeights_[pointi][fI]
                        *vf.boundaryField()[patchi][faceInPatchi];
 
                     fI++;
@@ -201,18 +192,12 @@ void pointPatchInterpolation::applyCornerConstraints
     GeometricField<Type, pointPatchField, pointMesh>& pf
 ) const
 {
-    // Get data for constraints
-    const labelList& pointConstraintPoints =
-        patchPatchPointConstraintPoints();
-    const tensorField& pointConstraintTensors =
-        patchPatchPointConstraintTensors();
-
-    forAll(pointConstraintPoints, pointi)
+    forAll(patchPatchPointConstraintPoints_, pointi)
     {
-        pf[pointConstraintPoints[pointi]] = transform
+        pf[patchPatchPointConstraintPoints_[pointi]] = transform
         (
-            pointConstraintTensors[pointi],
-            pf[pointConstraintPoints[pointi]]
+            patchPatchPointConstraintTensors_[pointi],
+            pf[patchPatchPointConstraintPoints_[pointi]]
         );
     }
 }

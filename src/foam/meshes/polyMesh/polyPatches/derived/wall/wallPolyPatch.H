@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                          Class wallPolyPatch Declaration
+                      Class wallPolyPatch Declaration
 \*---------------------------------------------------------------------------*/
 
 class wallPolyPatch
@@ -77,6 +77,9 @@ public:
             const polyBoundaryMesh& bm
         );
 
+        //- Construct as copy, resetting the boundary mesh
+        wallPolyPatch(const wallPolyPatch&, const polyBoundaryMesh&);
+
         //- Construct given the original patch and resetting the
         //  face list and boundary mesh information
         wallPolyPatch
@@ -87,12 +90,6 @@ public:
             const label newSize,
             const label newStart
         );
-
-        //- Construct as copy
-        wallPolyPatch(const wallPolyPatch&);
-
-        //- Construct as copy, resetting the boundary mesh
-        wallPolyPatch(const wallPolyPatch&, const polyBoundaryMesh&);
 
         //- Construct and return a clone, resetting the boundary mesh
         virtual autoPtr<polyPatch> clone(const polyBoundaryMesh& bm) const

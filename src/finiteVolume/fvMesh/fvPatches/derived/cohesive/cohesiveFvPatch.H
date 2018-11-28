@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ protected:
     // Protected Member Functions
 
         //- Make patch face non-orthogonality correction vectors
-        virtual void makeCorrVecs(fvsPatchVectorField&) const;
+        virtual void makeCorrVecs(vectorField&) const;
 
 
 public:

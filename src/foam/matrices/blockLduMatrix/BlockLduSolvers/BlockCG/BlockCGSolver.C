@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -76,6 +76,9 @@ typename Foam::BlockSolverPerformance<Type> Foam::BlockCGSolver<Type>::solve
     );
 
     scalar norm = this->normFactor(x, b);
+
+    // Multiplication helper
+    typename BlockCoeff<Type>::multiply mult;
 
     Field<Type> wA(x.size());
 

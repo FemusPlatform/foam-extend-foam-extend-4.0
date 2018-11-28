@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ class fvMesh;
 class polyBoundaryMesh;
 
 /*---------------------------------------------------------------------------*\
-                       Class fvBoundaryMesh Declaration
+                           Class fvBoundaryMesh Declaration
 \*---------------------------------------------------------------------------*/
 
 class fvBoundaryMesh
@@ -70,19 +70,14 @@ private:
         //- Disallow assignment
         void operator=(const fvBoundaryMesh&);
 
-        //- Add fvPatches corresponding to the polyBoundaryMesh
-        void addFvPatches();
-
-        //- Reset fvPatches corresponding to the polyBoundaryMesh
-        //  When the mesh is resized, the existing patches may be preserved
-        //  or reset depending on the resetFlag
-        void resetFvPatches(const boolList& resetFvPatchFlag);
+        //- Add fvPatches corresponding to the given polyBoundaryMesh
+        void addPatches(const polyBoundaryMesh&);
 
 
 protected:
 
         //- Update boundary based on new polyBoundaryMesh
-        void readUpdate();
+        void readUpdate(const polyBoundaryMesh&);
 
 
 public:
@@ -92,11 +87,18 @@ public:
 
     // Constructors
 
+        //- Construct with zero size
+        fvBoundaryMesh
+        (
+            const fvMesh&
+        );
+
         //- Construct from polyBoundaryMesh
-        explicit fvBoundaryMesh(const fvMesh&);
-
-
-    // Destructor - default
+        fvBoundaryMesh
+        (
+            const fvMesh&,
+            const polyBoundaryMesh&
+        );
 
 
     // Member functions

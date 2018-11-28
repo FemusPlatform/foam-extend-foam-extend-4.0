@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -33,6 +33,9 @@ Description
 Author
     Klas Jareteg, 2013-01-30
 
+SourceFiles
+    BlockCoeffTwoNorm.C
+
 \*---------------------------------------------------------------------------*/
 
 #ifndef tensorBlockCoeffTwoNorm_H
@@ -49,6 +52,11 @@ Author
 namespace Foam
 {
 
+
+/*---------------------------------------------------------------------------*\
+                        Class BlockCoeffTwoNorm Declaration
+\*---------------------------------------------------------------------------*/
+
 template<>
 inline scalar BlockCoeffTwoNorm<tensor>::normalize
 (
@@ -57,13 +65,11 @@ inline scalar BlockCoeffTwoNorm<tensor>::normalize
 {
     if (a.activeType() == BlockCoeff<tensor>::SCALAR)
     {
-        // Note: for two-norm, use mag
-        return sign(a.component(cmpt_))*mag(a.asScalar());
+        return mag(a.asScalar());
     }
     else if (a.activeType() == BlockCoeff<tensor>::LINEAR)
     {
-        // Note: for two-norm, use mag
-        return sign(a.component(cmpt_))*mag(a.asLinear());
+        return mag(a.asLinear());
     }
     else
     {
@@ -78,23 +84,19 @@ inline scalar BlockCoeffTwoNorm<tensor>::normalize
 
 
 template<>
-inline void BlockCoeffTwoNorm<tensor>::normalize
+inline void BlockCoeffTwoNorm<tensor>::coeffMag
 (
-    Field<scalar>& b,
-    const CoeffField<tensor>& a
+    const CoeffField<tensor>& a,
+    Field<scalar>& b
 )
 {
     if (a.activeType() == BlockCoeff<tensor>::SCALAR)
     {
-        // Note: for two-norm, use mag
-        // However, the norm is signed
-        // b = mag(a.asScalar());
-        b = a.asScalar();
+        b = mag(a.asScalar());
     }
     else if (a.activeType() == BlockCoeff<tensor>::LINEAR)
     {
-        // Note: for two-norm, use mag
-        b = sign(a.component(cmpt_))*mag(a.asLinear());
+        b = mag(a.asLinear());
     }
     else
     {
@@ -109,6 +111,9 @@ inline void BlockCoeffTwoNorm<tensor>::normalize
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

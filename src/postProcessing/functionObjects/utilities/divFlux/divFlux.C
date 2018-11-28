@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ bool Foam::divFlux::start()
 }
 
 
-bool Foam::divFlux::execute(const bool forceWrite)
+bool Foam::divFlux::execute()
 {
     const fvMesh& mesh =
         time_.lookupObject<fvMesh>(regionName_);

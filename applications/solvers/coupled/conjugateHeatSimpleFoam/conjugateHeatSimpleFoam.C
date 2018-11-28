@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -46,11 +46,10 @@ int main(int argc, char *argv[])
 {
 #   include "setRootCase.H"
 #   include "createTime.H"
-#   include "createMesh.H"
+#   include "createFluidMesh.H"
 #   include "createSolidMesh.H"
 
     simpleControl simple(mesh);
-    simpleControl simpleSolid(solidMesh);
 
 #   include "readGravitationalAcceleration.H"
 #   include "createFields.H"
@@ -65,7 +64,7 @@ int main(int argc, char *argv[])
     {
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
-        // Detach coupled CHT patches
+        // Detach patches
 #       include "detachPatches.H"
 
         p_rgh.storePrevIter();
@@ -76,17 +75,16 @@ int main(int argc, char *argv[])
         // Update turbulent quantities
         turbulence->correct();
 
-        // Correct radiation
         radiation->correct();
 
-        // Update thermal diffusivity in the fluid
+        // Update thermal conductivity in the fluid
         kappaEff = rho*Cp*(turbulence->nu()/Pr + turbulence->nut()/Prt);
 
         // Update thermal conductivity in the solid
         solidThermo.correct();
         kSolid = solidThermo.k();
 
-        // Attached coupled CHT patches
+        // Coupled patches
 #       include "attachPatches.H"
 
         kappaEff.correctBoundaryConditions();

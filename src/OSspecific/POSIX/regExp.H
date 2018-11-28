@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -27,12 +27,9 @@ Class
 Description
     Wrapper around POSIX extended regular expressions.
 
-    The PCRE '(?i)' extension is provided to compile the regular expression
-    as being case-insensitive.
-
 SeeAlso
     The manpage regex(7) for more information about POSIX regular expressions.
-    These differ somewhat from \c Perl and \c sed regular expressions.
+    These differ somewhat from @c Perl and @c sed regular expressions.
 
 SourceFiles
     regExp.C
@@ -54,7 +51,6 @@ namespace Foam
 class string;
 template<class T> class List;
 
-
 /*---------------------------------------------------------------------------*\
                            Class regExp Declaration
 \*---------------------------------------------------------------------------*/
@@ -66,7 +62,6 @@ class regExp
         //- Precompiled regular expression
         mutable regex_t* preg_;
 
-
     // Private member functions
 
         //- Disallow default bitwise copy construct
@@ -75,19 +70,7 @@ class regExp
         //- Disallow default bitwise assignment
         void operator=(const regExp&);
 
-        //- Return true if it matches and sets the sub-groups matched.
-        //  Templated to support both std::string and Foam::string
-        template<class StringType>
-        bool matchGrouping
-        (
-            const std::string&,
-            List<StringType>& groups
-        ) const;
-
-
 public:
-
-    // Static Member Functions
 
         //- Is character a regular expression meta-character?
         //  any character: '.' \n
@@ -119,72 +102,67 @@ public:
         //- Construct from std::string (or string), optionally ignoring case
         regExp(const std::string&, const bool ignoreCase=false);
 
+    // Destructor
 
-    //- Destructor
-    ~regExp();
+        ~regExp();
 
 
     // Member functions
 
-        // Access
+    //- Access
 
-            //- Return true if a precompiled expression does not exist
-            inline bool empty() const
-            {
-                return !preg_;
-            }
+        //- Return true if a precompiled expression does not exist
+        inline bool empty() const
+        {
+            return !preg_;
+        }
 
-            //- Does a precompiled expression exist?
-            inline bool exists() const
-            {
-                return preg_ ? true : false;
-            }
+        //- Does a precompiled expression exist?
+        inline bool exists() const
+        {
+            return preg_ ? true : false;
+        }
 
-            //- Return the number of (groups)
-            inline int ngroups() const
-            {
-                return preg_ ? preg_->re_nsub : 0;
-            }
-
-
-        // Editing
-
-            //- Compile pattern into a regular expression,
-            //  optionally ignoring case
-            void set(const char*, const bool ignoreCase=false) const;
-
-            //- Compile pattern into a regular expression,
-            //  optionally ignoring case
-            void set(const std::string&, const bool ignoreCase=false) const;
-
-            //- Release precompiled expression.
-            //  Returns true if precompiled expression existed before clear
-            bool clear() const;
+        //- Return the number of (groups)
+        inline int ngroups() const
+        {
+            return preg_ ? preg_->re_nsub : 0;
+        }
 
 
-        // Searching
+    //- Editing
 
-            //- Find position within string.
-            //  Returns the index where it begins or string::npos if not found
-            std::string::size_type find(const std::string& str) const;
+        //- Compile pattern into a regular expression, optionally ignoring case
+        void set(const char*, const bool ignoreCase=false) const;
 
-            //- Return true if it matches the entire string
-            //  The begin-of-line (^) and end-of-line ($) anchors are implicit
-            bool match(const std::string&) const;
+        //- Compile pattern into a regular expression, optionally ignoring case
+        void set(const std::string&, const bool ignoreCase=false) const;
 
-            //- Return true if it matches and sets the sub-groups matched
-            //  The begin-of-line (^) and end-of-line ($) anchors are implicit
-            bool match(const std::string&, List<std::string>& groups) const;
 
-            //- Return true if it matches and sets the sub-groups matched
-            //  The begin-of-line (^) and end-of-line ($) anchors are implicit
-            bool match(const std::string&, List<string>& groups) const;
+        //- Release precompiled expression.
+        //  Returns true if precompiled expression existed before clear
+        bool clear() const;
 
-            //- Return true if the regex was found within string
-            bool search(const std::string& str) const
-            {
-                return std::string::npos != find(str);
-            }
+
+    //- Searching
+
+        //- Find position within string.
+        //  Returns the index where it begins or string::npos if not found
+        std::string::size_type find(const std::string& str) const;
+
+        //- Return true if it matches the entire string
+        //  The begin-of-line (^) and end-of-line ($) anchors are implicit
+        bool match(const std::string&) const;
+
+        //- Return true if it matches and sets the sub-groups matched
+        //  The begin-of-line (^) and end-of-line ($) anchors are implicit
+        bool match(const string&, List<string>& groups) const;
+
+        //- Return true if the regex was found in within string
+        bool search(const std::string& str) const
+        {
+            return std::string::npos != find(str);
+        }
 
 
     // Member Operators

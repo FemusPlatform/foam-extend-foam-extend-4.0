@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -922,18 +922,6 @@ operator&&(const Tensor<Cmpt>& t1, const SymmTensor<Cmpt>& st2)
         t1.yx()*st2.xy() + t1.yy()*st2.yy() + t1.yz()*st2.yz() +
         t1.zx()*st2.xz() + t1.zy()*st2.yz() + t1.zz()*st2.zz()
     );
-}
-
-
-//- Return skew-symmetric tensor calculated with Lie bracket operator given two
-//  vectors
-template <class Cmpt>
-inline Tensor<Cmpt> lieBracket(const Vector<Cmpt>& v1, const Vector<Cmpt>& v2)
-{
-    const Tensor<Cmpt> skewV1(*v1);
-    const Tensor<Cmpt> skewV2(*v2);
-
-    return (skewV1 & skewV2) - (skewV2 & skewV1);
 }
 
 

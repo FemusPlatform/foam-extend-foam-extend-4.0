@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ License
 
 namespace Foam
 {
-defineTypeNameAndDebug(dsmcFields, 0);
+    defineTypeNameAndDebug(dsmcFields, 0);
 }
 
 
@@ -57,13 +57,8 @@ Foam::dsmcFields::dsmcFields
         WarningIn
         (
             "dsmcFields::dsmcFields"
-            "("
-                "const word&, "
-                "const objectRegistry&, "
-                "const dictionary&, "
-                "const bool"
-            ")"
-        )   << "No fvMesh available, deactivating " << name_ << nl
+            "(const objectRegistry&, const dictionary&)"
+        )   << "No fvMesh available, deactivating." << nl
             << endl;
     }
 
@@ -95,12 +90,6 @@ void Foam::dsmcFields::execute()
 
 
 void Foam::dsmcFields::end()
-{
-    // Do nothing - only valid on write
-}
-
-
-void Foam::dsmcFields::timeSet()
 {
     // Do nothing - only valid on write
 }
@@ -230,7 +219,7 @@ void Foam::dsmcFields::write()
             {
                 const polyPatch& patch = mesh.boundaryMesh()[i];
 
-                if (isA<wallPolyPatch>(patch))
+                if (patch.isWall())
                 {
                     p.boundaryField()[i] =
                         fDMean.boundaryField()[i]

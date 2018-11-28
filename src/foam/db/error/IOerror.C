@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -113,43 +113,6 @@ Foam::OSstream& Foam::IOerror::operator()
 }
 
 
-void Foam::IOerror::SafeFatalIOError
-(
-    const char* functionName,
-    const char* sourceFileName,
-    const int sourceFileLineNumber,
-    const IOstream& ioStream,
-    const string& msg
-)
-{
-    if (JobInfo::constructed)
-    {
-        FatalIOErrorIn
-        (
-            "primitiveEntry::readEntry(const dictionary&, Istream&)",
-            ioStream
-        )   << msg << Foam::exit(FatalIOError);
-    }
-    else
-    {
-        std::cerr
-            << std::endl
-            << "--> FOAM FATAL IO ERROR:" << std::endl
-            << msg
-            << std::endl
-            << "file: " << ioStream.name()
-            << " at line " << ioStream.lineNumber() << '.'
-            << std::endl << std::endl
-            << "    From function " << functionName
-            << std::endl
-            << "    in file " << sourceFileName
-            << " at line " << sourceFileLineNumber << '.'
-            << std::endl;
-        ::exit(1);
-    }
-}
-
-
 Foam::IOerror::operator Foam::dictionary() const
 {
     dictionary errDict(error::operator dictionary());
@@ -175,7 +138,10 @@ void Foam::IOerror::exit(const int)
 
     if (abort_)
     {
-        abort();
+        Perr<< endl << *this << endl
+            << "\nFOAM aborting (FOAM_ABORT set)\n" << endl;
+        printStack(Perr);
+        ::abort();
     }
 
     if (Pstream::parRun())
@@ -254,31 +220,28 @@ void Foam::IOerror::abort()
 
 Foam::Ostream& Foam::operator<<(Ostream& os, const IOerror& ioErr)
 {
-    if (!os.bad())
+    os  << endl
+        << ioErr.title().c_str() << endl
+        << ioErr.message().c_str() << endl << endl;
+
+    os  << "file: " << ioErr.ioFileName().c_str();
+
+    if (ioErr.ioStartLineNumber() >= 0 && ioErr.ioEndLineNumber() >= 0)
     {
-        os  << endl
-            << ioErr.title().c_str() << endl
-            << ioErr.message().c_str() << endl << endl;
+        os  << " from line " << ioErr.ioStartLineNumber()
+            << " to line " << ioErr.ioEndLineNumber() << '.';
+    }
+    else if (ioErr.ioStartLineNumber() >= 0)
+    {
+        os  << " at line " << ioErr.ioStartLineNumber() << '.';
+    }
 
-        os  << "file: " << ioErr.ioFileName().c_str();
-
-        if (ioErr.ioStartLineNumber() >= 0 && ioErr.ioEndLineNumber() >= 0)
-        {
-            os  << " from line " << ioErr.ioStartLineNumber()
-                << " to line " << ioErr.ioEndLineNumber() << '.';
-        }
-        else if (ioErr.ioStartLineNumber() >= 0)
-        {
-            os  << " at line " << ioErr.ioStartLineNumber() << '.';
-        }
-
-        if (IOerror::level >= 2 && ioErr.sourceFileLineNumber())
-        {
-            os  << endl << endl
-                << "    From function " << ioErr.functionName().c_str() << endl
-                << "    in file " << ioErr.sourceFileName().c_str()
-                << " at line " << ioErr.sourceFileLineNumber() << '.';
-        }
+    if (IOerror::level >= 2 && ioErr.sourceFileLineNumber())
+    {
+        os  << endl << endl
+            << "    From function " << ioErr.functionName().c_str() << endl
+            << "    in file " << ioErr.sourceFileName().c_str()
+            << " at line " << ioErr.sourceFileLineNumber() << '.';
     }
 
     return os;

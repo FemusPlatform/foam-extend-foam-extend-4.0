@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ Description
     Implements a timeout mechanism via sigalarm.
 
     Example usage:
-    \code
+    @code
         timer myTimer(5);     // 5 sec
         ..
         if (timedOut(myTimer))
@@ -39,7 +39,7 @@ Description
         {
             // do something possible blocking
         }
-    \endcode
+    @endcode
 
     Constructor set signal handler on sigalarm and alarm(). Destructor
     clears these.
@@ -67,7 +67,7 @@ SourceFiles
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//- Check it a timeout has occured
+//- check it a timeout has occured
 //  keep setjmp in same stack frame so no function calls
 #define timedOut(x) \
     (((x).newTimeOut_ > 0) ? setjmp(Foam::timer::envAlarm) : false)

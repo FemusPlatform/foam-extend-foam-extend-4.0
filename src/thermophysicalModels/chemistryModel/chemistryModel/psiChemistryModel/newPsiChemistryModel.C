@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ Foam::autoPtr<Foam::psiChemistryModel> Foam::psiChemistryModel::New
                 "chemistryProperties",
                 mesh.time().constant(),
                 obj,
-                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::MUST_READ,
                 IOobject::NO_WRITE
             )
         );

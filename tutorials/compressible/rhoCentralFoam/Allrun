@@ -34,7 +34,7 @@ do
     if [ "$case" = "biconic25-55Run35" ] ; then
         cd $case
 
-        compileApplication datToFoam
+        wmake datToFoam
         runApplication datToFoam grid256.dat
 
         CONST="constant"

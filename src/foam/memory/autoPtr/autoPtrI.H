@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -40,25 +40,6 @@ inline Foam::autoPtr<T>::autoPtr(const autoPtr<T>& ap)
     ptr_(ap.ptr_)
 {
     ap.ptr_ = 0;
-}
-
-
-template<class T>
-inline Foam::autoPtr<T>::autoPtr(const autoPtr<T>& ap, const bool reuse)
-{
-    if (reuse)
-    {
-        ptr_ = ap.ptr_;
-        ap.ptr_ = 0;
-    }
-    else if (ap.valid())
-    {
-        ptr_ = ap().clone().ptr();
-    }
-    else
-    {
-        ptr_ = NULL;
-    }
 }
 
 

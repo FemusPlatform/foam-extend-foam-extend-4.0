@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ SourceFiles
 #include "coupledFaPatch.H"
 #include "cyclicLduInterface.H"
 #include "cyclicPolyPatch.H"
+#include "tolerancesSwitch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -60,6 +61,12 @@ class cyclicFaPatch
     void calcTransforms();
 
 protected:
+
+    // Protected static data
+
+        //- Relative tolerance (for geometric matching). Is factor of
+        //  maximum edge length per face.
+        static const debug::tolerancesSwitch matchTol_;
 
     // Protected Member functions
 
@@ -91,20 +98,15 @@ public:
         {}
 
 
-    //- Destructor
-    virtual ~cyclicFaPatch()
-    {}
+    // Destructor
+
+        virtual ~cyclicFaPatch()
+        {}
 
 
     // Member functions
 
         // Access
-
-            //- Is this the master side?  Yes: it contains both sets of faces
-            virtual bool master() const
-            {
-                return true;
-            }
 
             //- Return face transformation tensor
             virtual const tensorField& forwardT() const

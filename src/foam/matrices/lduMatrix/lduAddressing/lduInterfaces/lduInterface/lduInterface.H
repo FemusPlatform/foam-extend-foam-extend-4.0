@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -46,12 +46,6 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// Forward declaration of classes
-class crMatrix;
-
-template<class T>
-class autoPtr;
-
 /*---------------------------------------------------------------------------*\
                      Class lduInterface Declaration
 \*---------------------------------------------------------------------------*/
@@ -90,9 +84,6 @@ public:
 
             //- Return true if interface is coupled
             virtual bool coupled() const = 0;
-
-            //- Does this side own the patch ?
-            virtual bool master() const = 0;
 
             //- Return faceCell addressing
             virtual const unallocLabelList& faceCells() const = 0;
@@ -136,24 +127,6 @@ public:
                 const Pstream::commsTypes commsType,
                 const unallocLabelList& iF
             ) const = 0;
-
-            //- Initialise transfer of prolongation matrix to the interface
-            virtual void initProlongationTransfer
-            (
-                const Pstream::commsTypes commsType,
-                const crMatrix& filteredP
-            ) const
-            {
-                Pout<< "lduInterface::initProlongationTransfer()" << endl;
-            }
-
-            //- Transfer and return prolongation matrix adjacent to
-            //  the interface
-            virtual autoPtr<crMatrix> prolongationTransfer
-            (
-                const Pstream::commsTypes commsType,
-                const crMatrix& filteredP
-            ) const;
 };
 
 

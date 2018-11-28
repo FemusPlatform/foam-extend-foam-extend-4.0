@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ Description
 
 SourceFiles
     keyType.C
+    keyTypeIO.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -70,11 +71,6 @@ class keyType
 
 public:
 
-    // Static data members
-
-        //- An empty keyType
-        static const keyType null;
-
 
     // Constructors
 
@@ -84,21 +80,19 @@ public:
         //- Construct as copy
         inline keyType(const keyType&);
 
-        //- Construct as copy of word. Not treated as a regular expression
+        //- Construct as copy of word
         inline keyType(const word&);
 
-        //- Construct as copy of string. Treat as regular expression.
+        //- Construct as copy of string. Expect it to be regular expression.
         inline keyType(const string&);
 
-        //- Construct as copy of character array.
-        //  Not treated as a regular expression
+        //- Construct as copy of character array
         inline keyType(const char*);
 
-        //- Construct as copy of std::string with specified treatment
+        //- Construct as copy of std::string
         inline keyType(const std::string&, const bool isPattern);
 
         //- Construct from Istream
-        //  Treat as regular expression if surrounded by quotation marks.
         keyType(Istream&);
 
 
@@ -107,24 +101,15 @@ public:
         //- Should be treated as a match rather than a literal string
         inline bool isPattern() const;
 
-        //- Smart match as regular expression or as a string
-        //  Optionally force a literal match only
-        bool match(const std::string&, bool literalMatch=false) const;
-
     // Member operators
 
         // Assignment
 
-            //- Assignment operator
             inline const keyType& operator=(const keyType&);
-
-            //- Assign as word, not as non regular expression
             inline const keyType& operator=(const word&);
 
-            //- Assign as regular expression
+            //- Assign from regular expression.
             inline const keyType& operator=(const string&);
-
-            //- Assign as word, not as non regular expression
             inline const keyType& operator=(const char*);
 
 

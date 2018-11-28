@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ Author
 
 Contributor
     Hrvoje Jasak, Wikki Ltd.
-    Gregor Cvijetic, FMENA Zagreb.
 
 GE CONFIDENTIAL INFORMATION 2016 General Electric Company. All Rights Reserved
 
@@ -59,15 +58,13 @@ void Foam::ggiEnthalpyJumpFvPatchField<Foam::scalar>::updateCoeffs()
     }
 
     // Get access to relative and rotational velocity
-    const word URotName("URot");
-    const word UThetaName("UTheta");
-
-    jump_ = 0;
+    const word UrelName("Urel");
+    const word UName("U");
 
     if
     (
-        !this->db().objectRegistry::found(URotName)
-     || !this->db().objectRegistry::found(UThetaName)
+        !this->db().objectRegistry::found(UrelName)
+     || !this->db().objectRegistry::found(UName)
     )
     {
         // Velocities not available, do not update
@@ -75,37 +72,31 @@ void Foam::ggiEnthalpyJumpFvPatchField<Foam::scalar>::updateCoeffs()
         (
             "void gradientEnthalpyFvPatchScalarField::"
             "updateCoeffs(const vectorField& Up)"
-        )   << "Velocity fields " << URotName << " or "
-            << UThetaName << " not found.  "
+        )   << "Velocity fields " << UrelName << " or "
+            << UName << " not found.  "
             << "Performing enthalpy value update" << endl;
 
         jump_ = 0;
     }
     else
     {
-        const fvPatchVectorField& URotp =
-                lookupPatchField<volVectorField, vector>(URotName);
+        const fvPatchVectorField& Urelp =
+                lookupPatchField<volVectorField, vector>(UrelName);
 
-        const fvPatchScalarField& UThetap =
-                lookupPatchField<volScalarField, scalar>(UThetaName);
+        const fvPatchVectorField& Up =
+                lookupPatchField<volVectorField, vector>(UName);
 
         if (rotating_)
         {
-            const scalarField UThetaIn = UThetap.patchInternalField();
-
-            jump_ = - (
-                        mag(UThetaIn)
-                       *mag(URotp.patchInternalField())
-                      );
+            jump_ =
+                mag(Up.patchInternalField())*mag(Urelp.patchInternalField())
+              - magSqr(Up.patchInternalField());
         }
         else
         {
-            const scalarField UThetaIn = UThetap.patchNeighbourField();
-
-            jump_ = (
-                      mag(UThetaIn)
-                     *mag(URotp.patchNeighbourField())
-                    );
+            jump_ =
+                mag(Up.patchNeighbourField())*mag(Urelp.patchNeighbourField())
+              - magSqr(Up.patchNeighbourField());
         }
     }
 

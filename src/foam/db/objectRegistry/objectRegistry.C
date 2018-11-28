@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -29,14 +29,6 @@ License
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 defineTypeNameAndDebug(Foam::objectRegistry, 0);
-
-
-// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
-
-bool Foam::objectRegistry::parentNotTime() const
-{
-    return (&parent_ != dynamic_cast<const objectRegistry*>(&time_));
-}
 
 
 // * * * * * * * * * * * * * * * * Constructors *  * * * * * * * * * * * * * //
@@ -140,13 +132,15 @@ const Foam::Time& Foam::objectRegistry::time() const
 
 Foam::wordList Foam::objectRegistry::names() const
 {
-    return HashTable<regIOobject*>::toc();
-}
+    wordList objectNames(size());
 
+    label count=0;
+    for (const_iterator iter = cbegin(); iter != cend(); ++iter)
+    {
+        objectNames[count++] = iter()->name();
+    }
 
-Foam::wordList Foam::objectRegistry::sortedNames() const
-{
-    return HashTable<regIOobject*>::sortedToc();
+    return objectNames;
 }
 
 
@@ -159,22 +153,13 @@ Foam::wordList Foam::objectRegistry::names(const word& ClassName) const
     {
         if (iter()->type() == ClassName)
         {
-            objectNames[count++] = iter.key();
+            objectNames[count++] = iter()->name();
         }
     }
 
     objectNames.setSize(count);
 
     return objectNames;
-}
-
-
-Foam::wordList Foam::objectRegistry::sortedNames(const word& ClassName) const
-{
-    wordList sortedLst = names(ClassName);
-    sort(sortedLst);
-
-    return sortedLst;
 }
 
 
@@ -189,25 +174,9 @@ Foam::fileName Foam::objectRegistry::mangleFileName
 
 const Foam::objectRegistry& Foam::objectRegistry::subRegistry
 (
-    const word& name,
-    const bool forceCreate
+    const word& name
 ) const
 {
-    if (forceCreate && !foundObject<objectRegistry>(name))
-    {
-        objectRegistry* fieldsCachePtr = new objectRegistry
-        (
-            IOobject
-            (
-                name,
-                time().constant(),
-                *this,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            )
-        );
-        fieldsCachePtr->store();
-    }
     return lookupObject<objectRegistry>(name);
 }
 
@@ -218,9 +187,9 @@ Foam::label Foam::objectRegistry::getEvent() const
 
     if (event_ == labelMax)
     {
-        WarningInFunction
-            << "Event counter has overflowed. "
-            << "Resetting counter on all dependent objects." << nl
+        WarningIn("objectRegistry::getEvent() const")
+            << "Event counter has overflowed. Resetting counter on all"
+            << " dependent objects." << endl
             << "This might cause extra evaluations." << endl;
 
         // Reset event counter
@@ -254,7 +223,6 @@ bool Foam::objectRegistry::checkIn(regIOobject& io) const
     {
         Pout<< "objectRegistry::checkIn(regIOobject&) : "
             << name() << " : checking in " << io.name()
-            << " of type " << io.type()
             << endl;
     }
 
@@ -271,7 +239,7 @@ bool Foam::objectRegistry::checkOut(regIOobject& io) const
         if (objectRegistry::debug)
         {
             Pout<< "objectRegistry::checkOut(regIOobject&) : "
-                << name() << " : checking out " << iter.key()
+                << name() << " : checking out " << io.name()
                 << endl;
         }
 
@@ -279,9 +247,8 @@ bool Foam::objectRegistry::checkOut(regIOobject& io) const
         {
             if (objectRegistry::debug)
             {
-                WarningInFunction
-                    << name() << " : attempt to checkOut copy of "
-                    << iter.key()
+                WarningIn("objectRegistry::checkOut(regIOobject&)")
+                    << name() << " : attempt to checkOut copy of " << io.name()
                     << endl;
             }
 
@@ -336,7 +303,7 @@ void Foam::objectRegistry::rename(const word& newName)
 
 bool Foam::objectRegistry::modified() const
 {
-    forAllConstIter(HashTable<regIOobject*>, *this, iter)
+    for (const_iterator iter = cbegin(); iter != cend(); ++iter)
     {
         if (iter()->modified())
         {
@@ -356,7 +323,8 @@ void Foam::objectRegistry::readModifiedObjects()
         {
             Pout<< "objectRegistry::readModifiedObjects() : "
                 << name() << " : Considering reading object "
-                << iter.key() << endl;
+                << iter()->name()
+                << endl;
         }
 
         iter()->readIfModified();
@@ -380,14 +348,13 @@ bool Foam::objectRegistry::writeObject
 {
     bool ok = true;
 
-    forAllConstIter(HashTable<regIOobject*>, *this, iter)
+    for (const_iterator iter = cbegin(); iter != cend(); ++iter)
     {
         if (objectRegistry::debug)
         {
             Pout<< "objectRegistry::write() : "
                 << name() << " : Considering writing object "
-                << iter.key()
-                << " of type " << iter()->type()
+                << iter()->name()
                 << " with writeOpt " << iter()->writeOpt()
                 << " to file " << iter()->objectPath()
                 << endl;

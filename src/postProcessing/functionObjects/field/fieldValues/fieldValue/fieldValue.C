@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,26 +26,81 @@ License
 #include "fieldValue.H"
 #include "fvMesh.H"
 #include "foamTime.H"
-#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
     defineTypeNameAndDebug(fieldValue, 0);
-    defineRunTimeSelectionTable(fieldValue, dictionary);
+
+    defineTemplateTypeNameAndDebug(IOList<vector>, 0);
+    defineTemplateTypeNameAndDebug(IOList<sphericalTensor>, 0);
+    defineTemplateTypeNameAndDebug(IOList<symmTensor>, 0);
+    defineTemplateTypeNameAndDebug(IOList<tensor>, 0);
 }
 
 
 // * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
 
+void Foam::fieldValue::updateMesh(const mapPolyMesh&)
+{
+    // Do nothing
+}
+
+
+void Foam::fieldValue::movePoints(const Field<point>&)
+{
+    // Do nothing
+}
+
+
+void Foam::fieldValue::makeFile()
+{
+    // Create the forces file if not already created
+    if (outputFilePtr_.empty())
+    {
+        if (debug)
+        {
+            Info<< "Creating output file." << endl;
+        }
+
+        // File update
+        if (Pstream::master())
+        {
+            fileName outputDir;
+            word startTimeName =
+                obr_.time().timeName(obr_.time().startTime().value());
+
+            if (Pstream::parRun())
+            {
+                // Put in undecomposed case (Note: gives problems for
+                // distributed data running)
+                outputDir =
+                    obr_.time().path()/".."/name_/startTimeName;
+            }
+            else
+            {
+                outputDir = obr_.time().path()/name_/startTimeName;
+            }
+
+            // Create directory if does not exist
+            mkDir(outputDir);
+
+            // Open new file at start up
+            outputFilePtr_.reset(new OFstream(outputDir/(type() + ".dat")));
+
+            // Add headers to output data
+            writeFileHeader();
+        }
+    }
+}
+
+
 void Foam::fieldValue::read(const dictionary& dict)
 {
     if (active_)
     {
-        dict_ = dict;
-
-        log_ = dict.lookupOrDefault<Switch>("log", true);
+        log_ = dict.lookupOrDefault<Switch>("log", false);
         dict.lookup("fields") >> fields_;
         dict.lookup("valueOutput") >> valueOutput_;
     }
@@ -56,9 +111,12 @@ void Foam::fieldValue::write()
 {
     if (active_)
     {
-        functionObjectFile::write();
+        if (log_)
+        {
+            Info<< type() << " " << name_ << " output:" << nl;
+        }
 
-        if (log_) Info<< type() << " " << name_ << " output:" << nl;
+        makeFile();
     }
 }
 
@@ -70,20 +128,17 @@ Foam::fieldValue::fieldValue
     const word& name,
     const objectRegistry& obr,
     const dictionary& dict,
-    const word& valueType,
     const bool loadFromFiles
 )
 :
-    functionObjectFile(obr, name, valueType),
     name_(name),
     obr_(obr),
-    dict_(dict),
     active_(true),
-    log_(true),
-    sourceName_(word::null),
+    log_(false),
+    sourceName_(dict.lookup("sourceName")),
     fields_(dict.lookup("fields")),
     valueOutput_(dict.lookup("valueOutput")),
-    resultDict_(fileName("name"), dictionary::null)
+    outputFilePtr_(NULL)
 {
     // Only active if obr is an fvMesh
     if (isA<fvMesh>(obr_))
@@ -101,8 +156,8 @@ Foam::fieldValue::fieldValue
                 "const dictionary&, "
                 "const bool"
             ")"
-        )   << "No fvMesh available, deactivating " << name << nl
-            << endl;
+        )   << "No fvMesh available, deactivating."
+            << nl << endl;
         active_ = false;
     }
 }
@@ -123,24 +178,6 @@ void Foam::fieldValue::execute()
 
 
 void Foam::fieldValue::end()
-{
-    // Do nothing
-}
-
-
-void Foam::fieldValue::timeSet()
-{
-    // Do nothing
-}
-
-
-void Foam::fieldValue::updateMesh(const mapPolyMesh&)
-{
-    // Do nothing
-}
-
-
-void Foam::fieldValue::movePoints(const pointField&)
 {
     // Do nothing
 }

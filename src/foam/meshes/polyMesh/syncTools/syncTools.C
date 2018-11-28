@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ Foam::PackedBoolList Foam::syncTools::getMasterPoints(const polyMesh& mesh)
                     {
                         donePoint.set(pointI, 1u);
 
-                        if (pp.master())
+                        if (pp.owner())
                         {
                             isMasterPoint.set(pointI, 1u);
                         }
@@ -251,7 +251,7 @@ Foam::PackedBoolList Foam::syncTools::getMasterEdges(const polyMesh& mesh)
                     {
                         doneEdge.set(edgeI, 1u);
 
-                        if (pp.master())
+                        if (pp.owner())
                         {
                             isMasterEdge.set(edgeI, 1u);
                         }
@@ -325,7 +325,7 @@ Foam::PackedBoolList Foam::syncTools::getMasterFaces(const polyMesh& mesh)
                 const processorPolyPatch& pp =
                     refCast<const processorPolyPatch>(patches[patchI]);
 
-                if (!pp.master())
+                if (!pp.owner())
                 {
                     forAll(pp, i)
                     {

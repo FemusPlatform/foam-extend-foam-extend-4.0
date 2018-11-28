@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ Author
 
 Contributor
     Hrvoje Jasak, Wikki Ltd.
-    Gregor Cvijetic, FMENA Zagreb.
 
 GE CONFIDENTIAL INFORMATION 2016 General Electric Company. All Rights Reserved
 
@@ -39,6 +38,7 @@ Note on parallelisation
 \*---------------------------------------------------------------------------*/
 
 #include "jumpGgiFvPatchField.H"
+//#include "symmTransformField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -122,46 +122,44 @@ void jumpGgiFvPatchField<Type>::initInterfaceMatrixUpdate
     const unallocLabelList& sfc = this->ggiPatch().shadow().faceCells();
 
     scalarField sField(sfc.size());
-
-    forAll (sField, i)
-    {
-        sField[i] = psiInternal[sfc[i]];
-    }
-
-    Field<Type> pnf = this->ggiPatch().interpolate(sField);
-
-
-    // Multiply the field by coefficients and add into the result
-    const unallocLabelList& fc = this->ggiPatch().faceCells();
-
-    const Field<scalar> jf = jump()().component(cmpt);
-
     if
     (
         reinterpret_cast<const void*>(&psiInternal)
      == reinterpret_cast<const void*>(&this->internalField())
     )
     {
-        forAll(pnf, elemI)
+        const scalarField jf = jump()().component(cmpt);
+
+        forAll (sField, i)
         {
-            pnf[elemI] += jf[elemI];
+            sField[i] = psiInternal[sfc[i]] + jf[i];
+        }
+    }
+    else
+    {
+        forAll (sField, i)
+        {
+            sField[i] = psiInternal[sfc[i]];
         }
     }
 
-    multiply(pnf, coeffs, pnf);
+    scalarField pnf = this->ggiPatch().interpolate(sField);
+
+    // Multiply the field by coefficients and add into the result
+    const unallocLabelList& fc = this->ggiPatch().faceCells();
 
     if (switchToLhs)
     {
         forAll(fc, elemI)
         {
-            result[fc[elemI]] += pnf[elemI];
+            result[fc[elemI]] += coeffs[elemI]*pnf[elemI];
         }
     }
     else
     {
         forAll(fc, elemI)
         {
-            result[fc[elemI]] -= pnf[elemI];
+            result[fc[elemI]] -= coeffs[elemI]*pnf[elemI];
         }
     }
 }

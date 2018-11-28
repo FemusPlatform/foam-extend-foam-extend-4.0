@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -99,27 +99,11 @@ void Foam::BlockAMGCycle<Type>::makeCoarseLevels(const label nMaxLevels)
             }
         }
 
-        if (blockLduMatrix::debug >= 2)
+        if (BlockLduMatrix<Type>::debug >= 2)
         {
             Info<< "Created " << nLevels_ << " AMG levels" << endl;
         }
     }
-}
-
-
-template<class Type>
-Foam::BlockLduMatrix<Type>& Foam::BlockAMGCycle<Type>::coarseMatrix()
-{
-    if (!coarseLevelPtr_)
-    {
-        FatalErrorIn
-        (
-            "BlockLduMatrix<Type>& BlockAMGCycle<Type>::coarseMatrix()"
-        )   << "Coarse level not available"
-            << abort(FatalError);
-    }
-
-    return coarseLevelPtr_->matrix();
 }
 
 
@@ -209,21 +193,7 @@ void Foam::BlockAMGCycle<Type>::fixedCycle
     else
     {
         // Call direct solver
-        levelPtr_->solve(x, b, 1e-7, 0);
-    }
-}
-
-
-template<class Type>
-void Foam::BlockAMGCycle<Type>::initMatrix()
-{
-    // If present, update coarse levels recursively
-    if (coarseLevelPtr_)
-    {
-        // Update current level
-        levelPtr_->initLevel(coarseLevelPtr_->levelPtr_);
-
-        coarseLevelPtr_->initMatrix();
+        levelPtr_->solve(x, b, 1e-9, 0);
     }
 }
 

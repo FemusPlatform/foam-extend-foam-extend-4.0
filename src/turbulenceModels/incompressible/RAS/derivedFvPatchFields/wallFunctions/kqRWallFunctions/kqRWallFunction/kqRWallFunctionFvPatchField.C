@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ License
 #include "kqRWallFunctionFvPatchField.H"
 #include "fvPatchFieldMapper.H"
 #include "addToRunTimeSelectionTable.H"
+#include "wallFvPatch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -124,6 +125,16 @@ kqRWallFunctionFvPatchField<Type>::kqRWallFunctionFvPatchField
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+template<class Type>
+void kqRWallFunctionFvPatchField<Type>::evaluate
+(
+    const Pstream::commsTypes commsType
+)
+{
+    zeroGradientFvPatchField<Type>::evaluate(commsType);
+}
+
 
 template<class Type>
 void kqRWallFunctionFvPatchField<Type>::write(Ostream& os) const

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -153,23 +153,6 @@ ddtPhiCorr
             "ddt(" + rho.name() + ',' + U.name() + ')'
         )
     )().fvcDdtPhiCorr(rA, rho, U, phi);
-}
-
-
-template<class Type>
-tmp<GeometricField<typename flux<Type>::type, fvsPatchField, surfaceMesh> >
-ddtConsistentPhiCorr
-(
-    const GeometricField<Type, fvsPatchField, surfaceMesh>& faceU,
-    const GeometricField<Type, fvPatchField, volMesh>& U,
-    const surfaceScalarField& rAUf
-)
-{
-    return fv::ddtScheme<Type>::New
-    (
-        U.mesh(),
-        U.mesh().schemesDict().ddtScheme("ddt(" + U.name() + ')')
-    )().fvcDdtConsistentPhiCorr(faceU, U, rAUf);
 }
 
 

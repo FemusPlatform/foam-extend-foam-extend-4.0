@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -69,7 +69,6 @@ class topoMapper
         typedef Tuple2<word, label> GradientMap;
         typedef HashTable<GradientMap> GradientTable;
 
-
     // Private data
 
         //- Reference to fvMesh
@@ -77,7 +76,6 @@ class topoMapper
 
         //- Reference to the options dictionary
         const dictionary& dict_;
-
 
     // Demand-driven private data
 
@@ -89,10 +87,6 @@ class topoMapper
 
         //- Boundary mapper
         mutable autoPtr<topoBoundaryMeshMapper> boundaryMap_;
-
-        //- Reset patch flag.  Set true for the rebuilt patch (no mapping)
-        //  Disabled.  HJ, 24/Apr/2018
-        boolList resetPatchFlag_;
 
         //- Flux corrector
         mutable autoPtr<fluxCorrector> fluxCorrector_;
@@ -124,7 +118,6 @@ class topoMapper
         mutable labelListList patchSizes_;
         mutable labelListList patchStarts_;
 
-
     // Private Member Functions
 
         //- Disallow default bitwise copy construct
@@ -148,7 +141,6 @@ class topoMapper
         //- Set geometric information
         void storeGeometry() const;
 
-
 public:
 
     // Constructors
@@ -156,10 +148,9 @@ public:
         //- Construct from mesh and dictionary
         topoMapper(const fvMesh& mesh, const dictionary& dict);
 
+    // Destructor
 
-    //- Destructor
-    ~topoMapper();
-
+        ~topoMapper();
 
     // Member Functions
 
@@ -264,12 +255,6 @@ public:
 
         //- Return boundary mapper
         const topoBoundaryMeshMapper& boundaryMap() const;
-
-        //- Return reset patch flag
-        const boolList& resetPatchFlag() const
-        {
-            return resetPatchFlag_;
-        }
 
         //- Return flux-corrector
         const fluxCorrector& surfaceFluxCorrector() const;

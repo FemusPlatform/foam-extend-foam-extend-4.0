@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -37,7 +37,6 @@ SourceFiles
 
 #include "HashPtrTable.H"
 #include "IOobject.H"
-#include "wordReList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -50,7 +49,11 @@ namespace Foam
 
 class IOobjectList
 :
+#ifndef SWIG
     public HashPtrTable<IOobject>
+#else
+    public HashPtrTable<IOobject, word, string_hash>
+#endif
 {
     // Private Member Functions
 
@@ -70,10 +73,7 @@ public:
         (
             const objectRegistry& db,
             const fileName& instance,
-            const fileName& local = "",
-            IOobject::readOption r = IOobject::MUST_READ,
-            IOobject::writeOption w = IOobject::NO_WRITE,
-            bool registerObject = true
+            const fileName& local = ""
         );
 
         //- Construct as copy
@@ -87,35 +87,23 @@ public:
 
     // Member functions
 
-        //- Add an IOobject to the list
+        //- Add an IOobject to list
         bool add(IOobject&);
 
-        //- Remove an IOobject from the list
+        //- Remove an IOobject from list
         bool remove(IOobject&);
 
         //- Lookup a given name and return IOobject ptr if found else NULL
         IOobject* lookup(const word& name) const;
 
-        //- Return the list for all IOobects whose name matches name
-        IOobjectList lookup(const wordRe& name) const;
-
-        //- Return the list for all IOobects whose name matches name
-        IOobjectList lookup(const wordReList& patterns) const;
-
-        //- Return the list for all IOobjects of a given class
+        //- Return the list for all IOobjects of given class
         IOobjectList lookupClass(const word& className) const;
 
         //- Return the list of names of the IOobjects
         wordList names() const;
 
-        //- Return the sorted list of names of the IOobjects
-        wordList sortedNames() const;
-
         //- Return the list of names of the IOobjects of given class
         wordList names(const word& className) const;
-
-        //- Return the sorted list of names of the IOobjects of given class
-        wordList sortedNames(const word& className) const;
 };
 
 

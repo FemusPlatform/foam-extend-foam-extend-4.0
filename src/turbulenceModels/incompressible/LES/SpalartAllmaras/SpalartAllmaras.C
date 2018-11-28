@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -149,11 +149,10 @@ SpalartAllmaras::SpalartAllmaras
     const volVectorField& U,
     const surfaceScalarField& phi,
     transportModel& transport,
-    const word& turbulenceModelName,
     const word& modelName
 )
 :
-    LESModel(modelName, U, phi, transport, turbulenceModelName),
+    LESModel(modelName, U, phi, transport),
 
     sigmaNut_
     (

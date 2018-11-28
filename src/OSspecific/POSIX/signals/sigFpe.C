@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include <stdint.h>
 #include "error.H"
 #include "sigFpe.H"
 
@@ -45,54 +46,63 @@ License
 
 #elif defined(__APPLE__)
 
-// #   include <stdint.h>
 // #   include <fenv.h>
 #include <xmmintrin.h>
 #include <mach/mach.h>
 
 #endif
 
-#include <limits>
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 struct sigaction Foam::sigFpe::oldAction_;
 
-void Foam::sigFpe::fillNan(UList<scalar>& lst)
-{
-    lst = std::numeric_limits<scalar>::signaling_NaN();
-}
-
-bool Foam::sigFpe::mallocNanActive_ = false;
 
 #if defined(LINUX)
 
-extern "C"
-{
-    extern void* __libc_malloc(size_t size);
+void *(*Foam::sigFpe::old_malloc_hook)(size_t, const void *) = NULL;
 
-    // Override the GLIBC malloc to support mallocNan
-    void* malloc(size_t size)
+void* Foam::sigFpe::my_malloc_hook(size_t size, const void *caller)
+{
+    void *result;
+
+    // Restore all old hooks
+    __malloc_hook = old_malloc_hook;
+
+    // Call recursively
+    result = malloc (size);
+
+    // initialize to signalling nan
+#   ifdef WM_SP
+
+    const uint32_t sNAN = 0x7ff7fffflu;
+
+    int nScalars = size / sizeof(scalar);
+
+    uint32_t* dPtr = reinterpret_cast<uint32_t*>(result);
+
+    for (int i = 0; i < nScalars; i++)
     {
-        if (Foam::sigFpe::mallocNanActive_)
-        {
-            return Foam::sigFpe::mallocNan(size);
-        }
-        else
-        {
-            return __libc_malloc(size);
-        }
+        *dPtr++ = sNAN;
     }
-}
 
-void* Foam::sigFpe::mallocNan(size_t size)
-{
-    // Call the low-level GLIBC malloc function
-    void * result = __libc_malloc(size);
+#   else
 
-    // Initialize to signalling NaN
-    UList<scalar> lst(reinterpret_cast<scalar*>(result), size/sizeof(scalar));
-    sigFpe::fillNan(lst);
+    const uint64_t sNAN = 0x7ff7ffffffffffffllu;
+
+    int nScalars = size/sizeof(scalar);
+
+    uint64_t* dPtr = reinterpret_cast<uint64_t*>(result);
+
+    for (int i = 0; i < nScalars; i++)
+    {
+        *dPtr++ = sNAN;
+    }
+
+#   endif
+
+    // Restore our own hooks
+    __malloc_hook = my_malloc_hook;
 
     return result;
 }
@@ -132,14 +142,14 @@ void* Foam::sigFpe::nan_malloc_(malloc_zone_t *zone, size_t size)
 
 #if defined(LINUX_GNUC) || defined(__APPLE__)
 
-void Foam::sigFpe::sigHandler(int)
+void Foam::sigFpe::sigFpeHandler(int)
 {
     // Reset old handling
     if (sigaction(SIGFPE, &oldAction_, NULL) < 0)
     {
         FatalErrorIn
         (
-            "Foam::sigSegv::sigHandler()"
+            "Foam::sigSegv::sigFpeHandler()"
         )   << "Cannot reset SIGFPE trapping"
             << abort(FatalError);
     }
@@ -152,6 +162,7 @@ void Foam::sigFpe::sigHandler(int)
     // Throw signal (to old handler)
     raise(SIGFPE);
 }
+
 #endif
 
 
@@ -170,6 +181,7 @@ Foam::sigFpe::~sigFpe()
     if (env("FOAM_SIGFPE"))
     {
 #       ifdef LINUX_GNUC
+
         // Reset signal
         if (oldAction_.sa_handler && sigaction(SIGFPE, &oldAction_, NULL) < 0)
         {
@@ -187,8 +199,49 @@ Foam::sigFpe::~sigFpe()
     {
 #       ifdef LINUX_GNUC
 
-        // Disable initialization to NaN
-        mallocNanActive_ = false;
+        // Reset to standard malloc
+        if (oldAction_.sa_handler)
+        {
+            __malloc_hook = old_malloc_hook;
+        }
+
+            #       elif defined(__APPLE__)
+
+        if(system_malloc_!=NULL) {
+            malloc_zone_t *zone = malloc_default_zone();
+            if(zone==NULL) {
+                FatalErrorIn("Foam__sigFpe::set")
+                    << "Could not get malloc_default_zone()." << endl
+                        << "Seems like this version of Mac OS X doesn't support FOAM_SETNAN"
+                        << endl
+                        << exit(FatalError);
+
+            }
+
+            if(zone->version>=8)
+            {
+                vm_protect(
+                    mach_task_self(),
+                    (uintptr_t)zone,
+                    sizeof(malloc_zone_t),
+                    0,
+                    VM_PROT_READ | VM_PROT_WRITE
+                );//remove the write protection
+            }
+            zone->malloc=system_malloc_;
+            system_malloc_=NULL;
+            if(zone->version==8)
+            {
+                vm_protect(
+                    mach_task_self(),
+                    (uintptr_t)zone,
+                    sizeof(malloc_zone_t),
+                    0,
+                    VM_PROT_READ
+                );//put the write protection back
+            }
+
+        }
 
 #       endif
     }
@@ -210,11 +263,13 @@ void Foam::sigFpe::set(const bool verbose)
 
     if (env("FOAM_SIGFPE"))
     {
-        bool supported = false;
+        if (verbose)
+        {
+            Info<< "SigFpe   : Enabling floating point exception trapping"
+                << " (FOAM_SIGFPE)." << endl;
+        }
 
 #       ifdef LINUX_GNUC
-
-        supported = true;
 
         feenableexcept
         (
@@ -224,7 +279,7 @@ void Foam::sigFpe::set(const bool verbose)
         );
 
         struct sigaction newAction;
-        newAction.sa_handler = sigHandler;
+        newAction.sa_handler = sigFpeHandler;
         newAction.sa_flags = SA_NODEFER;
         sigemptyset(&newAction.sa_mask);
         if (sigaction(SIGFPE, &newAction, &oldAction_) < 0)
@@ -238,7 +293,6 @@ void Foam::sigFpe::set(const bool verbose)
 
 
 #       elif defined(sgiN32) || defined(sgiN32Gcc)
-        supported = true;
 
         sigfpe_[_DIVZERO].abort=1;
         sigfpe_[_OVERFL].abort=1;
@@ -262,7 +316,7 @@ void Foam::sigFpe::set(const bool verbose)
 #       elif defined(__APPLE__)
 
         struct sigaction newAction;
-        newAction.sa_handler = sigHandler;
+        newAction.sa_handler = sigFpeHandler;
         newAction.sa_flags = SA_NODEFER;
         sigemptyset(&newAction.sa_mask);
         if (sigaction(SIGFPE, &newAction, &oldAction_) < 0)
@@ -280,30 +334,23 @@ void Foam::sigFpe::set(const bool verbose)
         (_MM_MASK_OVERFLOW|_MM_MASK_INVALID|_MM_MASK_DIV_ZERO) );
 
 #       endif
-
-        if (verbose)
-        {
-            if (supported)
-            {
-                Info<< "sigFpe : Enabling floating point exception trapping"
-                    << " (FOAM_SIGFPE)." << endl;
-            }
-            else
-            {
-                Info<< "sigFpe : Floating point exception trapping"
-                    << " - not supported on this platform" << endl;
-            }
-        }
     }
 
 
     if (env("FOAM_SETNAN"))
     {
+        if (verbose)
+        {
+            Info<< "SetNaN   : Initialising allocated memory to NaN"
+                << " (FOAM_SETNAN)." << endl;
+        }
+
 #       ifdef LINUX_GNUC
 
-        mallocNanActive_ = true;
+        // Set our malloc
+        __malloc_hook = Foam::sigFpe::my_malloc_hook;
 
-#       elif defined(__APPLE__)
+#elif defined(__APPLE__)
 
         if(system_malloc_!=NULL) {
             FatalErrorIn("Foam__sigFpe::set")
@@ -346,20 +393,6 @@ void Foam::sigFpe::set(const bool verbose)
         }
 
 #       endif
-
-        if (verbose)
-        {
-            if (mallocNanActive_)
-            {
-                Info<< "SetNaN : Initialising allocated memory to NaN"
-                    << " (FOAM_SETNAN)." << endl;
-            }
-            else
-            {
-                Info<< "SetNaN : Initialise allocated memory to NaN"
-                    << " - not supported on this platform" << endl;
-            }
-        }
     }
 }
 

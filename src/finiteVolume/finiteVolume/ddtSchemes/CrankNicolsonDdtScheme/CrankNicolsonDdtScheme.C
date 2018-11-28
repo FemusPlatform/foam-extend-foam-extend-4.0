@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -101,7 +101,7 @@ operator=(const GeoField& gf)
 
 template<class Type>
 template<class GeoField>
-typename CrankNicolsonDdtScheme<Type>::template DDt0Field<GeoField>&
+CrankNicolsonDdtScheme<Type>::DDt0Field<GeoField>&
 CrankNicolsonDdtScheme<Type>::ddt0_
 (
     const word& name,
@@ -1164,76 +1164,6 @@ CrankNicolsonDdtScheme<Type>::fvcDdtPhiCorr
             return fluxFieldType::null();
         }
     }
-}
-
-
-template<class Type>
-tmp<typename CrankNicolsonDdtScheme<Type>::fluxFieldType>
-CrankNicolsonDdtScheme<Type>::fvcDdtConsistentPhiCorr
-(
-    const GeometricField<Type, fvsPatchField, surfaceMesh>& faceU,
-    const GeometricField<Type, fvPatchField, volMesh>& U,
-    const surfaceScalarField& rAUf
-)
-{
-    // Store old ddt field for faceU, necessary for consistent flux evaluation
-    DDt0Field<GeometricField<Type, fvsPatchField, surfaceMesh> >& faceUDdt0 =
-        ddt0_<GeometricField<Type, fvsPatchField, surfaceMesh> >
-        (
-            "ddt0(" + faceU.name() + ')',
-            faceU.dimensions()
-        );
-
-    // Trigger storage of faceU old time values
-    faceU.oldTime().oldTime();
-
-    // Evaluate faceU ddt if necessary
-    if (evaluate(faceUDdt0))
-    {
-        // Update ddt(faceU)
-        faceUDdt0 =
-        (
-            rDtCoef0_(faceUDdt0)*
-            (
-                faceU.oldTime()
-              - faceU.oldTime().oldTime()
-            )
-          - offCentre_(faceUDdt0())
-        );
-    }
-
-    // Calculate old time flux
-    fluxFieldType oldTimeFlux =
-        rAUf*rDtCoef_(faceUDdt0)*(mesh().Sf() & faceU.oldTime());
-
-    if (mesh().moving())
-    {
-        // Mesh is moving, need to take into account the ratio between old and
-        // current cell volumes
-        volScalarField V0ByV
-        (
-            IOobject
-            (
-                "V0ByV",
-                mesh().time().timeName(),
-                mesh(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh(),
-            dimensionedScalar("one", dimless, 1.0),
-            zeroGradientFvPatchScalarField::typeName
-        );
-        V0ByV.internalField() = mesh().V0()/mesh().V();
-        V0ByV.correctBoundaryConditions();
-
-        // Correct the flux with interpolated volume ratio
-        oldTimeFlux *= fvc::interpolate(V0ByV);
-    }
-
-    return
-        oldTimeFlux
-      + rAUf*rDtCoef_(faceUDdt0)*(mesh().Sf() & offCentre_(faceUDdt0()));
 }
 
 

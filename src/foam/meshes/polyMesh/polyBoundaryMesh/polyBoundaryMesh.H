@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -38,16 +38,13 @@ SourceFiles
 #include "polyPatchList.H"
 #include "regIOobject.H"
 #include "labelPairList.H"
-#include "HashSet.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-// Forward declaration of classes
 class polyMesh;
-class wordRe;
 
 // Forward declaration of friend functions and operators
 
@@ -65,14 +62,10 @@ class polyBoundaryMesh
     public polyPatchList,
     public regIOobject
 {
-    // Private data
+    // private data
 
         //- Reference to mesh
         const polyMesh& mesh_;
-
-        mutable autoPtr<labelList> patchIDPtr_;
-
-        mutable autoPtr<HashTable<labelList, word> > groupPatchIDsPtr_;
 
         //- Edges of neighbouring patches
         mutable labelPairListList* neighbourEdgesPtr_;
@@ -124,18 +117,10 @@ public:
             const label size
         );
 
-        //- Construct from Istream
-        polyBoundaryMesh
-        (
-            const IOobject&,
-            const polyMesh&,
-            Istream&
-        );
 
+    // Destructor
 
-    //- Destructor
-    virtual ~polyBoundaryMesh();
-
+        ~polyBoundaryMesh();
 
         //- Clear geometry at this level and at patches
         void clearGeom();
@@ -170,53 +155,15 @@ public:
         //- Return a list of physical types
         wordList physicalTypes() const;
 
-        //- Return patch indices for all matches. Optionally matches patchGroups
-        labelList findIndices
-        (
-            const keyType&,
-            const bool usePatchGroups = true
-        ) const;
-
-        //- Return patch index for the first match, return -1 if not found
-        label findIndex(const keyType&) const;
-
         //- Find patch index given a name
         label findPatchID(const word& patchName) const;
-
-        //- Find patch indices for a given polyPatch type
-        template<class Type>
-        labelHashSet findPatchIDs() const;
 
         //- Return patch index for a given face label
         label whichPatch(const label faceIndex) const;
 
-        //- Per boundary face label the patch index
-        const labelList& patchID() const;
-
-        //- Per patch group the patch indices
-        const HashTable<labelList, word>& groupPatchIDs() const;
-
-        //- Set/add group with patches
-        void setGroup(const word& groupName, const labelList& patchIDs);
-
-        //- Return the set of patch IDs corresponding to the given names
-        //  By default warns if given names are not found. Optionally
-        //  matches to patchGroups as well as patchNames
-        labelHashSet patchSet
-        (
-            const UList<wordRe>& patchNames,
-            const bool warnNotFound = true,
-            const bool usePatchGroups = true
-        ) const;
-
-        //- Match the patches to groups. Returns all the (fully matched) groups
-        //  and any remaining unmatched patches.
-        void matchGroups
-        (
-            const UList<label>& patchIDs,
-            wordList& groups,
-            labelHashSet& nonGroupPatches
-        ) const;
+        //- Return the set of patch IDs corresponding to the given list
+        //  of names.  Wild cards are expanded.
+        labelHashSet patchSet(const wordList&) const;
 
         //- Check whether all procs have all patches and in same order. Return
         //  true if in error.
@@ -271,12 +218,6 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#ifdef NoRepository
-    #include "polyBoundaryMeshTemplates.C"
-#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

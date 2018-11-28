@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -23,8 +23,8 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "sigInt.H"
 #include "error.H"
+#include "sigInt.H"
 #include "JobInfo.H"
 #include "IOstreams.H"
 
@@ -32,17 +32,16 @@ License
 
 struct sigaction Foam::sigInt::oldAction_;
 
-
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-void Foam::sigInt::sigHandler(int)
+void Foam::sigInt::sigIntHandler(int)
 {
     // Reset old handling
     if (sigaction(SIGINT, &oldAction_, NULL) < 0)
     {
         FatalErrorIn
         (
-            "Foam::sigInt::sigHandler()"
+            "Foam::sigInt::sigIntHandler()"
         )   << "Cannot reset SIGINT trapping"
             << abort(FatalError);
     }
@@ -81,7 +80,7 @@ Foam::sigInt::~sigInt()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::sigInt::set(const bool)
+void Foam::sigInt::set(const bool verbose)
 {
     if (oldAction_.sa_handler)
     {
@@ -93,7 +92,7 @@ void Foam::sigInt::set(const bool)
     }
 
     struct sigaction newAction;
-    newAction.sa_handler = sigHandler;
+    newAction.sa_handler = sigIntHandler;
     newAction.sa_flags = SA_NODEFER;
     sigemptyset(&newAction.sa_mask);
     if (sigaction(SIGINT, &newAction, &oldAction_) < 0)

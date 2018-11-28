@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -200,7 +200,8 @@ faMatrix<Type>::faMatrix
     source_(psi.size(), pTraits<Type>::zero),
     internalCoeffs_(psi.mesh().boundary().size()),
     boundaryCoeffs_(psi.mesh().boundary().size()),
-    faceFluxCorrectionPtr_(NULL)
+    faceFluxCorrectionPtr_(NULL),
+    solvingComponent(0)
 {
     if (debug)
     {
@@ -254,7 +255,8 @@ faMatrix<Type>::faMatrix(const faMatrix<Type>& fam)
     source_(fam.source_),
     internalCoeffs_(fam.internalCoeffs_),
     boundaryCoeffs_(fam.boundaryCoeffs_),
-    faceFluxCorrectionPtr_(NULL)
+    faceFluxCorrectionPtr_(NULL),
+    solvingComponent(fam.solvingComponent)
 {
     if (debug)
     {
@@ -287,7 +289,8 @@ faMatrix<Type>::faMatrix
     source_(is),
     internalCoeffs_(psi.mesh().boundary().size()),
     boundaryCoeffs_(psi.mesh().boundary().size()),
-    faceFluxCorrectionPtr_(NULL)
+    faceFluxCorrectionPtr_(NULL),
+    solvingComponent(0)
 {
     if (debug)
     {
@@ -357,7 +360,7 @@ void faMatrix<Type>::setValues
     // Record face labels of eliminated equations
     forAll (faceLabels, i)
     {
-        this->eliminatedEqns().insert(faceLabels[i]);
+        eliminatedEqns().insert(faceLabels[i]);
     }
 
     const labelListList& edges = mesh.patch().faceEdges();
@@ -1037,30 +1040,6 @@ template<class Type>
 void checkMethod
 (
     const faMatrix<Type>& fam,
-    const DimensionedField<Type, areaMesh>& vf,
-    const char* op
-)
-{
-    if (dimensionSet::debug && fam.dimensions()/dimArea != vf.dimensions())
-    {
-        FatalErrorIn
-        (
-            "checkMethod(const faMatrix<Type>&, const DimensionedField<Type, "
-            "areaMesh>&)"
-        )   <<  "incompatible dimensions for operation "
-            << endl << "    "
-            << "[" << fam.psi().name() << fam.dimensions()/dimArea << " ] "
-            << op
-            << " [" << vf.name() << vf.dimensions() << " ]"
-            << abort(FatalError);
-    }
-}
-
-
-template<class Type>
-void checkMethod
-(
-    const faMatrix<Type>& fam,
     const dimensioned<Type>& dt,
     const char* op
 )
@@ -1124,32 +1103,6 @@ lduSolverPerformance solve(const tmp<faMatrix<Type> >& tfam)
 
 // * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
 
-// Unary operators for negation
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const faMatrix<Type>& A
-)
-{
-    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
-    tC().negate();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const tmp<faMatrix<Type> >& tA
-)
-{
-    tmp<faMatrix<Type> > tC(tA.ptr());
-    tC().negate();
-    return tC;
-}
-
-
-// Operators for faMatrix and faMatrix
 template<class Type>
 tmp<faMatrix<Type> > operator+
 (
@@ -1203,6 +1156,30 @@ tmp<faMatrix<Type> > operator+
     tmp<faMatrix<Type> > tC(tA.ptr());
     tC() += tB();
     tB.clear();
+    return tC;
+}
+
+
+template<class Type>
+tmp<faMatrix<Type> > operator-
+(
+    const faMatrix<Type>& A
+)
+{
+    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
+    tC().negate();
+    return tC;
+}
+
+
+template<class Type>
+tmp<faMatrix<Type> > operator-
+(
+    const tmp<faMatrix<Type> >& tA
+)
+{
+    tmp<faMatrix<Type> > tC(tA.ptr());
+    tC().negate();
     return tC;
 }
 
@@ -1313,7 +1290,6 @@ tmp<faMatrix<Type> > operator==
 }
 
 
-// Operators for faMatrix and GeometricField
 template<class Type>
 tmp<faMatrix<Type> > operator+
 (
@@ -1540,238 +1516,6 @@ tmp<faMatrix<Type> > operator-
 }
 
 
-// Operators for faMatrix and DimensionedField
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const faMatrix<Type>& A,
-    const DimensionedField<Type, areaMesh>& su
-)
-{
-    checkMethod(A, su, "+");
-    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
-    tC().source() -= su.mesh().S()*su.field();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const tmp<faMatrix<Type> >& tA,
-    const DimensionedField<Type, areaMesh>& su
-)
-{
-    checkMethod(tA(), su, "+");
-    tmp<faMatrix<Type> > tC(tA.ptr());
-    tC().source() -= su.mesh().S()*su.field();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const faMatrix<Type>& A,
-    const tmp<DimensionedField<Type, areaMesh> >& tsu
-)
-{
-    checkMethod(A, tsu(), "+");
-    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
-    tC().source() -= tsu().mesh().S()*tsu().field();
-    tsu.clear();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const tmp<faMatrix<Type> >& tA,
-    const tmp<DimensionedField<Type, areaMesh> >& tsu
-)
-{
-    checkMethod(tA(), tsu(), "+");
-    tmp<faMatrix<Type> > tC(tA.ptr());
-    tC().source() -= tsu().mesh().S()*tsu().field();
-    tsu.clear();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const DimensionedField<Type, areaMesh>& su,
-    const faMatrix<Type>& A
-)
-{
-    checkMethod(A, su, "+");
-    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
-    tC().source() -= su.mesh().S()*su.field();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const DimensionedField<Type, areaMesh>& su,
-    const tmp<faMatrix<Type> >& tA
-)
-{
-    checkMethod(tA(), su, "+");
-    tmp<faMatrix<Type> > tC(tA.ptr());
-    tC().source() -= su.mesh().S()*su.field();
-    return tC;
-}
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const tmp<DimensionedField<Type, areaMesh> >& tsu,
-    const faMatrix<Type>& A
-)
-{
-    checkMethod(A, tsu(), "+");
-    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
-    tC().source() -= tsu().mesh().S()*tsu().field();
-    tsu.clear();
-    return tC;
-}
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const tmp<DimensionedField<Type, areaMesh> >& tsu,
-    const tmp<faMatrix<Type> >& tA
-)
-{
-    checkMethod(tA(), tsu(), "+");
-    tmp<faMatrix<Type> > tC(tA.ptr());
-    tC().source() -= tsu().mesh().S()*tsu().field();
-    tsu.clear();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const faMatrix<Type>& A,
-    const DimensionedField<Type, areaMesh>& su
-)
-{
-    checkMethod(A, su, "-");
-    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
-    tC().source() += su.mesh().S()*su.field();
-    return tC;
-}
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const tmp<faMatrix<Type> >& tA,
-    const DimensionedField<Type, areaMesh>& su
-)
-{
-    checkMethod(tA(), su, "-");
-    tmp<faMatrix<Type> > tC(tA.ptr());
-    tC().source() += su.mesh().S()*su.field();
-    return tC;
-}
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const faMatrix<Type>& A,
-    const tmp<DimensionedField<Type, areaMesh> >& tsu
-)
-{
-    checkMethod(A, tsu(), "-");
-    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
-    tC().source() += tsu().mesh().S()*tsu().field();
-    tsu.clear();
-    return tC;
-}
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const tmp<faMatrix<Type> >& tA,
-    const tmp<DimensionedField<Type, areaMesh> >& tsu
-)
-{
-    checkMethod(tA(), tsu(), "-");
-    tmp<faMatrix<Type> > tC(tA.ptr());
-    tC().source() += tsu().mesh().S()*tsu().field();
-    tsu.clear();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const DimensionedField<Type, areaMesh>& su,
-    const faMatrix<Type>& A
-)
-{
-    checkMethod(A, su, "-");
-    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
-    tC().negate();
-    tC().source() -= su.mesh().S()*su.field();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const DimensionedField<Type, areaMesh>& su,
-    const tmp<faMatrix<Type> >& tA
-)
-{
-    checkMethod(tA(), su, "-");
-    tmp<faMatrix<Type> > tC(tA.ptr());
-    tC().negate();
-    tC().source() -= su.mesh().S()*su.field();
-    return tC;
-}
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const tmp<DimensionedField<Type, areaMesh> >& tsu,
-    const faMatrix<Type>& A
-)
-{
-    checkMethod(A, tsu(), "-");
-    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
-    tC().negate();
-    tC().source() -= tsu().mesh().S()*tsu().field();
-    tsu.clear();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const tmp<DimensionedField<Type, areaMesh> >& tsu,
-    const tmp<faMatrix<Type> >& tA
-)
-{
-    checkMethod(tA(), tsu(), "-");
-    tmp<faMatrix<Type> > tC(tA.ptr());
-    tC().negate();
-    tC().source() -= tsu().mesh().S()*tsu().field();
-    tsu.clear();
-    return tC;
-}
-
-
-// Operators for faMatrix and dimensionedType
 template<class Type>
 tmp<faMatrix<Type> > operator+
 (
@@ -1789,6 +1533,20 @@ tmp<faMatrix<Type> > operator+
 template<class Type>
 tmp<faMatrix<Type> > operator+
 (
+    const tmp<faMatrix<Type> >& tA,
+    const dimensioned<Type>& su
+)
+{
+    checkMethod(tA(), su, "+");
+    tmp<faMatrix<Type> > tC(tA.ptr());
+    tC().source() -= su.value()*tC().psi().mesh().S();
+    return tC;
+}
+
+
+template<class Type>
+tmp<faMatrix<Type> > operator+
+(
     const dimensioned<Type>& su,
     const faMatrix<Type>& A
 )
@@ -1796,6 +1554,20 @@ tmp<faMatrix<Type> > operator+
     checkMethod(A, su, "+");
     tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
     tC().source() -= su.value()*A.psi().mesh().S();
+    return tC;
+}
+
+
+template<class Type>
+tmp<faMatrix<Type> > operator+
+(
+    const dimensioned<Type>& su,
+    const tmp<faMatrix<Type> >& tA
+)
+{
+    checkMethod(tA(), su, "+");
+    tmp<faMatrix<Type> > tC(tA.ptr());
+    tC().source() -= su.value()*tC().psi().mesh().S();
     return tC;
 }
 
@@ -1810,49 +1582,6 @@ tmp<faMatrix<Type> > operator-
     checkMethod(A, su, "-");
     tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
     tC().source() += su.value()*tC().psi().mesh().S();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const dimensioned<Type>& su,
-    const faMatrix<Type>& A
-)
-{
-    checkMethod(A, su, "-");
-    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
-    tC().negate();
-    tC().source() -= su.value()*A.psi().mesh().S();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const tmp<faMatrix<Type> >& tA,
-    const dimensioned<Type>& su
-)
-{
-    checkMethod(tA(), su, "+");
-    tmp<faMatrix<Type> > tC(tA.ptr());
-    tC().source() -= su.value()*tC().psi().mesh().S();
-    return tC;
-}
-
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const dimensioned<Type>& su,
-    const tmp<faMatrix<Type> >& tA
-)
-{
-    checkMethod(tA(), su, "+");
-    tmp<faMatrix<Type> > tC(tA.ptr());
-    tC().source() -= su.value()*tC().psi().mesh().S();
     return tC;
 }
 
@@ -1875,6 +1604,21 @@ template<class Type>
 tmp<faMatrix<Type> > operator-
 (
     const dimensioned<Type>& su,
+    const faMatrix<Type>& A
+)
+{
+    checkMethod(A, su, "-");
+    tmp<faMatrix<Type> > tC(new faMatrix<Type>(A));
+    tC().negate();
+    tC().source() -= su.value()*A.psi().mesh().S();
+    return tC;
+}
+
+
+template<class Type>
+tmp<faMatrix<Type> > operator-
+(
+    const dimensioned<Type>& su,
     const tmp<faMatrix<Type> >& tA
 )
 {
@@ -1886,9 +1630,6 @@ tmp<faMatrix<Type> > operator-
 }
 
 
-// Subtraction operators
-
-// Operations for faMatrix and GeometricField
 template<class Type>
 tmp<faMatrix<Type> > operator==
 (
@@ -1944,7 +1685,6 @@ tmp<faMatrix<Type> > operator==
 }
 
 
-// Operators for faMatrix and dimensionedType
 template<class Type>
 tmp<faMatrix<Type> > operator==
 (
@@ -1973,9 +1713,6 @@ tmp<faMatrix<Type> > operator==
 }
 
 
-// Multiplication operators
-
-// Operators for faMatrix and areaScalarField
 template<class Type>
 tmp<faMatrix<Type> > operator*
 (
@@ -2025,7 +1762,6 @@ tmp<faMatrix<Type> > operator*
 }
 
 
-// Operators for faMatrix and dimensionedScalar
 template<class Type>
 tmp<faMatrix<Type> > operator*
 (

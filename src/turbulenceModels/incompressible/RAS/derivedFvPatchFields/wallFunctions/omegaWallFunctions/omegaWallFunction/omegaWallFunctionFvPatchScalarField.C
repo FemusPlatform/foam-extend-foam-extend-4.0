@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -51,22 +51,6 @@ void omegaWallFunctionFvPatchScalarField::checkType()
             << "    Current patch type is " << patch().type() << nl << endl
             << abort(FatalError);
     }
-}
-
-
-// * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * * //
-
-void omegaWallFunctionFvPatchScalarField::writeLocalEntries(Ostream& os) const
-{
-    writeEntryIfDifferent<word>(os, "U", "U", UName_);
-    writeEntryIfDifferent<word>(os, "k", "k", kName_);
-    writeEntryIfDifferent<word>(os, "G", "RASModel::G", GName_);
-    writeEntryIfDifferent<word>(os, "nu", "nu", nuName_);
-    writeEntryIfDifferent<word>(os, "nut", "nut", nutName_);
-    os.writeKeyword("Cmu") << Cmu_ << token::END_STATEMENT << nl;
-    os.writeKeyword("kappa") << kappa_ << token::END_STATEMENT << nl;
-    os.writeKeyword("E") << E_ << token::END_STATEMENT << nl;
-    os.writeKeyword("beta1") << beta1_ << token::END_STATEMENT << nl;
 }
 
 
@@ -272,7 +256,15 @@ void omegaWallFunctionFvPatchScalarField::updateCoeffs()
 void omegaWallFunctionFvPatchScalarField::write(Ostream& os) const
 {
     fixedInternalValueFvPatchField<scalar>::write(os);
-    writeLocalEntries(os);
+    writeEntryIfDifferent<word>(os, "U", "U", UName_);
+    writeEntryIfDifferent<word>(os, "k", "k", kName_);
+    writeEntryIfDifferent<word>(os, "G", "RASModel::G", GName_);
+    writeEntryIfDifferent<word>(os, "nu", "nu", nuName_);
+    writeEntryIfDifferent<word>(os, "nut", "nut", nutName_);
+    os.writeKeyword("Cmu") << Cmu_ << token::END_STATEMENT << nl;
+    os.writeKeyword("kappa") << kappa_ << token::END_STATEMENT << nl;
+    os.writeKeyword("E") << E_ << token::END_STATEMENT << nl;
+    os.writeKeyword("beta1") << beta1_ << token::END_STATEMENT << nl;
 }
 
 

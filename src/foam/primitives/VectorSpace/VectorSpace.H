@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -42,7 +42,6 @@ SourceFiles
 #include "direction.H"
 #include "scalar.H"
 #include "word.H"
-#include "zero.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -136,6 +135,7 @@ public:
 
     // IOstream Operators
 
+#ifndef SWIG
         friend Istream& operator>> <Form, Cmpt, nCmpt>
         (
             Istream&,
@@ -147,6 +147,7 @@ public:
             Ostream&,
             const VectorSpace<Form, Cmpt, nCmpt>&
         );
+#endif
 };
 
 

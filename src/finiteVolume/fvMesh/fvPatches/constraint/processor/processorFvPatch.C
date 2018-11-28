@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,10 +24,8 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "processorFvPatch.H"
-#include "crMatrix.H"
-#include "transformField.H"
-#include "fvPatchFields.H"
 #include "addToRunTimeSelectionTable.H"
+#include "transformField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -42,7 +40,7 @@ addToRunTimeSelectionTable(fvPatch, processorFvPatch, polyPatch);
 
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
-void processorFvPatch::makeWeights(fvsPatchScalarField& w) const
+void processorFvPatch::makeWeights(scalarField& w) const
 {
     if (Pstream::parRun())
     {
@@ -76,7 +74,7 @@ void processorFvPatch::makeWeights(fvsPatchScalarField& w) const
 }
 
 
-void processorFvPatch::makeDeltaCoeffs(fvsPatchScalarField& dc) const
+void processorFvPatch::makeDeltaCoeffs(scalarField& dc) const
 {
     if (Pstream::parRun())
     {
@@ -173,32 +171,6 @@ tmp<labelField> processorFvPatch::internalFieldTransfer
 ) const
 {
     return receive<label>(commsType, this->size());
-}
-
-
-void processorFvPatch::initProlongationTransfer
-(
-    const Pstream::commsTypes commsType,
-    const crMatrix& filteredP
-) const
-{
-    // Send prolongation matrix, using IOstream operators
-    OPstream toNbr(Pstream::blocking, neighbProcNo());
-    toNbr<< filteredP;
-}
-
-
-autoPtr<crMatrix> processorFvPatch::prolongationTransfer
-(
-    const Pstream::commsTypes commsType,
-    const crMatrix& filteredP
-) const
-{
-    IPstream fromNbr(Pstream::blocking, neighbProcNo());
-
-    autoPtr<crMatrix> tnbrP(new crMatrix(fromNbr));
-
-    return tnbrP;
 }
 
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -45,28 +45,15 @@ turbulenceModel::turbulenceModel
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
-    const word& turbulenceModelName
+    transportModel& lamTransportModel
 )
 :
-    regIOobject
-    (
-        IOobject
-        (
-            turbulenceModelName,
-            U.time().constant(),
-            U.db(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE
-        )
-    ),
     runTime_(U.time()),
     mesh_(U.mesh()),
 
     U_(U),
     phi_(phi),
-    transportModel_(transport),
-    y_(mesh_)
+    transportModel_(lamTransportModel)
 {}
 
 
@@ -76,8 +63,7 @@ autoPtr<turbulenceModel> turbulenceModel::New
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
-    const word& turbulenceModelName
+    transportModel& transport
 )
 {
     word modelName;
@@ -93,7 +79,7 @@ autoPtr<turbulenceModel> turbulenceModel::New
                 "turbulenceProperties",
                 U.time().constant(),
                 U.db(),
-                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::MUST_READ,
                 IOobject::NO_WRITE
             )
         );
@@ -119,10 +105,7 @@ autoPtr<turbulenceModel> turbulenceModel::New
             << exit(FatalError);
     }
 
-    return autoPtr<turbulenceModel>
-    (
-        cstrIter()(U, phi, transport, turbulenceModelName)
-    );
+    return autoPtr<turbulenceModel>(cstrIter()(U, phi, transport));
 }
 
 
@@ -131,11 +114,6 @@ autoPtr<turbulenceModel> turbulenceModel::New
 void turbulenceModel::correct()
 {
     transportModel_.correct();
-
-    if (mesh_.changing())
-    {
-        y_.correct();
-    }
 }
 
 

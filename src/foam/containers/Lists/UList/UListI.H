@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ inline Foam::UList<T>::UList(T* __restrict__ v, label size)
 template<class T>
 inline const Foam::UList<T>& Foam::UList<T>::null()
 {
-    return NullObjectRef<UList<T> >();
+    return zero;
 }
 
 

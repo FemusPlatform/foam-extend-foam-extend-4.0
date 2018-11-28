@@ -1,6 +1,3 @@
-// Time derivative matrix
-fvVectorMatrix ddtUEqn(fvm::ddt(U));
-
 // Convection-diffusion matrix
 fvVectorMatrix HUEqn
 (
@@ -8,14 +5,27 @@ fvVectorMatrix HUEqn
   + turbulence->divDevReff()
 );
 
+// Time derivative matrix
+fvVectorMatrix ddtUEqn(fvm::ddt(U));
+
+// Get under-relaxation factor
+scalar UUrf =
+    mesh.solutionDict().equationRelaxationFactor(U.select(pimple.finalIter()));
+
 if (pimple.momentumPredictor())
 {
     // Solve momentum predictor
-    solve(relax(ddtUEqn + HUEqn) == -fvc::grad(p));
+    solve
+    (
+        ddtUEqn
+      + relax(HUEqn, UUrf)
+     ==
+      - fvc::grad(p),
+        mesh.solutionDict().solver((U.select(pimple.finalIter())))
+    );
 }
 else
 {
-    // Explicit update
     U = (ddtUEqn.H() + HUEqn.H() - fvc::grad(p))/(HUEqn.A() + ddtUEqn.A());
     U.correctBoundaryConditions();
 }

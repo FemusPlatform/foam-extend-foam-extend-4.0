@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -52,34 +52,19 @@ void volPointInterpolation::makeWeights() const
             << endl;
     }
 
-    // It is an error to attempt to recalculate if the pointer is already set
-    if (pointWeightsPtr_)
-    {
-        FatalErrorIn("volPointInterpolation::makeWeights() const")
-            << "Point weights already calculated."
-            << abort(FatalError);
-    }
-
-    // Get mesh data
     const pointField& points = mesh().points();
     const labelListList& pointCells = mesh().pointCells();
     const vectorField& cellCentres = mesh().cellCentres();
 
     // Allocate storage for weighting factors
-    pointWeightsPtr_ = new scalarListList(points.size());
-    scalarListList& pointWeights = *pointWeightsPtr_;
+    pointWeights_.clear();
+    pointWeights_.setSize(points.size());
 
-    forAll(pointWeights, pointi)
+    forAll(pointWeights_, pointi)
     {
-        pointWeights[pointi].setSize(pointCells[pointi].size());
+        pointWeights_[pointi].setSize(pointCells[pointi].size());
     }
 
-    // Note: volPointInterpolation is a mesh object which creates here another
-    // mesh object of type pointMesh, which it directly depends on. This
-    // function should be therefore called only when all mesh objects are
-    // updated (on topo changes). In case the pointMesh is not updated and
-    // someone asks for weights on the "updated" volPointInterpolation, this
-    // will fail. VV, 5/Feb/2018.
     pointScalarField sumWeights
     (
         IOobject
@@ -96,7 +81,7 @@ void volPointInterpolation::makeWeights() const
     // and store in weighting factor array
     forAll(points, pointi)
     {
-        scalarList& pw = pointWeights[pointi];
+        scalarList& pw = pointWeights_[pointi];
         const labelList& pcp = pointCells[pointi];
 
         forAll(pcp, pointCelli)
@@ -108,7 +93,6 @@ void volPointInterpolation::makeWeights() const
         }
     }
 
-    // Coupled boundary update
     forAll(sumWeights.boundaryField(), patchi)
     {
         if (sumWeights.boundaryField()[patchi].coupled())
@@ -130,7 +114,7 @@ void volPointInterpolation::makeWeights() const
 
     forAll(points, pointi)
     {
-        scalarList& pw = pointWeights[pointi];
+        scalarList& pw = pointWeights_[pointi];
 
         forAll(pw, pointCelli)
         {
@@ -152,35 +136,23 @@ void volPointInterpolation::makeWeights() const
 volPointInterpolation::volPointInterpolation(const fvMesh& vm)
 :
     MeshObject<fvMesh, volPointInterpolation>(vm),
-    boundaryInterpolator_(vm),
-    pointWeightsPtr_(NULL)
-{}
+    boundaryInterpolator_(vm)
+{
+    makeWeights();
+}
 
 
 // * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * * //
 
 volPointInterpolation::~volPointInterpolation()
-{
-    deleteDemandDrivenData(pointWeightsPtr_);
-}
+{}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-const scalarListList& volPointInterpolation::pointWeights() const
-{
-    if (!pointWeightsPtr_)
-    {
-        makeWeights();
-    }
-
-    return *pointWeightsPtr_;
-}
-
-
 bool volPointInterpolation::movePoints() const
 {
-    deleteDemandDrivenData(pointWeightsPtr_);
+    makeWeights();
 
     // Updated for MeshObject handling
     // HJ, 30/Aug/2010
@@ -192,7 +164,7 @@ bool volPointInterpolation::movePoints() const
 
 bool volPointInterpolation::updateMesh(const mapPolyMesh&) const
 {
-    deleteDemandDrivenData(pointWeightsPtr_);
+    makeWeights();
 
     // Updated for MeshObject handling
     // HJ, 30/Aug/2010

@@ -1,5 +1,5 @@
 chemistryReaders/chemkinReader/chemkinReader.C
-chemistryReaders/chemkinReader/chemkinLexer.L
+chemistryReaders/chemkinReader/chemkinLexer.C
 chemistryReaders/chemistryReader/makeChemistryReaders.C
 
 mixtures/basicMultiComponentMixture/basicMultiComponentMixture.C

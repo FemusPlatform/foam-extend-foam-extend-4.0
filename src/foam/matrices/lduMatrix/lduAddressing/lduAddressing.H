@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -98,8 +98,6 @@ SourceFiles
 
 #include "labelList.H"
 #include "lduSchedule.H"
-#include "lduInterfaceFieldPtrsList.H"
-#include "boolList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -132,27 +130,8 @@ class lduAddressing
         //- Losort start addressing
         mutable labelList* losortStartPtr_;
 
-
-        // Demand-driven data for ILU precondition with p-order fill in (ILUCp)
-
-            //- Extended addressing with p-order fill-in
-            mutable PtrList<extendedLduAddressing> extendedAddr_;
-
-        // Demand-driven data for parallelisation of ILU0 and Cholesky
-        // preconditioners where the order of factorisation is important
-
-            //- List of coefficients for internal equations (e.g. faces where
-            //  at least one cell is internal cell)
-            mutable labelList* internalEqnCoeffsPtr_;
-
-            //- List of coefficients where the owner cell is at the boundary and
-            //  the neighbour cell is internal. Needed for correct ordering
-            mutable labelList* flippedInternalEqnCoeffsPtr_;
-
-            //- PtrList of coefficients for boundary equations for each coupled
-            //  interface (e.g. faces where both cells are boundary cells on a
-            //  given processor patch)
-            mutable PtrList<dynamicLabelList> boundaryEqnCoeffs_;
+        //- Extended addressing with p-order fill-in
+        mutable PtrList<extendedLduAddressing> extendedAddr_;
 
 
     // Private Member Functions
@@ -171,13 +150,6 @@ class lduAddressing
 
         //- Calculate losort start
         void calcLosortStart() const;
-
-        //- Calculate internal/boundary equation coefficients given a list of
-        //  interfaces
-        void calcInternalBoundaryEqnCoeffs
-        (
-            const lduInterfaceFieldPtrsList& lduInterfaces
-        ) const;
 
 
 public:
@@ -230,26 +202,6 @@ public:
 
         //- Return extended addressing given p index
         const extendedLduAddressing& extendedAddr(const label p) const;
-
-        //- Return list of coefficients for internal equations
-        const unallocLabelList& internalEqnCoeffs
-        (
-            const lduInterfaceFieldPtrsList& lduInterfaces
-        ) const;
-
-        //- Return internal cell/boundary cell face flips
-        const unallocLabelList& flippedInternalEqnCoeffs
-        (
-            const lduInterfaceFieldPtrsList& lduInterfaces
-        ) const;
-
-        //- Return list of coefficients for boundary equations given list of
-        //  ldu interface fields and coupled interface index
-        const dynamicLabelList& boundaryEqnCoeffs
-        (
-            const lduInterfaceFieldPtrsList& lduInterfaces,
-            const label intI
-        ) const;
 };
 
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ class ODESolver
 
 protected:
 
-    // Protected data
+    // Private data
 
         //- Reference to ODE
         ODE& ode_;
@@ -61,8 +61,6 @@ protected:
         mutable scalarField yScale_;
         mutable scalarField dydx_;
 
-
-private:
 
     // Private Member Functions
 
@@ -128,7 +126,7 @@ public:
         ) const = 0;
 
 
-        void solve
+        virtual void solve
         (
             const scalar xStart,
             const scalar xEnd,

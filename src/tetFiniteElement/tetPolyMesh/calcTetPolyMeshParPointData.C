@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ void Foam::tetPolyMesh::calcParPointData() const
         // parallel points.  The list will have duplicates, which need
         // to be eliminated
 
-        HashSet<edge, Hash<edge> > parEdgesSet;
+        SLList<edge> parEdges;
 
         forAll (mesh_.boundaryMesh(), patchI)
         {
@@ -110,9 +110,26 @@ void Foam::tetPolyMesh::calcParPointData() const
                         edge newEdge = edge(p[e[eI].start()], p[e[eI].end()]);
 
                         // Check if the edge is already on the list
-                        if (!parEdgesSet.found(newEdge))
+                        bool found = false;
+
+                        for
+                        (
+                            SLList<edge>::iterator parEIter =
+                                parEdges.begin();
+                            parEIter != parEdges.end();
+                            ++parEIter
+                        )
                         {
-                            parEdgesSet.insert(newEdge);
+                            if (parEIter() == newEdge)
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            parEdges.append(newEdge);
                         }
                     }
                 }
@@ -120,7 +137,7 @@ void Foam::tetPolyMesh::calcParPointData() const
         }
 
         // Re-pack the list
-        parEdgesPtr_ = new edgeList(parEdgesSet.toc());
+        parEdgesPtr_ = new edgeList(parEdges);
     }
 }
 

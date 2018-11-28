@@ -7,7 +7,7 @@
             "transportProperties",
             runTime.constant(),
             mesh,
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE
         )
     );
@@ -80,5 +80,5 @@
 #       include "UEqn.H"
         momentumPredictor = momentumPredictorSave;
 
-        rAU = 1.0/(HUEqn.A() + ddtUEqn.A());
+        rAU = 1.0/UEqn.A();
     }

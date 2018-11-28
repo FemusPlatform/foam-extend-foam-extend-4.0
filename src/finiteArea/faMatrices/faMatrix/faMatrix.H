@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -91,6 +91,8 @@ class faMatrix
         //- Face flux field for non-orthogonal correction
         mutable GeometricField<Type, faePatchField, edgeMesh>
             *faceFluxCorrectionPtr_;
+
+        direction solvingComponent;
 
 
     // Private member functions
@@ -294,6 +296,14 @@ public:
             //  alpha is read from controlDict
             void relax();
 
+            //- Construct and return the solver
+            //  Solver controls read from Istream
+            autoPtr<faSolver> solver(const dictionary&);
+
+            //- Construct and return the solver
+            //  Solver controls read from faSolution
+            autoPtr<faSolver> solver();
+
             //- Solve returning the solution statistics.
             //  Solver controls read Istream
             lduSolverPerformance solve(const dictionary&);
@@ -378,14 +388,6 @@ template<class Type>
 void checkMethod
 (
     const faMatrix<Type>&,
-    const GeometricField<Type, faPatchField, areaMesh>&,
-    const char*
-);
-
-template<class Type>
-void checkMethod
-(
-    const faMatrix<Type>&,
     const dimensioned<Type>&,
     const char*
 );
@@ -419,7 +421,6 @@ lduSolverPerformance solve(const tmp<faMatrix<Type> >&);
 
 // * * * * * * * * * * * * * * * Global operators  * * * * * * * * * * * * * //
 
-// Unary operators for negation
 template<class Type>
 tmp<faMatrix<Type> > operator-
 (
@@ -432,7 +433,6 @@ tmp<faMatrix<Type> > operator-
     const tmp<faMatrix<Type> >&
 );
 
-// Operators for faMatrix and faMatrix
 template<class Type>
 tmp<faMatrix<Type> > operator+
 (
@@ -517,8 +517,6 @@ tmp<faMatrix<Type> > operator==
     const tmp<faMatrix<Type> >&
 );
 
-
-// Operators for faMatrix and GeometricField
 template<class Type>
 tmp<faMatrix<Type> > operator+
 (
@@ -631,150 +629,6 @@ tmp<faMatrix<Type> > operator-
     const tmp<faMatrix<Type> >&
 );
 
-
-// Operators for faMatrix and DimensionedField
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const faMatrix<Type>&,
-    const DimensionedField<Type, areaMesh>&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const tmp<faMatrix<Type> >&,
-    const DimensionedField<Type, areaMesh>&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const faMatrix<Type>&,
-    const tmp<DimensionedField<Type, areaMesh> >&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const tmp<faMatrix<Type> >&,
-    const tmp<DimensionedField<Type, areaMesh> >&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const DimensionedField<Type, areaMesh>&,
-    const faMatrix<Type>&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const DimensionedField<Type, areaMesh>&,
-    const tmp<faMatrix<Type> >&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const tmp<DimensionedField<Type, areaMesh> >&,
-    const faMatrix<Type>&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const tmp<DimensionedField<Type, areaMesh> >&,
-    const tmp<faMatrix<Type> >&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const faMatrix<Type>&,
-    const DimensionedField<Type, areaMesh>&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const tmp<faMatrix<Type> >&,
-    const DimensionedField<Type, areaMesh>&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const faMatrix<Type>&,
-    const tmp<DimensionedField<Type, areaMesh> >&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const tmp<faMatrix<Type> >&,
-    const tmp<DimensionedField<Type, areaMesh> >&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const DimensionedField<Type, areaMesh>&,
-    const faMatrix<Type>&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const DimensionedField<Type, areaMesh>&,
-    const tmp<faMatrix<Type> >&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const tmp<DimensionedField<Type, areaMesh> >&,
-    const faMatrix<Type>&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const tmp<DimensionedField<Type, areaMesh> >&,
-    const tmp<faMatrix<Type> >&
-);
-
-
-// Operators for faMatrix and dimensionedType
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const faMatrix<Type>&,
-    const dimensioned<Type>&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator+
-(
-    const dimensioned<Type>&,
-    const faMatrix<Type>&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const faMatrix<Type>&,
-    const dimensioned<Type>&
-);
-
-template<class Type>
-tmp<faMatrix<Type> > operator-
-(
-    const dimensioned<Type>&,
-    const faMatrix<Type>&
-);
-
 template<class Type>
 tmp<faMatrix<Type> > operator+
 (
@@ -803,10 +657,6 @@ tmp<faMatrix<Type> > operator-
     const tmp<faMatrix<Type> >&
 );
 
-
-// Subtraction operators
-
-// Operators for faMatrix and GeometricField
 template<class Type>
 tmp<faMatrix<Type> > operator==
 (
@@ -835,7 +685,6 @@ tmp<faMatrix<Type> > operator==
     const tmp<GeometricField<Type, faPatchField, areaMesh> >&
 );
 
-// Operators for faMatrix and dimensionedType
 template<class Type>
 tmp<faMatrix<Type> > operator==
 (
@@ -851,9 +700,6 @@ tmp<faMatrix<Type> > operator==
 );
 
 
-// Multiplication operators
-
-// Operators for faMatrix and areaScalarField
 template<class Type>
 tmp<faMatrix<Type> > operator*
 (
@@ -882,7 +728,7 @@ tmp<faMatrix<Type> > operator*
     const tmp<faMatrix<Type> >&
 );
 
-// Operators for faMatrix and dimensionedScalar
+
 template<class Type>
 tmp<faMatrix<Type> > operator*
 (

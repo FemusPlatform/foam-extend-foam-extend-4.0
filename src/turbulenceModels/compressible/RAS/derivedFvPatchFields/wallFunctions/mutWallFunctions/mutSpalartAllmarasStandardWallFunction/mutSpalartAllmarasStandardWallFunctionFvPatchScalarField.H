@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,9 +26,7 @@ Class
     mutSpalartAllmarasStandardWallFunctionFvPatchScalarField
 
 Description
-    This boundary condition is the same as mutUWallFunction. We will simply
-    derive from nutUWallFunctionFvPatchScalarField to enable backward
-    compatibility.
+    Wall function boundary condition for walls
 
 SourceFiles
     mutSpalartAllmarasStandardWallFunctionFvPatchScalarField.C
@@ -38,7 +36,7 @@ SourceFiles
 #ifndef compressibleMutSpalartAllmarasStandardWallFunctionFvPatchScalarField_H
 #define compressibleMutSpalartAllmarasStandardWallFunctionFvPatchScalarField_H
 
-#include "mutUWallFunctionFvPatchScalarField.H"
+#include "mutWallFunctionFvPatchScalarField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -55,8 +53,19 @@ namespace RASModels
 
 class mutSpalartAllmarasStandardWallFunctionFvPatchScalarField
 :
-    public mutUWallFunctionFvPatchScalarField
+    public mutWallFunctionFvPatchScalarField
 {
+protected:
+
+    // Protected member functions
+
+        //- Calculate yPLus
+        virtual tmp<scalarField> calcYPlus(const scalarField& magUp) const;
+
+        //- Calculate the turbulence viscosity
+        virtual tmp<scalarField> calcMut() const;
+
+
 public:
 
     //- Runtime type information
@@ -131,6 +140,20 @@ public:
                 )
             );
         }
+
+
+    // Member functions
+
+        // Evaluation functions
+
+            //- Calculate and return the yPlus at the boundary
+            virtual tmp<scalarField> yPlus() const;
+
+
+        // I-O
+
+            //- Write
+            virtual void write(Ostream& os) const;
 };
 
 

@@ -2,18 +2,27 @@
 // createIbMask.H
 // ~~~~~~~~~~~~
 
-    // Multiple IB patches currently not supported.
-    // This required IB geometry update to re-combine the corrected fields in
-    // Geometry correction functions in immersedBoundaryFvPatch
-    // HJ, 30/Nov/2017
-
     Info<< "Create immersed boundary cell mask" << endl;
 
-    volScalarField gamma
+    volScalarField cellIbMask
     (
         IOobject
         (
-            "gamma",
+            "cellIbMask",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar("one", dimless, 1)
+    );
+
+    volScalarField cellIbMaskExt
+    (
+        IOobject
+        (
+            "cellIbMaskExt",
             runTime.timeName(),
             mesh,
             IOobject::NO_READ,
@@ -24,11 +33,11 @@
     );
 
     Info<< "Create immersed boundary face mask" << endl;
-    surfaceScalarField sGamma
+    surfaceScalarField faceIbMask
     (
         IOobject
         (
-            "sGamma",
+            "faceIbMask",
             runTime.timeName(),
             mesh,
             IOobject::NO_READ,
@@ -38,4 +47,26 @@
         dimensionedScalar("one", dimless, 1)
     );
 
-#   include "updateIbMasks.H"
+    forAll (mesh.boundary(), patchI)
+    {
+        if (isA<immersedBoundaryFvPatch>(mesh.boundary()[patchI]))
+        {
+            Info<< "Found immersed boundary patch " << patchI
+                << " named " << mesh.boundary()[patchI].name()
+                << endl;
+
+            const immersedBoundaryFvPatch& ibPatch =
+                refCast<const immersedBoundaryFvPatch>
+                (
+                    mesh.boundary()[patchI]
+                );
+
+            cellIbMask *= ibPatch.gamma();
+            cellIbMaskExt *= ibPatch.gammaExt();
+            faceIbMask *= ibPatch.sGamma();
+        }
+    }
+
+    // Evaluate boundary conditions for IB masks
+    cellIbMask.boundaryField().evaluateCoupled();
+    cellIbMaskExt.boundaryField().evaluateCoupled();

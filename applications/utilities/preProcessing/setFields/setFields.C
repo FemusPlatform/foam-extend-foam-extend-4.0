@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -111,7 +111,6 @@ class setField
 
 public:
 
-    //- Null constructor
     setField()
     {}
 
@@ -179,13 +178,12 @@ public:
 
 int main(int argc, char *argv[])
 {
-#   include "addRegionOption.H"
 #   include "setRootCase.H"
 #   include "createTime.H"
 
     Info<< "Time = " << runTime.timeName() << endl;
 
-#   include "createNamedMesh.H"
+#   include "createMesh.H"
 
     Info<< "Reading setFieldsDict\n" << endl;
 
@@ -228,7 +226,7 @@ int main(int argc, char *argv[])
         (
             mesh,
             "cellSet",
-            Foam::max(100, mesh.nCells()/10)  // Reasonable size estimate.
+            mesh.nCells()/10+1  // Reasonable size estimate.
         );
 
         cellSelector->applyToSet

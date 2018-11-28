@@ -46,7 +46,6 @@ IOLongList<T, Offset>::IOLongList(const IOobject& io)
     (
         io.readOpt() == IOobject::MUST_READ
      || (io.readOpt() == IOobject::READ_IF_PRESENT && headerOk())
-     || (io.readOpt() == IOobject::READ_IF_PRESENT_IF_MODIFIED && headerOk())
     )
     {
         readStream(typeName) >> *this;
@@ -77,11 +76,7 @@ IOLongList<T, Offset>::IOLongList
     regIOobject(io),
     LongList<T, Offset>()
 {
-    if
-    (
-        (io.readOpt() == IOobject::READ_IF_PRESENT && headerOk())
-     || (io.readOpt() == IOobject::READ_IF_PRESENT_IF_MODIFIED && headerOk())
-    )
+    if (io.readOpt() == IOobject::READ_IF_PRESENT && headerOk())
     {
         readStream(typeName) >> *this;
         close();

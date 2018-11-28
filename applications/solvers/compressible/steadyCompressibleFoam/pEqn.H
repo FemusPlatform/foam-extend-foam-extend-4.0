@@ -21,11 +21,21 @@
 
         p.storePrevIter();
 
+        volScalarField divPhid
+        (
+            "divPhid",
+            fvc::div(phid)
+        );
+
         while (pimple.correctNonOrthogonal())
         {
             fvScalarMatrix pEqn
             (
-                fvm::div(phid, p)
+                fvm::ddt(psis, p)
+              + fvm::div(phid, p)
+                // Convective flux relaxation terms
+              + fvm::SuSp(-divPhid, p)
+              + divPhid*p
               + fvc::div(phid2)
               - fvm::laplacian(rho*rUA, p)
             );
@@ -39,8 +49,7 @@
             }
         }
 
-        // Use incompressible continuity error check: div(rho U) = 0
-#       include "continuityErrs.H"
+#       include "compressibleContinuityErrs.H"
 
         // Relax the pressure
         p.relax();

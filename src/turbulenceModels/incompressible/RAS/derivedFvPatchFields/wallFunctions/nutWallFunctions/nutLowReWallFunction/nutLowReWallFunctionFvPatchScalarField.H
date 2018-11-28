@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -29,18 +29,6 @@ Description
     low Reynolds number models.
 
     Sets nut to zero, and provides an access function to calculate y+.
-
-Usage
-    Example of the boundary condition specification:
-    \verbatim
-    <patchName>
-    {
-        type            nutLowReWallFunction;
-    }
-    \endverbatim
-
-See also
-    Foam::nutWallFunctionFvPatchScalarField
 
 SourceFiles
     nutLowReWallFunctionFvPatchScalarField.C
@@ -71,7 +59,7 @@ class nutLowReWallFunctionFvPatchScalarField
 {
 protected:
 
-    // Protected Member Functions
+    // Protected member functions
 
         //- Calculate the turbulence viscosity
         virtual tmp<scalarField> calcNut() const;
@@ -144,12 +132,6 @@ public:
                 new nutLowReWallFunctionFvPatchScalarField(*this, iF)
             );
         }
-
-
-    // Member functions
-
-        //- Calculate and return the yPlus at the boundary
-        virtual tmp<scalarField> yPlus() const;
 };
 
 

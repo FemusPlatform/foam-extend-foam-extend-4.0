@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -88,7 +88,7 @@ inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::cp
     const scalar T
 ) const
 {
-    return cpPolynomial_.value(T);
+    return cpPolynomial_.evaluate(T);
 }
 
 
@@ -98,7 +98,7 @@ inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::h
     const scalar T
 ) const
 {
-    return hPolynomial_.value(T);
+    return hPolynomial_.evaluate(T);
 }
 
 
@@ -126,7 +126,7 @@ inline Foam::scalar Foam::hPolynomialThermo<EquationOfState, PolySize>::s
     const scalar T
 ) const
 {
-    return sPolynomial_.value(T);
+    return sPolynomial_.evaluate(T);
 }
 
 

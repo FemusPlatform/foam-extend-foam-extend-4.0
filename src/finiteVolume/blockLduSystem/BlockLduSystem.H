@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -94,9 +94,10 @@ public:
         BlockLduSystem(const BlockLduSystem<blockType, sourceType>&);
 
 
-    //- Destructor
-    virtual ~BlockLduSystem()
-    {}
+    // Destructor
+
+       virtual ~BlockLduSystem()
+       {}
 
 
     // Member functions

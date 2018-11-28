@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ dimensionedScalar pow
     (
         "pow(" + ds.name() + ',' + expt.name() + ')',
         pow(ds.dimensions(), expt),
-        pow(ds.value(), expt.value())
+        ::pow(ds.value(), expt.value())
     );
 }
 
@@ -123,7 +123,7 @@ dimensionedScalar sqrt(const dimensionedScalar& ds)
     (
         "sqrt(" + ds.name() + ')',
         pow(ds.dimensions(), dimensionedScalar("0.5", dimless, 0.5)),
-        sqrt(ds.value())
+        ::sqrt(ds.value())
     );
 }
 
@@ -133,7 +133,7 @@ dimensionedScalar cbrt(const dimensionedScalar& ds)
     (
         "cbrt(" + ds.name() + ')',
         pow(ds.dimensions(), dimensionedScalar("(1|3)", dimless, 1.0/3.0)),
-        cbrt(ds.value())
+        ::cbrt(ds.value())
     );
 }
 
@@ -147,7 +147,7 @@ dimensionedScalar hypot
     (
         "hypot(" + x.name() + ',' + y.name() + ')',
         x.dimensions() + y.dimensions(),
-        hypot(x.value(), y.value())
+        ::hypot(x.value(), y.value())
     );
 }
 
@@ -157,7 +157,7 @@ dimensionedScalar sign(const dimensionedScalar& ds)
     (
         "sign(" + ds.name() + ')',
         sign(ds.dimensions()),
-        sign(ds.value())
+        ::Foam::sign(ds.value())
     );
 }
 
@@ -167,7 +167,7 @@ dimensionedScalar pos(const dimensionedScalar& ds)
     (
         "pos(" + ds.name() + ')',
         pos(ds.dimensions()),
-        pos(ds.value())
+        ::Foam::pos(ds.value())
     );
 }
 
@@ -177,7 +177,7 @@ dimensionedScalar neg(const dimensionedScalar& ds)
     (
         "neg(" + ds.name() + ')',
         neg(ds.dimensions()),
-        neg(ds.value())
+        ::Foam::neg(ds.value())
     );
 }
 
@@ -196,7 +196,7 @@ dimensionedScalar func(const dimensionedScalar& ds)                        \
     (                                                                      \
         #func "(" + ds.name() + ')',                                       \
         dimless,                                                           \
-        func(ds.value())                                                 \
+        ::func(ds.value())                                                 \
     );                                                                     \
 }
 
@@ -240,7 +240,7 @@ dimensionedScalar func(const int n, const dimensionedScalar& ds)           \
     (                                                                      \
         #func "(" + name(n) + ',' + ds.name() + ')',                      \
         dimless,                                                           \
-        func(n, ds.value())                                              \
+        ::func(n, ds.value())                                              \
     );                                                                     \
 }
 

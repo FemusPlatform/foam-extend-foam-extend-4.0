@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -36,10 +36,11 @@ SourceFiles
 #ifndef movingImmersedBoundary_H
 #define movingImmersedBoundary_H
 
-#include "polyMesh.H"
+#include "fvMesh.H"
 #include "solidBodyMotionFunction.H"
 #include "triSurfaceMesh.H"
 #include "fvPatchFields.H"
+#include "immersedBoundaryFvPatchFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -58,7 +59,7 @@ class movingImmersedBoundary
         const word name_;
 
         //- Mesh reference
-        const polyMesh& mesh_;
+        const fvMesh& mesh_;
 
         //- Overset region motion control function
         autoPtr<solidBodyMotionFunction> sbmfPtr_;
@@ -84,14 +85,13 @@ public:
         movingImmersedBoundary
         (
             const word& name,
-            const polyMesh& mesh,
+            const fvMesh& mesh,
             const dictionary& dict
         );
 
 
     //- Destructor
     ~movingImmersedBoundary();
-
 
     // Member Functions
 
@@ -102,7 +102,7 @@ public:
         }
 
         //- Return mesh
-        const polyMesh& mesh() const
+        const fvMesh& mesh() const
         {
             return mesh_;
         }

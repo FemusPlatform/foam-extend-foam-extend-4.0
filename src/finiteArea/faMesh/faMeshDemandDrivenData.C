@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -128,7 +128,9 @@ void faMesh::calcLe() const
             *this,
             dimLength
         );
+
     edgeVectorField& Le = *LePtr_;
+
 
     const pointField& pPoints = points();
     const edgeList& pEdges = edges();
@@ -185,16 +187,16 @@ void faMesh::calcLe() const
             patchLe[edgeI] *=
               - sign
                 (
-                    patchLe[edgeI]
-                  & (
+                    patchLe[edgeI]&
+                    (
                         fCentresInternal[bndEdgeFaces[edgeI]]
                       - patchECentres[edgeI]
                     )
                 );
 
             patchLe[edgeI] *=
-                magLe().boundaryField()[patchI][edgeI]/
-                mag(patchLe[edgeI]);
+                magLe().boundaryField()[patchI][edgeI]
+                /mag(patchLe[edgeI]);
         }
     }
 }

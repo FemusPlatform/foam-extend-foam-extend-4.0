@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -45,7 +45,6 @@ Foam::genericFvPatchField<Type>::genericFvPatchField
         << "Trying to construct an genericFvPatchField on patch "
         << this->patch().name()
         << " of field " << this->dimensionedInternalField().name()
-        << ".  Actual type: " << actualTypeName_
         << abort(FatalError);
 }
 
@@ -154,7 +153,7 @@ Foam::genericFvPatchField<Type>::genericFvPatchField
                         (
                             dynamicCast<token::Compound<List<scalar> > >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 
@@ -191,7 +190,7 @@ Foam::genericFvPatchField<Type>::genericFvPatchField
                         (
                             dynamicCast<token::Compound<List<vector> > >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 
@@ -231,7 +230,7 @@ Foam::genericFvPatchField<Type>::genericFvPatchField
                                 token::Compound<List<sphericalTensor> >
                             >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 
@@ -271,7 +270,7 @@ Foam::genericFvPatchField<Type>::genericFvPatchField
                                 token::Compound<List<symmTensor> >
                             >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 
@@ -308,7 +307,7 @@ Foam::genericFvPatchField<Type>::genericFvPatchField
                         (
                             dynamicCast<token::Compound<List<tensor> > >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 

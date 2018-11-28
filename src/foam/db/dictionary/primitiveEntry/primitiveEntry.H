@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -67,9 +67,6 @@ class primitiveEntry
 {
     // Private member functions
 
-        //- Append the given tokens starting at the current tokenIndex
-        void append(const UList<token>&);
-
         //- Append the given token to this entry
         void append
         (
@@ -78,8 +75,11 @@ class primitiveEntry
             Istream&
         );
 
+        //- Append the given tokens starting at the current tokenIndex
+        void append(const tokenList&);
+
         //- Expand the given variable (keyword starts with $)
-        bool expandVariable(const string&, const dictionary&);
+        bool expandVariable(const word&, const dictionary&);
 
         //- Expand the given function (keyword starts with #)
         bool expandFunction
@@ -109,14 +109,11 @@ public:
         //- Construct from keyword and a ITstream
         primitiveEntry(const keyType&, const ITstream&);
 
-        //- Construct from keyword and a single token
+        //- Construct from keyword and a token
         primitiveEntry(const keyType&, const token&);
 
-        //- Construct from keyword and a list of tokens
-        primitiveEntry(const keyType&, const UList<token>&);
-
-        //- Construct from keyword and by transferring a list of tokens
-        primitiveEntry(const keyType&, const Xfer<List<token> >&);
+        //- Construct from keyword and a tokenList
+        primitiveEntry(const keyType&, const tokenList&);
 
         //- Construct from keyword and a T
         template<class T>
@@ -129,9 +126,6 @@ public:
 
 
     // Member functions
-
-        //- Inherit read from ITstream
-        using ITstream::read;
 
         //- Return the dictionary name
         const fileName& name() const
@@ -169,13 +163,10 @@ public:
         dictionary& dict();
 
         //- Read tokens from the given stream
-        virtual bool read(const dictionary&, Istream&);
+        bool read(const dictionary&, Istream&);
 
-        //- Write
+        // Write
         void write(Ostream&) const;
-
-        //- Write, optionally with contents only (no keyword, etc)
-        void write(Ostream&, const bool contentsOnly) const;
 
         //- Return info proxy.
         //  Used to print token information to a stream
@@ -197,7 +188,7 @@ Ostream& operator<<(Ostream&, const InfoProxy<primitiveEntry>&);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "primitiveEntryTemplates.C"
+#   include "primitiveEntryTemplates.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

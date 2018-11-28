@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ SourceFiles
 #define cloud_H
 
 #include "objectRegistry.H"
-#include "cloudDistribute.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -45,7 +44,6 @@ namespace Foam
 
 // Forward declaration of classes
 class mapPolyMesh;
-class polyMesh;
 
 /*---------------------------------------------------------------------------*\
                             Class cloud Declaration
@@ -82,13 +80,6 @@ public:
         //- Construct for the given objectRegistry and named cloud instance
         cloud(const objectRegistry&, const word& cloudName = "");
 
-        virtual autoPtr<cloudDistribute> cloudDist
-        (
-            const labelList& cellToProc,
-            const labelListList& procCellAddressing,
-            const labelListList& procFaceAddressing
-        );
-
 
     //- Destructor
         virtual ~cloud();
@@ -96,17 +87,11 @@ public:
 
     // Member Functions
 
-        // Access
-
-            //- Return size of the cloud
-            virtual label size() const;
-
-    
         // Edit
 
             //- Remap the cells of particles corresponding to the
             //  mesh topology change
-            virtual void autoMap(const mapPolyMesh&);
+            virtual void autoMap(const mapPolyMesh&) = 0;
 };
 
 

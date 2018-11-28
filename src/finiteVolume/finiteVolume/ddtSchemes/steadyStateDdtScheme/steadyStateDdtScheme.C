@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -327,38 +327,6 @@ steadyStateDdtScheme<Type>::fvcDdtPhiCorr
 
         return fluxFieldType::null();
     }
-}
-
-
-template<class Type>
-tmp<typename steadyStateDdtScheme<Type>::fluxFieldType>
-steadyStateDdtScheme<Type>::fvcDdtConsistentPhiCorr
-(
-    const GeometricField<Type, fvsPatchField, surfaceMesh>& faceU,
-    const GeometricField<Type, fvPatchField, volMesh>& U,
-    const surfaceScalarField& rAUf
-)
-{
-    return tmp<fluxFieldType>
-    (
-        new fluxFieldType
-        (
-            IOobject
-            (
-                "ddtConsistentPhiCorr("
-              + faceU.name() + "," + rAUf.name() + ')',
-                mesh().time().timeName(),
-                mesh()
-            ),
-            mesh(),
-            dimensioned<typename flux<Type>::type>
-            (
-                "zero",
-                faceU.dimensions()*dimArea/rAUf.dimensions()/dimTime,
-                pTraits<typename flux<Type>::type>::zero
-            )
-        )
-    );
 }
 
 

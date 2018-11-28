@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ SourceFiles
 #ifndef subCycleTime_H
 #define subCycleTime_H
 
+#include "objectRegistry.H"
 #include "foamTime.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -63,8 +64,9 @@ public:
         subCycleTime(Time&, const label nSubCycles);
 
 
-    //- Destructor
-    ~subCycleTime();
+    // Destructor
+
+        ~subCycleTime();
 
 
     // Member functions
@@ -74,18 +76,6 @@ public:
 
         //- End the sub-cycling and reset the time-state
         void endSubCycle();
-
-        //- Return the total number of sub-cycles
-        label nSubCycles() const
-        {
-            return nSubCycles_;
-        }
-
-        //- Return the current sub-cycle index
-        label index() const
-        {
-            return subCycleIndex_;
-        }
 
 
     // Member operators

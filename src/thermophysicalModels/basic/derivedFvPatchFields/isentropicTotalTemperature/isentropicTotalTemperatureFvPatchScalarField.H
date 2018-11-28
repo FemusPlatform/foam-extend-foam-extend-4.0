@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -169,6 +169,18 @@ public:
 
             //- Update the coefficients associated with the patch field
             virtual void updateCoeffs();
+
+            //- Return patch-normal gradient: set to zero
+            virtual tmp<scalarField> snGrad() const;
+
+            //- Return the matrix diagonal coefficients corresponding to the
+            //  evaluation of the gradient of this patchField
+            //  Removed gradient contribution
+            virtual tmp<scalarField> gradientInternalCoeffs() const;
+
+            //- Return the matrix source coefficients corresponding to the
+            //  evaluation of the gradient of this patchField
+            virtual tmp<scalarField> gradientBoundaryCoeffs() const;
 
 
         //- Write

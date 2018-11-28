@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ void Foam::equationReader::parse(label index) const
 
         // Bug fix - equations ending in brackets read an extra token of type
         // FATALERROR at the end, caused by string replace ')' with ' ) ' above
-        if (tl[tl.size() - 1].type() == token::ERROR)
+        if (tl[tl.size() - 1].type() == token::FATALERROR)
         {
             tl.setSize(tl.size() - 1);
             forceEnd = true;

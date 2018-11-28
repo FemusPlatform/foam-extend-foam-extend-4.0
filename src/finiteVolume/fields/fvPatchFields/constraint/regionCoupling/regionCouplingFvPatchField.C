@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -229,7 +229,7 @@ tmp<Field<Type> > regionCouplingFvPatchField<Type>::patchNeighbourField() const
         Field<Type> bridgeField =
             transform(I - 2.0*sqr(nHat), this->patchInternalField());
 
-        regionCouplePatch_.setUncoveredFaces(bridgeField, pnf);
+        regionCouplePatch_.bridge(bridgeField, pnf);
     }
 
     return tpnf;
@@ -304,7 +304,7 @@ void regionCouplingFvPatchField<Type>::initEvaluate
         Field<Type> bridgeField =
             0.5*(pif + transform(I - 2.0*sqr(nHat), pif));
 
-        regionCouplePatch_.setUncoveredFaces(bridgeField, *this);
+        regionCouplePatch_.bridge(bridgeField, *this);
     }
 }
 
@@ -357,7 +357,7 @@ void regionCouplingFvPatchField<Type>::updateCoeffs()
         Field<Type> bridgeField =
             0.5*(pif + transform(I - 2.0*sqr(nHat), pif));
 
-        regionCouplePatch_.setUncoveredFaces(bridgeField, *this);
+        regionCouplePatch_.bridge(bridgeField, *this);
     }
 }
 

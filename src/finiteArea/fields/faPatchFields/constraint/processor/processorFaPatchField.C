@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ processorFaPatchField<Type>::processorFaPatchField
             "(\n"
             "    const processorFaPatchField<Type>& ptf,\n"
             "    const faPatch& p,\n"
-            "    const DimensionedField<Type, areaMesh>& iF,\n"
+            "    const DimensionedField<Type, volMesh>& iF,\n"
             "    const faPatchFieldMapper& mapper\n"
             ")\n"
         )   << "\n    patch type '" << p.type()

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,20 +26,6 @@ License
 #include "foamVersion.H"
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-template<class Name>
-inline Foam::word Foam::IOobject::groupName(Name name, const word& group)
-{
-    if (group != word::null)
-    {
-        return name + ('.' + group);
-    }
-    else
-    {
-        return name;
-    }
-}
-
 
 template<class Stream>
 inline Stream& Foam::IOobject::writeBanner(Stream& os, bool noHint, bool noCopyright)

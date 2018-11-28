@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,29 +25,14 @@ Class
     Foam::interpolationTable
 
 Description
-    An interpolation/look-up table of scalar vs \<Type\> values.
-    The reference scalar values must be monotonically increasing.
+    A list of times and values.
+    The time values must be positive and monotonically increasing.
 
     The handling of out-of-bounds values depends on the current setting
-    of \c outOfBounds.
+    of @a outOfBounds.
 
-    If \c repeat is chosen for the out-of-bounds handling, the final time
+    If @a REPEAT is chosen for the out-of-bounds handling, the final time
     value is treated as being equivalent to time=0 for the following periods.
-
-
-    The construct from dictionary reads a filename from a dictionary and
-    has an optional readerType. Default is to read OpenFOAM format. The only
-    other format is csv (comma separated values):
-
-    Read csv format:
-    \verbatim
-        readerType      csv;
-        fileName        "$FOAM_CASE/constant/p0vsTime.csv";
-        hasHeaderLine   true;   // skip first line
-        timeColumn      0;      // time is in column 0
-        valueColumns    (1);    // value starts in column 1
-    \endverbatim
-
 
 Note
     - Accessing an empty list results in an error.
@@ -63,9 +48,6 @@ SourceFiles
 
 #include "List.H"
 #include "Tuple2.H"
-
-#include "tableReader.H"
-#include "autoPtr.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -88,10 +70,10 @@ public:
         //- Enumeration for handling out-of-bound values
         enum boundsHandling
         {
-            ERROR,          //!< Exit with a FatalError
-            WARN,           //!< Issue warning and clamp value (default)
-            CLAMP,          //!< Clamp value to the start/end value
-            REPEAT          //!< Treat as a repeating list
+            EXIT,          /*!< Exit with a FatalError */
+            WARN,           /*!< Issue warning and clamp value (default) */
+            CLAMP,          /*!< Clamp value to the start/end value */
+            REPEAT          /*!< Treat as a repeating list */
         };
 
 
@@ -105,8 +87,6 @@ private:
         //- File name
         fileName fileName_;
 
-        //- The actual reader
-        autoPtr<tableReader<Type> > reader_;
 
     // Private Member Functions
 
@@ -159,10 +139,6 @@ public:
         //- Write
         void write(Ostream& os) const;
 
-        //- Return the rate of change at the interpolation location
-        //  for the give value
-        Type rateOfChange(const scalar) const;
-
 
     // Member Operators
 
@@ -181,7 +157,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-    #include "interpolationTable.C"
+#   include "interpolationTable.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

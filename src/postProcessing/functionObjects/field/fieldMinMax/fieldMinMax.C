@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,25 +24,25 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "fieldMinMax.H"
-#include "fieldTypes.H"
+#include "volFields.H"
+#include "dictionary.H"
+#include "foamTime.H"
+
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
     defineTypeNameAndDebug(fieldMinMax, 0);
-
-    template<>
-    const char* NamedEnum
-    <
-        fieldMinMax::modeType,
-        2
-    >::names[] =
-    {
-        "magnitude",
-        "component"
-    };
 }
+
+
+template<>
+const char* Foam::NamedEnum<Foam::fieldMinMax::modeType, 2>::names[] =
+{
+    "magnitude",
+    "component"
+};
 
 
 const Foam::NamedEnum<Foam::fieldMinMax::modeType, 2>
@@ -59,14 +59,13 @@ Foam::fieldMinMax::fieldMinMax
     const bool loadFromFiles
 )
 :
-    functionObjectFile(obr, name, typeName),
     name_(name),
     obr_(obr),
     active_(true),
-    log_(true),
-    location_(true),
+    log_(false),
     mode_(mdMag),
-    fieldSet_()
+    fieldSet_(),
+    fieldMinMaxFilePtr_(NULL)
 {
     // Check if the available mesh is an fvMesh otherise deactivate
     if (!isA<fvMesh>(obr_))
@@ -75,13 +74,8 @@ Foam::fieldMinMax::fieldMinMax
         WarningIn
         (
             "fieldMinMax::fieldMinMax"
-            "("
-                "const word&, "
-                "const objectRegistry&, "
-                "const dictionary&, "
-                "const bool"
-            ")"
-        )   << "No fvMesh available, deactivating " << name_
+            "(const objectRegistry& obr, const dictionary& dict)"
+        )   << "No fvMesh available, deactivating."
             << endl;
     }
 
@@ -101,52 +95,65 @@ void Foam::fieldMinMax::read(const dictionary& dict)
 {
     if (active_)
     {
-        log_ = dict.lookupOrDefault<Switch>("log", true);
-        location_ = dict.lookupOrDefault<Switch>("location", true);
+        log_ = dict.lookupOrDefault<Switch>("log", false);
 
-        mode_ = modeTypeNames_[dict.lookupOrDefault<word>("mode", "magnitude")];
+        mode_ = modeTypeNames_[dict.lookup("mode")];
         dict.lookup("fields") >> fieldSet_;
     }
 }
 
 
-void Foam::fieldMinMax::writeFileHeader(const label i)
+void Foam::fieldMinMax::makeFile()
 {
-    OFstream& file = this->file();
-
-    writeHeader(file, "Field minima and maxima");
-    writeCommented(file, "Time");
-
-    if (location_)
+    // Create the fieldMinMax file if not already created
+    if (fieldMinMaxFilePtr_.empty())
     {
-        writeTabbed(file, "field");
-
-        writeTabbed(file, "min");
-        writeTabbed(file, "location(min)");
-
-        if (Pstream::parRun())
+        if (debug)
         {
-            writeTabbed(file, "processor");
+            Info<< "Creating fieldMinMax file." << endl;
         }
 
-        writeTabbed(file, "max");
-        writeTabbed(file, "location(max)");
-
-        if (Pstream::parRun())
+        // File update
+        if (Pstream::master())
         {
-            writeTabbed(file, "processor");
+            fileName fieldMinMaxDir;
+            if (Pstream::parRun())
+            {
+                // Put in undecomposed case (Note: gives problems for
+                // distributed data running)
+                fieldMinMaxDir =
+                    obr_.time().path()/".."/name_/obr_.time().timeName();
+            }
+            else
+            {
+                fieldMinMaxDir =
+                    obr_.time().path()/name_/obr_.time().timeName();
+            }
+
+            // Create directory if does not exist.
+            mkDir(fieldMinMaxDir);
+
+            // Open new file at start up
+            fieldMinMaxFilePtr_.reset
+            (
+                new OFstream(fieldMinMaxDir/(type() + ".dat"))
+            );
+
+            // Add headers to output data
+            writeFileHeader();
         }
     }
-    else
-    {
-        forAll(fieldSet_, fieldI)
-        {
-            writeTabbed(file, "min(" + fieldSet_[fieldI] + ')');
-            writeTabbed(file, "max(" + fieldSet_[fieldI] + ')');
-        }
-    }
+}
 
-    file<< endl;
+
+void Foam::fieldMinMax::writeFileHeader()
+{
+    if (fieldMinMaxFilePtr_.valid())
+    {
+        fieldMinMaxFilePtr_()
+            << "# Time" << tab << "field" << tab << "min" << tab << "max"
+            << endl;
+    }
 }
 
 
@@ -162,35 +169,53 @@ void Foam::fieldMinMax::end()
 }
 
 
-void Foam::fieldMinMax::timeSet()
-{
-    // Do nothing - only valid on write
-}
-
-
 void Foam::fieldMinMax::write()
 {
     if (active_)
     {
-        functionObjectFile::write();
-
-        if (!location_) file()<< obr_.time().value();
-        if (log_) Info<< type() << " " << name_ <<  " output:" << nl;
+        // Create the fieldMinMax file if not already created
+        makeFile();
 
         forAll(fieldSet_, fieldI)
         {
-            calcMinMaxFields<scalar>(fieldSet_[fieldI], mdCmpt);
-            calcMinMaxFields<vector>(fieldSet_[fieldI], mode_);
-            calcMinMaxFields<sphericalTensor>(fieldSet_[fieldI], mode_);
-            calcMinMaxFields<symmTensor>(fieldSet_[fieldI], mode_);
-            calcMinMaxFields<tensor>(fieldSet_[fieldI], mode_);
+            calcMinMaxFields<scalar>(fieldSet_[fieldI]);
+            calcMinMaxFields<vector>(fieldSet_[fieldI]);
+            calcMinMaxFields<sphericalTensor>(fieldSet_[fieldI]);
+            calcMinMaxFields<symmTensor>(fieldSet_[fieldI]);
+            calcMinMaxFields<tensor>(fieldSet_[fieldI]);
         }
-
-        if (!location_) file()<< endl;
-        if (log_) Info<< endl;
     }
 }
 
+
+template<>
+void Foam::fieldMinMax::calcMinMaxFields<Foam::scalar>
+(
+    const word& fieldName
+)
+{
+    if (obr_.foundObject<volScalarField>(fieldName))
+    {
+        const volScalarField& field =
+            obr_.lookupObject<volScalarField>(fieldName);
+        scalar minValue = min(field).value();
+        scalar maxValue = max(field).value();
+
+        if (Pstream::master())
+        {
+            fieldMinMaxFilePtr_() << obr_.time().value() << tab
+                << fieldName << tab << minValue << tab << maxValue << endl;
+
+            if (log_)
+            {
+                Info<< "fieldMinMax output:" << nl
+                    << "    min(" << fieldName << ") = " << minValue << nl
+                    << "    max(" << fieldName << ") = " << maxValue << nl
+                    << endl;
+            }
+        }
+    }
+}
 
 
 // ************************************************************************* //

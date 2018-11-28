@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ lduSolverPerformance tetFemMatrix<Type>::solve
         this->check();
     }
 
-    BlockSolverPerformance<Type> solverPerfVec
+    lduSolverPerformance solverPerfVec
     (
         "tetFemMatrix<Type>::solve",
         psi_.name()
@@ -152,7 +152,14 @@ lduSolverPerformance tetFemMatrix<Type>::solve
 
         solverPerf.print();
 
-        solverPerfVec.replace(cmpt, solverPerf);
+        if
+        (
+            solverPerf.initialResidual() > solverPerfVec.initialResidual()
+         && !solverPerf.singular()
+        )
+        {
+            solverPerfVec = solverPerf;
+        }
 
         psi.internalField().replace(cmpt, psiCmpt);
 
@@ -167,9 +174,7 @@ lduSolverPerformance tetFemMatrix<Type>::solve
 
     psi.correctBoundaryConditions();
 
-    psi_.mesh().solutionDict().setSolverPerformance(psi_.name(), solverPerfVec);
-
-    return solverPerfVec.max();
+    return solverPerfVec;
 }
 
 

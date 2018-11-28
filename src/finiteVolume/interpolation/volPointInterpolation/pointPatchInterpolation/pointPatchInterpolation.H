@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -63,31 +63,26 @@ class pointPatchInterpolation
         const fvMesh& fvMesh_;
 
         //- Primitive patch interpolators
-        mutable PtrList<primitivePatchInterpolation> patchInterpolators_;
+        PtrList<primitivePatchInterpolation> patchInterpolators_;
 
         //- List of patch-patch edge points that require special treatement
-        mutable labelList* patchPatchPointsPtr_;
-
-        //- List of constraint points
-        mutable labelList* patchPatchPointConstraintPointsPtr_;
-
-        //- List of constraint tensors for constrained points
-        mutable tensorField* patchPatchPointConstraintTensorsPtr_;
+        labelList patchPatchPoints_;
 
         //- Weights for patch-patch boundary points
-        mutable scalarListList* patchPatchPointWeightsPtr_;
+        scalarListList patchPatchPointWeights_;
+
+        labelList patchPatchPointConstraintPoints_;
+        tensorField patchPatchPointConstraintTensors_;
 
 
     // Private member functions
 
         //- Construct addressing for patch-patch boundary points
-        void makePatchPatchAddressing() const;
+        void makePatchPatchAddressing();
 
         //- Construct weights for patch-patch boundary points
-        void makePatchPatchWeights() const;
+        void makePatchPatchWeights();
 
-        //- Clear all demand driven data
-        void clearOut() const;
 
         //- Disallow default bitwise copy construct
         pointPatchInterpolation(const pointPatchInterpolation&);
@@ -117,27 +112,10 @@ public:
 
         // Access
 
-            //- Return const reference to fvMesh
             const fvMesh& mesh() const
             {
                 return fvMesh_;
             }
-
-            //- Return primitive patch interpolators
-            const PtrList<primitivePatchInterpolation>& patchInterpolators
-            () const;
-
-            //- Return patch-patch edge points that require special treatment
-            const labelList& patchPatchPoints() const;
-
-            //- Return weights for patch-patch boundary points
-            const scalarListList& patchPatchPointWeights() const;
-
-            //- Return constraint points
-            const labelList& patchPatchPointConstraintPoints() const;
-
-            //- Return constraint tensors
-            const tensorField& patchPatchPointConstraintTensors() const;
 
 
         // Edit

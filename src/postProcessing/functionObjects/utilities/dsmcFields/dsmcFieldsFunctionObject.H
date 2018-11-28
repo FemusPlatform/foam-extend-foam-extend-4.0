@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ Typedef
 
 Description
     FunctionObject wrapper around dsmcFields to allow it to be created via
-    the functions entry within controlDict.
+    the functions list within controlDict.
 
 SourceFiles
     dsmcFieldsFunctionObject.C

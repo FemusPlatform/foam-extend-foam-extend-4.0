@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -103,6 +103,7 @@ public:
 
     // Declare run-time constructor selection tables
 
+#ifndef SWIG
         declareRunTimeSelectionTable
         (
             tmp,
@@ -141,7 +142,7 @@ public:
             ),
             (p, iF, dict)
         );
-
+#endif
 
     // Constructors
 
@@ -325,13 +326,6 @@ public:
                 const labelList&
             );
 
-            //- Update on mesh motion
-            //  This function is used for special conditions such as
-            //  immersed boundary which need to be updated when the mesh
-            //  is moving (as opposed to topo change update)
-            virtual void updateOnMotion()
-            {}
-
 
         // Evaluation functions
 
@@ -397,11 +391,13 @@ public:
 
     // Ostream operator
 
+#ifndef SWIG
         friend Ostream& operator<< <Type>
         (
             Ostream&,
             const fvsPatchField<Type>&
         );
+#endif
 };
 
 

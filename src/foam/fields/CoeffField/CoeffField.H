@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -122,19 +122,6 @@ public:
 
         static const char* const typeName;
 
-        //- Empty field
-        static const CoeffField<Type> zero;
-
-
-    // Static Member Functions
-
-        //- Return a null field
-        inline static const CoeffField<Type>& null()
-        {
-            return zero;
-        }
-
-
 
     // Constructors
 
@@ -151,8 +138,12 @@ public:
         tmp<CoeffField<Type> > clone() const;
 
 
-    //- Destructor
-    ~CoeffField();
+    // Destructor
+
+        ~CoeffField();
+
+        //- Clear data
+        void clear();
 
 
     // Member functions
@@ -171,9 +162,6 @@ public:
 
         //- Return the field transpose
         tmp<CoeffField<Type> > transpose() const;
-
-        //- Clear data
-        void clear();
 
 
         // Return as typed.  Fails when asked for the incorrect type

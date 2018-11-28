@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -621,30 +621,6 @@ EulerLocalDdtScheme<Type>::fvcDdtPhiCorr
             return fluxFieldType::null();
         }
     }
-}
-
-
-template<class Type>
-tmp<typename EulerLocalDdtScheme<Type>::fluxFieldType>
-EulerLocalDdtScheme<Type>::fvcDdtConsistentPhiCorr
-(
-    const GeometricField<Type, fvsPatchField, surfaceMesh>& faceU,
-    const GeometricField<Type, fvPatchField, volMesh>& U,
-    const surfaceScalarField& rAUf
-)
-{
-    const objectRegistry& registry = this->mesh();
-
-    // Get access to the scalar beta[i]
-    const scalarField& beta =
-        registry.lookupObject<scalarField>(deltaTName_);
-
-    const surfaceScalarField rDeltaTf = fvc::interpolate
-    (
-        1.0/(beta[0]*registry.lookupObject<volScalarField>(deltaTauName_))
-    );
-
-    return (mesh().Sf() & faceU.oldTime())*rAUf*rDeltaTf;
 }
 
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,46 +24,8 @@ License
 Class
     Foam::writeRegisteredObject
 
-Group
-    grpIOFunctionObjects
-
 Description
-    This function object allows specification of different writing frequency
-    of objects registered to the database. It has similar functionality
-    as the main time database through the outputControl setting:
-        timeStep
-        outputTime
-        adjustableTime
-        runTime
-        clockTime
-        cpuTime
-
-    Example of function object specification:
-    \verbatim
-    writeRegisteredObject1
-    {
-        type        writeRegisteredObject;
-        functionObjectLibs ("libIOFunctionObjects.so");
-        exclusiveWriting     true;
-        ...
-        objectNames (obj1 obj2);
-    }
-    \endverbatim
-
-    \heading Function object usage
-    \table
-        Property     | Description             | Required    | Default value
-        type         | type name: writeRegisteredObject | yes |
-        objectNames  | objects to write        | yes         |
-        exclusiveWriting    | Takes over object writing | no | yes
-    \endtable
-
-    exclusiveWriting disables automatic writing (i.e through database) of the
-    objects to avoid duplicate writing.
-
-SeeAlso
-    Foam::functionObject
-    Foam::OutputFilterFunctionObject
+    Takes over the writing of registered IO objects
 
 SourceFiles
     writeRegisteredObject.C
@@ -74,9 +36,9 @@ SourceFiles
 #ifndef writeRegisteredObject_H
 #define writeRegisteredObject_H
 
-#include "wordReList.H"
-#include "runTimeSelectionTables.H"
 #include "pointFieldFwd.H"
+#include "wordList.H"
+#include "runTimeSelectionTables.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -86,7 +48,6 @@ namespace Foam
 // Forward declaration of classes
 class objectRegistry;
 class dictionary;
-class polyMesh;
 class mapPolyMesh;
 
 /*---------------------------------------------------------------------------*\
@@ -95,27 +56,24 @@ class mapPolyMesh;
 
 class writeRegisteredObject
 {
-protected:
-
     // Private data
 
         //- Name of this set of writeRegisteredObject
         word name_;
 
-        //- Takes over the writing from Db
-        bool exclusiveWriting_;
-
-        //- Refererence to Db
         const objectRegistry& obr_;
+
+        //- On/off switch
+        bool active_;
+
 
         // Read from dictionary
 
             //- Names of objects to control
-            wordReList objectNames_;
+            wordList objectNames_;
 
 
     // Private Member Functions
-
 
         //- Disallow default bitwise copy construct
         writeRegisteredObject(const writeRegisteredObject&);
@@ -163,9 +121,6 @@ public:
 
         //- Execute at the final time-loop, currently does nothing
         virtual void end();
-
-        //- Called when time was set at the end of the Time::operator++
-        virtual void timeSet();
 
         //- Write the writeRegisteredObject
         virtual void write();

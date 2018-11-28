@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -30,30 +30,35 @@ License
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
-void Foam::fieldValue::combineFields(Field<Type>& field)
+Foam::tmp<Foam::Field<Type> > Foam::fieldValue::combineFields
+(
+    const tmp<Field<Type> >& field
+) const
 {
     List<Field<Type> > allValues(Pstream::nProcs());
 
-    allValues[Pstream::myProcNo()] = field;
+    allValues[Pstream::myProcNo()] = field();
 
     Pstream::gatherList(allValues);
 
     if (Pstream::master())
     {
-        field =
-            ListListOps::combine<Field<Type> >
+        return tmp<Field<Type> >
+        (
+            new Field<Type>
             (
-                allValues,
-                accessOp<Field<Type> >()
-            );
+                ListListOps::combine<Field<Type> >
+                (
+                    allValues,
+                    accessOp<Field<Type> >()
+                )
+            )
+        );
     }
-}
-
-
-template<class Type>
-void Foam::fieldValue::combineFields(tmp<Field<Type> >& field)
-{
-    combineFields(field());
+    else
+    {
+        return field();
+    }
 }
 
 

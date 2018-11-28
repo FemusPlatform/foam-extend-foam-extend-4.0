@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -154,7 +154,7 @@ GenericPointPatchField
                         (
                             dynamicCast<token::Compound<List<scalar> > >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 
@@ -192,7 +192,7 @@ GenericPointPatchField
                         (
                             dynamicCast<token::Compound<List<vector> > >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 
@@ -233,7 +233,7 @@ GenericPointPatchField
                                 token::Compound<List<sphericalTensor> >
                             >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 
@@ -274,7 +274,7 @@ GenericPointPatchField
                                 token::Compound<List<symmTensor> >
                             >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 
@@ -312,7 +312,7 @@ GenericPointPatchField
                         (
                             dynamicCast<token::Compound<List<tensor> > >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 
@@ -353,7 +353,7 @@ GenericPointPatchField
                                 token::Compound<List<symmTensor4thOrder> >
                             >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 
@@ -394,7 +394,7 @@ GenericPointPatchField
                                 token::Compound<List<diagTensor> >
                             >
                             (
-                                fieldToken.transferCompoundToken(is)
+                                fieldToken.transferCompoundToken()
                             )
                         );
 

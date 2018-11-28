@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -122,9 +122,9 @@ bool Foam::regIOobject::writeObject
 
     // Only update the lastModified_ time if this object is re-readable,
     // i.e. lastModified_ is already set
-    if (watchIndex_ != -1)
+    if (lastModified_)
     {
-        time().setUnmodified(watchIndex_);
+        lastModified_ = lastModified(objectPath());
     }
 
     return osGood;

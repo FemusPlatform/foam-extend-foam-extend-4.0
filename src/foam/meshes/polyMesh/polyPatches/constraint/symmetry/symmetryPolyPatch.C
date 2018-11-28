@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -66,6 +66,16 @@ Foam::symmetryPolyPatch::symmetryPolyPatch
 Foam::symmetryPolyPatch::symmetryPolyPatch
 (
     const symmetryPolyPatch& pp,
+    const polyBoundaryMesh& bm
+)
+:
+    polyPatch(pp, bm)
+{}
+
+
+Foam::symmetryPolyPatch::symmetryPolyPatch
+(
+    const symmetryPolyPatch& pp,
     const polyBoundaryMesh& bm,
     const label index,
     const label newSize,
@@ -73,25 +83,6 @@ Foam::symmetryPolyPatch::symmetryPolyPatch
 )
 :
     polyPatch(pp, bm, index, newSize, newStart)
-{}
-
-
-Foam::symmetryPolyPatch::symmetryPolyPatch
-(
-    const symmetryPolyPatch& pp
-)
-:
-    polyPatch(pp)
-{}
-
-
-Foam::symmetryPolyPatch::symmetryPolyPatch
-(
-    const symmetryPolyPatch& pp,
-    const polyBoundaryMesh& bm
-)
-:
-    polyPatch(pp, bm)
 {}
 
 

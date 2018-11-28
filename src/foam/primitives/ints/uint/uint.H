@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -35,40 +35,26 @@ SourceFiles
 #ifndef uint_H
 #define uint_H
 
-#include "uint32.H"
-#include "uint64.H"
+#include "word.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-#define MAXMIN(retType, type1, type2)              \
-                                                   \
-inline retType max(const type1 s1, const type2 s2) \
-{                                                  \
-    return (s1 > s2)? s1: s2;                      \
-}                                                  \
-                                                   \
-inline retType min(const type1 s1, const type2 s2) \
-{                                                  \
-    return (s1 < s2)? s1: s2;                      \
-}
+class Istream;
+class Ostream;
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-MAXMIN(uint8_t, uint8_t, uint8_t)
-MAXMIN(uint16_t, uint16_t, uint16_t)
-
-MAXMIN(uint32_t, uint32_t, uint32_t)
-MAXMIN(uint64_t, uint64_t, uint32_t)
-MAXMIN(uint64_t, uint32_t, uint64_t)
-MAXMIN(uint64_t, uint64_t, uint64_t)
-
+//- Return a string representation of an uint
+word name(const unsigned int);
 
 // * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
 
 unsigned int readUint(Istream&);
-
+Istream& operator>>(Istream&, unsigned int&);
+Ostream& operator<<(Ostream&, const unsigned int);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -84,7 +84,11 @@ void Foam::polyMesh::clearGeom()
     }
 
     primitiveMesh::clearGeom();
-    boundary_.clearGeom();
+
+    forAll (boundary_, patchI)
+    {
+        boundary_[patchI].clearGeom();
+    }
 
     // Reset valid directions (could change with rotation)
     geometricD_ = Vector<label>::zero;
@@ -107,7 +111,6 @@ void Foam::polyMesh::clearAddressing()
     }
 
     primitiveMesh::clearAddressing();
-    boundary_.clearAddressing();
 
     // parallelData depends on the processorPatch ordering so force
     // recalculation

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -109,12 +109,10 @@ SpalartAllmaras::SpalartAllmaras
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport,
-    const word& turbulenceModelName,
-    const word& modelName
+    transportModel& lamTransportModel
 )
 :
-    RASModel(modelName, U, phi, transport, turbulenceModelName),
+    RASModel(typeName, U, phi, lamTransportModel),
 
     sigmaNut_
     (
@@ -314,12 +312,12 @@ tmp<volSymmTensorField> SpalartAllmaras::devReff() const
 
 tmp<fvVectorMatrix> SpalartAllmaras::divDevReff() const
 {
-    const volScalarField nuEffective = nuEff();
+    volScalarField nuEff_ = nuEff();
 
     return
     (
-      - fvm::laplacian(nuEffective, U_)
-      - (fvc::grad(U_) & fvc::grad(nuEffective))
+      - fvm::laplacian(nuEff_, U_)
+      - fvc::div(nuEff_*dev(T(fvc::grad(U_))))
     );
 }
 

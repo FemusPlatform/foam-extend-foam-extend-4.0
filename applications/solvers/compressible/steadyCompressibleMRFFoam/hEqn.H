@@ -24,7 +24,6 @@
     );
 
     hEqn.relax();
-    hEqn.solve();
 
     // Bounding of enthalpy taken out
     thermo.correct();

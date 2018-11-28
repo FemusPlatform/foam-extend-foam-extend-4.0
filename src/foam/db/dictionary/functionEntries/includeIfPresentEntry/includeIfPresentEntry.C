@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -74,15 +74,10 @@ bool Foam::functionEntries::includeIfPresentEntry::execute
     Istream& is
 )
 {
-    const fileName fName(includeFileName(is, parentDict));
-    IFstream ifs(fName);
+    IFstream ifs(includeFileName(is));
 
     if (ifs)
     {
-        if (Foam::functionEntries::includeEntry::report)
-        {
-            Info<< fName << endl;
-        }
         parentDict.read(ifs);
     }
 
@@ -97,15 +92,10 @@ bool Foam::functionEntries::includeIfPresentEntry::execute
     Istream& is
 )
 {
-    const fileName fName(includeFileName(is, parentDict));
-    IFstream ifs(fName);
+    IFstream ifs(includeFileName(is));
 
     if (ifs)
     {
-        if (Foam::functionEntries::includeEntry::report)
-        {
-            Info<< fName << endl;
-        }
         entry.read(parentDict, ifs);
     }
 

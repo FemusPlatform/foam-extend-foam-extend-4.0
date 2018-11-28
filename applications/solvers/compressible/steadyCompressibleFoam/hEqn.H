@@ -1,14 +1,13 @@
 {
     // Solve the enthalpy equation in total enthalpy formulation (see K)
 
-    T.storePrevIter();
-
     K = 0.5*(magSqr(U));
 
     fvScalarMatrix hEqn
     (
-        fvm::div(phi, h)
-      + fvm::SuSp(-fvc::div(phi), h)
+        fvm::ddt(rho, h)
+      + fvc::ddt(rho, K)
+      + fvm::div(phi, h)
       + fvc::div(phi, K)
       - fvm::laplacian(turbulence->alphaEff(), h)
      ==
@@ -17,6 +16,7 @@
     );
 
     hEqn.relax();
+
     hEqn.solve();
 
     // Bounding of enthalpy taken out

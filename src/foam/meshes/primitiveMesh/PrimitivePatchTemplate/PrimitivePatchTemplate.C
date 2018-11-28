@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -77,7 +77,6 @@ PrimitivePatch
     localPointsPtr_(NULL),
     localPointOrderPtr_(NULL),
     faceCentresPtr_(NULL),
-    faceAreasPtr_(NULL),
     faceNormalsPtr_(NULL),
     pointNormalsPtr_(NULL)
 {
@@ -116,7 +115,6 @@ PrimitivePatch
     localPointsPtr_(NULL),
     localPointOrderPtr_(NULL),
     faceCentresPtr_(NULL),
-    faceAreasPtr_(NULL),
     faceNormalsPtr_(NULL),
     pointNormalsPtr_(NULL)
 {}
@@ -153,7 +151,6 @@ PrimitivePatch
     localPointsPtr_(NULL),
     localPointOrderPtr_(NULL),
     faceCentresPtr_(NULL),
-    faceAreasPtr_(NULL),
     faceNormalsPtr_(NULL),
     pointNormalsPtr_(NULL)
 {}
@@ -511,26 +508,6 @@ faceCentres() const
 }
 
 
-// Note: avoiding name clash
-template
-<
-    class Face,
-    template<class> class FaceList,
-    class PointField,
-    class PointType
->
-const Foam::Field<PointType>&
-Foam::PrimitivePatch<Face, FaceList, PointField, PointType>::areas() const
-{
-    if (!faceAreasPtr_)
-    {
-        calcFaceAreas();
-    }
-
-    return *faceAreasPtr_;
-}
-
-
 template
 <
     class Face,
@@ -544,9 +521,7 @@ faceNormals() const
 {
     if (!faceNormalsPtr_)
     {
-        // Note: stabilisation of face normals
-        faceNormalsPtr_ =
-            new Field<PointType>(areas()/(mag(areas()) + VSMALL));
+        calcFaceNormals();
     }
 
     return *faceNormalsPtr_;

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -83,9 +83,6 @@ public:
     // Member Functions
 
         // Access
-
-            //- Return interface size
-            virtual label interfaceSize() const = 0;
 
             //- Return processor number
             virtual int myProcNo() const = 0;

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,8 +26,7 @@ Application
 
 Description
     Transient solver for incompressible, laminar flow of Newtonian fluids.
-    Consistent formulation without time-step and relaxation dependence by
-    Jasak and Tukovic.
+    Consistent formulation without time-step and relaxation dependence by Jasak
 
 Author
     Hrvoje Jasak, Wikki Ltd.  All rights reserved
@@ -60,9 +59,6 @@ int main(int argc, char *argv[])
 
 #       include "CourantNo.H"
 
-        // Time-derivative matrix
-        fvVectorMatrix ddtUEqn(fvm::ddt(U));
-
         // Convection-diffusion matrix
         fvVectorMatrix HUEqn
         (
@@ -70,23 +66,24 @@ int main(int argc, char *argv[])
           - fvm::laplacian(nu, U)
         );
 
+        // Time derivative matrix
+        fvVectorMatrix ddtUEqn(fvm::ddt(U));
+
         if (piso.momentumPredictor())
         {
             solve(ddtUEqn + HUEqn == -fvc::grad(p));
         }
 
-        // Prepare clean 1/a_p without time derivative contribution
-        volScalarField rAU = 1.0/HUEqn.A();
+        // Prepare clean Ap without time derivative contribution
+        // HJ, 26/Oct/2015
+        volScalarField aU = HUEqn.A();
 
         // --- PISO loop
 
         while (piso.correct())
         {
-            // Calculate U from convection-diffusion matrix
-            U = rAU*HUEqn.H();
-
-            // Consistently calculate flux
-            piso.calcTransientConsistentFlux(phi, U, rAU, ddtUEqn);
+            U = HUEqn.H()/aU;
+            phi = (fvc::interpolate(U) & mesh.Sf());
 
             adjustPhi(phi, U, p);
 
@@ -94,14 +91,7 @@ int main(int argc, char *argv[])
             {
                 fvScalarMatrix pEqn
                 (
-                    fvm::laplacian
-                    (
-                        fvc::interpolate(rAU)/piso.aCoeff(U.name()),
-                        p,
-                        "laplacian(rAU," + p.name() + ')'
-                    )
-                 ==
-                    fvc::div(phi)
+                    fvm::laplacian(1/aU, p) == fvc::div(phi)
                 );
 
                 pEqn.setReference(pRefCell, pRefValue);
@@ -118,8 +108,13 @@ int main(int argc, char *argv[])
 
 #           include "continuityErrs.H"
 
-            // Consistently reconstruct velocity after pressure equation
-            piso.reconstructTransientVelocity(U, phi, ddtUEqn, rAU, p);
+            // Note: cannot call H(U) here because the velocity is not complete
+            // HJ, 22/Jan/2016
+            U = 1.0/(aU + ddtUEqn.A())*
+                (
+                    U*aU - fvc::grad(p) + ddtUEqn.H()
+                );
+            U.correctBoundaryConditions();
         }
 
         runTime.write();

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -23,7 +23,6 @@ License
 
 Class
     Foam::MapInternalField
-    Foam::MapGeometricFields
 
 Description
     Generic internal field mapper.  For "real" mapping, add template
@@ -96,8 +95,8 @@ void MapGeometricFields
             const_cast<GeometricField<Type, PatchField, GeoMesh>&>
             (*fieldIter());
 
-        // Note: check can be removed once pointFields are actually stored on
-        //       the pointMesh instead of now on the polyMesh!
+        //Note: check can be removed once pointFields are actually stored on
+        //      the pointMesh instead of now on the polyMesh!
         if (&field.mesh() == &mapper.mesh())
         {
             field.storeOldTimes();
@@ -120,8 +119,7 @@ void MapGeometricFields
         {
             if (polyMesh::debug)
             {
-                InfoIn("void MapGeometricFields(const MeshMapper& mapper)")
-                    << "Mapping " << field.typeName << ' ' << field.name()
+                Info<< "Mapping " << field.typeName << ' ' << field.name()
                     << endl;
             }
 
@@ -132,85 +130,26 @@ void MapGeometricFields
                 mapper
             );
 
-            // Repatch boundary if needed
-            if
-            (
-                field.boundaryField().size()
-             != mapper.mesh().boundary().size()
-            )
-            {
-                if (polyMesh::debug)
-                {
-                    InfoIn("void MapGeometricFields(const MeshMapper& mapper)")
-                        << "Resizing boundary field for "
-                        << field.typeName << ' ' << field.name()
-                        << endl;
-                }
-
-                field.boundaryField().setSize(mapper.mesh().boundary().size());
-            }
-
-            // Get repatch flag
-            const boolList& resetPatchFlag = mapper.resetPatchFlag();
-
-            if (resetPatchFlag.size() != field.boundaryField().size())
-            {
-                FatalErrorIn
-                (
-                    "void MapGeometricFields(const MeshMapper& mapper)"
-                )   << "Incorrect resetPatchFlag array size.  Boundary: "
-                    << field.boundaryField().size() << " flag: "
-                    << resetPatchFlag.size()
-                    << abort(FatalError);
-            }
-
             // Map the patch fields
-            forAll (field.boundaryField(), patchI)
+            forAll(field.boundaryField(), patchi)
             {
-                // Flag reset can only take place for the constrained patches
-                // such as empty or processor
-                if (resetPatchFlag[patchI])
-                {
-                    // Build a new patchField if reset is true
-                    field.boundaryField().set
-                    (
-                        patchI,
-                        PatchField<Type>::New
-                        (
-                            mapper.mesh().boundary()[patchI].type(),
-                            field.mesh().boundary()[patchI],
-                            field.dimensionedInternalField()
-                        )
-                    );
+                // Cannot check sizes for patch fields because of
+                // empty fields in FV and because point fields get their size
+                // from the patch which has already been resized
 
-                    // Set to zero to avoid NaNs?
-                }
-                else
-                {
-                    // No reset: auto-map
-
-                    // Cannot check sizes for patch fields because of
-                    // empty fields in FV and because point fields get
-                    // their size from the patch which has already been resized
-
-                    field.boundaryField()[patchI].autoMap
-                    (
-                        mapper.boundaryMap()[patchI]
-                    );
-                }
+                field.boundaryField()[patchi].autoMap
+                (
+                    mapper.boundaryMap()[patchi]
+                );
             }
 
             field.instance() = field.time().timeName();
         }
-        else
+        else if (polyMesh::debug)
         {
-            if (polyMesh::debug)
-            {
-                InfoIn("void MapGeometricFields(const MeshMapper& mapper)")
-                    << "Not mapping " << field.typeName << ' ' << field.name()
-                    << " since originating mesh differs from that of mapper."
-                    << endl;
-            }
+            Info<< "Not mapping " << field.typeName << ' ' << field.name()
+                << " since originating mesh differs from that of mapper."
+                << endl;
         }
     }
 }

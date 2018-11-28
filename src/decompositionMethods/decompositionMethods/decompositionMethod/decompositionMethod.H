@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -113,10 +113,8 @@ private:
         //- Disallow default bitwise assignment
         void operator=(const decompositionMethod&);
 
-        //- Load missing libraries to avoid compile-time linking to external dependencies
-        //  Temporary hack: to be resolved by Henrik Rusche.  HJ, 15/May/2018
-        static void loadExternalLibraries(Time& time);
-
+        //- load missing libraries to avoid compile-time linking to external dependencies
+        static void loadExternalLibraries();
 
 public:
 
@@ -179,9 +177,10 @@ public:
         {}
 
 
-    //- Destructor
-    virtual ~decompositionMethod()
-    {}
+    // Destructor
+
+        virtual ~decompositionMethod()
+        {}
 
 
     // Member Functions
@@ -202,6 +201,7 @@ public:
             const scalarField& pointWeights
         ) = 0;
 
+
         //- Decompose cell clusters
         //  Calls decompose (below) with uniform weights
         virtual labelList decompose
@@ -218,6 +218,7 @@ public:
             const scalarField& coarseWeights
         );
 
+
         //- Decompose cells with weights with explicitly provided connectivity
         virtual labelList decompose
         (
@@ -225,6 +226,7 @@ public:
             const pointField& cc,
             const scalarField& cWeights
         ) = 0;
+
 };
 
 

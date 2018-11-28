@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -27,11 +27,6 @@ Class
 Description
     IOdictionary wrapper around OutputFilter to allow them to read from
     their associated dictionaries.
-
-Note
-    The IOobject or the objectRegistry will normally have to be
-    derived from a fvMesh for a subsequent cast (within OutputFilter)
-    to work correctly.
 
 SourceFiles
     IOOutputFilter.C
@@ -73,15 +68,6 @@ public:
 
     // Constructors
 
-        //- Construct from an IOobject for IOdictionary
-        //  Allow the possibility to load fields from files
-        IOOutputFilter
-        (
-            const word& outputFilterName,
-            const IOobject& ioDict,
-            const bool loadFromFile = false
-        );
-
         //- Construct for given objectRegistry and dictionary
         //  Allow dictionary to be optional
         //  Allow the possibility to load fields from files
@@ -89,20 +75,8 @@ public:
         (
             const word& outputFilterName,
             const objectRegistry&,
-            const word& dictName = OutputFilter::typeName() + "Dict",
-            const IOobject::readOption rOpt = IOobject::MUST_READ_IF_MODIFIED,
-            const bool loadFromFile = false
-        );
-
-        //- Construct for given objectRegistry and dictionary
-        //  Dictionary read from full path.
-        //  Allow the possibility to load fields from files
-        IOOutputFilter
-        (
-            const word& outputFilterName,
-            const objectRegistry&,
-            const fileName& dictName,
-            const IOobject::readOption rOpt = IOobject::MUST_READ_IF_MODIFIED,
+            const fileName& dictName = OutputFilter::typeName() + "Dict",
+            const IOobject::readOption rOpt = IOobject::MUST_READ,
             const bool loadFromFile = false
         );
 
@@ -119,14 +93,8 @@ public:
             return IOdictionary::name();
         }
 
-        //- Inherit read from OutputFilter
-        using OutputFilter::read;
-
-        //- Read output filter properties
+        //- Read the probes
         virtual bool read();
-
-        //- Inherit write from regIOobject
-        using regIOobject::write;
 
         //- Sample and write
         virtual void write();

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -27,8 +27,6 @@ Application
 Description
     Transient solver for incompressible, laminar flow of Newtonian fluids
     with dynamic mesh.
-    Consistent formulation without time-step and relaxation dependence by Jasak
-    and Tukovic.
 
 Author
     Hrvoje Jasak, Wikki Ltd.  All rights reserved.
@@ -62,11 +60,12 @@ int main(int argc, char *argv[])
     {
 #       include "readControls.H"
 #       include "checkTotalVolume.H"
-#       include "CourantNo.H"
-#       include "setDeltaT.H"
 
         // Make the fluxes absolute
         fvc::makeAbsolute(phi, U);
+
+#       include "CourantNo.H"
+#       include "setDeltaT.H"
 
         runTime++;
 
@@ -96,16 +95,13 @@ int main(int argc, char *argv[])
 
         // --- PISO loop
 
-        // Prepare clean 1/a_p without time derivative contribution
-        rAU = 1.0/HUEqn.A();
-
         while (piso.correct())
         {
-            // Calculate U from convection-diffusion matrix
-            U = rAU*HUEqn.H();
+            rAU = 1.0/UEqn.A();
 
-            // Consistently calculate flux
-            piso.calcTransientConsistentFlux(phi, U, rAU, ddtUEqn);
+            U = rAU*UEqn.H();
+            phi = (fvc::interpolate(U) & mesh.Sf());
+              //+ fvc::ddtPhiCorr(rAU, U, phi);
 
             adjustPhi(phi, U, p);
 
@@ -114,14 +110,7 @@ int main(int argc, char *argv[])
             {
                 fvScalarMatrix pEqn
                 (
-                    fvm::laplacian
-                    (
-                        fvc::interpolate(rAU)/piso.aCoeff(U.name()),
-                        p,
-                        "laplacian(rAU," + p.name() + ')'
-                    )
-                 ==
-                    fvc::div(phi)
+                    fvm::laplacian(rAU, p) == fvc::div(phi)
                 );
 
                 pEqn.setReference(pRefCell, pRefValue);
@@ -136,11 +125,13 @@ int main(int argc, char *argv[])
                 }
             }
 
-#           include "movingMeshContinuityErrs.H"
+#           include "continuityErrs.H"
 
-            // Consistently reconstruct velocity after pressure equation.
-            // Note: flux is made relative inside the function
-            piso.reconstructTransientVelocity(U, phi, ddtUEqn, rAU, p);
+            // Make the fluxes relative to the mesh motion
+            fvc::makeRelative(phi, U);
+
+            U -= rAU*fvc::grad(p);
+            U.correctBoundaryConditions();
         }
 
         runTime.write();

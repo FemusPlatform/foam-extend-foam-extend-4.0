@@ -80,7 +80,6 @@ Source: 		%url/%{name}-%{version}.tar.gz
 Prefix: 		%{_prefix}
 Group: 			Development/Tools
 Patch0:                 mesquite-2.1.2_patch0
-Patch1:                 mesquite-2.1.2_patch1
 
 %define _installPrefix  %{_prefix}/packages/%{name}-%{version}/platforms/%{_WM_OPTIONS}
 
@@ -91,7 +90,6 @@ Patch1:                 mesquite-2.1.2_patch1
 %setup -q
 
 %patch0 -p1
-%patch1 -p1
 
 %build
     # export WM settings in a form that GNU configure recognizes

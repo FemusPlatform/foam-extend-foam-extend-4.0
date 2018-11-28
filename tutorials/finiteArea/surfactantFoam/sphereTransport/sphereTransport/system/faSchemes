@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.1                                |
+|  \\    /   O peration     | Version:     4.0                                |
 |   \\  /    A nd           | Web:         http://www.foam-extend.org         |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -28,12 +28,14 @@ gradSchemes
 
 divSchemes
 {
-    default             Gauss linear;
+    default             none;
+    div(phis,Cs)        Gauss linear;
 }
 
 laplacianSchemes
 {
-    default             Gauss linear corrected;
+    default             none;
+    laplacian(Ds,Cs)    Gauss linear corrected;
 }
 
 interpolationSchemes

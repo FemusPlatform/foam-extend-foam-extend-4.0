@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -33,37 +33,25 @@ Description
     path, a reference to a objectRegistry, and parameters determining its
     storage status.
 
-    \par Read options
+    @par Read options
 
     Define what is done on object construction and explicit reads:
-    \param MUST_READ
+    @param MUST_READ
         Object must be read from Istream on construction. \n
         Error if Istream does not exist or can't be read.
-        Does not check timestamp or re-read.
-    \param MUST_READ_IF_MODIFIED
-        Object must be read from Istream on construction. \n
-        Error if Istream does not exist or can't be read. If object is
-        registered its timestamp will be checked every timestep and possibly
-        re-read.
-    \param READ_IF_PRESENT
+    @param READ_IF_PRESENT
         Read object from Istream if Istream exists, otherwise don't. \n
         Error only if Istream exists but can't be read.
-        Does not check timestamp or re-read.
-    \param READ_IF_PRESENT_IF_MODIFIED
-        Read object from Istream if Istream exists, otherwise don't. \n
-        Error only if Istream exists but can't be read. If object is
-        registered its timestamp will be checked every timestep and possibly
-        re-read.
-    \param NO_READ
+    @param NO_READ
           Don't read
 
-    \par Write options
+    @par Write options
 
     Define what is done on object destruction and explicit writes:
-    \param AUTO_WRITE
+    @param AUTO_WRITE
         Object is written automatically when requested to by the
         objectRegistry.
-    \param NO_WRITE
+    @param NO_WRITE
         No automatic write on destruction but can be written explicitly
 
 SourceFiles
@@ -112,9 +100,7 @@ public:
         enum readOption
         {
             MUST_READ,
-            MUST_READ_IF_MODIFIED,
             READ_IF_PRESENT,
-            READ_IF_PRESENT_IF_MODIFIED,
             NO_READ
         };
 
@@ -169,10 +155,6 @@ protected:
         //  The results is NULL if the stream construction failed
         Istream* objectStream();
 
-        //- Construct and return an IFstream for the object given the
-        //  exact file. The results is NULL if the stream construction failed
-        Istream* objectStream(const fileName&);
-
         //- Set the object state to bad
         void setBad(const string&);
 
@@ -186,14 +168,6 @@ public:
     // Static Member Functions
 
         //- Split path into instance, local, name components
-        //  input               IOobject(instance, local, name)
-        //  -----               ------
-        //  "foo"               ("", "", "foo")
-        //  "foo/bar"           ("foo", "", "bar")
-        //  "/XXX/bar"          ("/XXX", "", "bar")
-        //  "foo/bar/"          ERROR - no name
-        //  "foo/xxx/bar"       ("foo", "xxx", "bar")
-        //  "foo/xxx/yyy/bar"   ("foo", "xxx/yyy", "bar")
         static bool fileNameComponents
         (
             const fileName& path,
@@ -201,9 +175,6 @@ public:
             fileName& local,
             word& name
         );
-
-        template<class Name>
-        static inline word groupName(Name name, const word& group);
 
 
     // Constructors
@@ -258,8 +229,9 @@ public:
         }
 
 
-    //- Destructor
-    virtual ~IOobject();
+    // Destructor
+
+        virtual ~IOobject();
 
 
     // Member Functions
@@ -302,13 +274,8 @@ public:
                 name_ = newName;
             }
 
-            //- Register object created from this IOobject with registry if true
-            bool& registerObject()
-            {
-                return registerObject_;
-            }
-
-            //- Register object created from this IOobject with registry if true
+            //- Register object created from this IOobject with registry
+            //  if true
             bool registerObject() const
             {
                 return registerObject_;
@@ -340,12 +307,6 @@ public:
 
         // Path components
 
-            //- Return group (extension part of name)
-            word group() const;
-
-            //- Return member (name without the extension)
-            word member() const;
-
             const fileName& rootPath() const;
 
             const fileName& caseName() const;
@@ -372,7 +333,7 @@ public:
             fileName path
             (
                 const word& instance,
-                const fileName& local = fileName::null
+                const fileName& local = ""
             ) const;
 
             //- Return complete path + object name
@@ -403,8 +364,8 @@ public:
             static inline Stream& writeBanner
             (
                 Stream& os,
-                bool noHint = false,
-                bool noCopyRight = false
+                bool noHint=false,
+                bool noCopyRight=false
             );
 
             //- Write the standard file section divider
@@ -417,9 +378,6 @@ public:
 
             //- Write header
             bool writeHeader(Ostream&) const;
-
-            //- Write header. Allow override of type
-            bool writeHeader(Ostream&, const word& objectType) const;
 
 
         // Error Handling

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -20,6 +20,9 @@ License
 
     You should have received a copy of the GNU General Public License
     along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
+
+Description
+    DictionaryEntry constructor from Istream and Ostream output operator.
 
 \*---------------------------------------------------------------------------*/
 
@@ -75,7 +78,7 @@ void Foam::dictionaryEntry::write(Ostream& os) const
 }
 
 
-// * * * * * * * * * * * * * * Ostream operator  * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * Ostream operator  * * * * * * * * * * * * * * * //
 
 Foam::Ostream& Foam::operator<<(Ostream& os, const dictionaryEntry& de)
 {

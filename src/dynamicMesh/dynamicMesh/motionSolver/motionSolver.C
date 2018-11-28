@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ Foam::motionSolver::motionSolver(const polyMesh& mesh)
             "dynamicMeshDict",
             mesh.time().constant(),
             mesh,
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE
         )
     ),
@@ -67,7 +67,7 @@ Foam::autoPtr<Foam::motionSolver> Foam::motionSolver::New(const polyMesh& mesh)
             "dynamicMeshDict",
             mesh.time().constant(),
             mesh,
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
         )
@@ -79,7 +79,7 @@ Foam::autoPtr<Foam::motionSolver> Foam::motionSolver::New(const polyMesh& mesh)
 
     Info << "Selecting motion solver: " << solverTypeName << endl;
 
-    const_cast<Time&>(mesh.time()).libs().open
+    dlLibraryTable::open
     (
         solverDict,
         "motionSolverLibs",

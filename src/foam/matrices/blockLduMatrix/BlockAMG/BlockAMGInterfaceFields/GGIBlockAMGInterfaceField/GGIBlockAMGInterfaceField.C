@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ void Foam::GGIBlockAMGInterfaceField<Type>::agglomerateBlockType
     const scalarField& restrictWeights = ggiInterface_.restrictWeights();
 
     // Restrict coefficients
-    forAll (restrictAddressing, ffi)
+    forAll(restrictAddressing, ffi)
     {
         zoneCoarseCoeffs[restrictAddressing[ffi]] +=
             restrictWeights[ffi]*zoneFineCoeffs[fineAddressing[ffi]];
@@ -237,14 +237,14 @@ void Foam::GGIBlockAMGInterfaceField<Type>::updateInterfaceMatrix
 
     if (switchToLhs)
     {
-        forAll (faceCells, elemI)
+        forAll(faceCells, elemI)
         {
             result[faceCells[elemI]] += pnf[elemI];
         }
     }
     else
     {
-        forAll (faceCells, elemI)
+        forAll(faceCells, elemI)
         {
             result[faceCells[elemI]] -= pnf[elemI];
         }

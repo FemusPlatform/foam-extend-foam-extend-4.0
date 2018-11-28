@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ License
 
 inline Foam::cellShape::cellShape()
 :
-    m_(NULL)
+    m(NULL)
 {}
 
 
@@ -42,7 +42,7 @@ inline Foam::cellShape::cellShape
 )
 :
     labelList(l),
-    m_(&M)
+    m(&M)
 {
     if (doCollapse)
     {
@@ -85,15 +85,9 @@ inline Foam::pointField Foam::cellShape::points
 }
 
 
-inline bool Foam::cellShape::validModel() const
-{
-    return m_ != NULL;
-}
-
-
 inline const Foam::cellModel& Foam::cellShape::model() const
 {
-    return *m_;
+    return *m;
 }
 
 
@@ -167,7 +161,7 @@ inline Foam::labelList Foam::cellShape::meshEdges
 
 inline Foam::faceList Foam::cellShape::faces() const
 {
-    return m_->faces(*this);
+    return m->faces(*this);
 }
 
 
@@ -222,19 +216,19 @@ inline Foam::faceList Foam::cellShape::collapsedFaces() const
 
 inline Foam::label Foam::cellShape::nFaces() const
 {
-    return m_->nFaces();
+    return m->nFaces();
 }
 
 
 inline Foam::edgeList Foam::cellShape::edges() const
 {
-    return m_->edges(*this);
+    return m->edges(*this);
 }
 
 
 inline Foam::label Foam::cellShape::nEdges() const
 {
-    return m_->nEdges();
+    return m->nEdges();
 }
 
 
@@ -246,13 +240,13 @@ inline Foam::label Foam::cellShape::nPoints() const
 
 inline Foam::point Foam::cellShape::centre(const pointField& points) const
 {
-    return m_->centre(*this, points);
+    return m->centre(*this, points);
 }
 
 
 inline Foam::scalar Foam::cellShape::mag(const pointField& points) const
 {
-    return m_->mag(*this, points);
+    return m->mag(*this, points);
 }
 
 

@@ -1,7 +1,7 @@
 #---------------------------------*- sh -*-------------------------------------
 # =========                 |
 # \\      /  F ield         | foam-extend: Open Source CFD
-#  \\    /   O peration     | Version:     4.1
+#  \\    /   O peration     | Version:     4.0
 #   \\  /    A nd           | Web:         http://www.foam-extend.org
 #    \\/     M anipulation  | For copyright notice see file Copyright
 #------------------------------------------------------------------------------
@@ -52,9 +52,7 @@ runApplication ()
         echo "$APP_NAME already run on $PWD: remove log file to run"
     else
         echo "Running $APP_NAME on $PWD"
-        cat system/fvSchemes > $LOG_NAME
-        cat system/fvSolution >> $LOG_NAME
-        $APP_RUN $* >> $LOG_NAME 2>&1
+        $APP_RUN $* > $LOG_NAME 2>&1
     fi
 }
 
@@ -89,9 +87,7 @@ runParallel ()
         # Allow eccentric systems to override the hardcoded mpirun
         mpirunProg=$WM_MPIRUN_PROG
     fi
-        cat system/fvSchemes > $LOG_NAME
-        cat system/fvSolution >> $LOG_NAME
-        ( $mpirunProg $MPIRUN_OPTIONS -np $1 $APP_RUN -parallel < /dev/null > $LOG_NAME 2>&1 )
+        ( $mpirunProg -np $1 $APP_RUN -parallel < /dev/null > $LOG_NAME 2>&1 )
     fi
 }
 
@@ -106,12 +102,7 @@ compileApplication ()
         # simultaneously, and some of them depend on the compilation of a
         # common application.
         echo "Warning: Missing lockfile command. Your compilation may fail."
-        if [ "$WM_USE_CMAKE" = "1" ];
-        then
-            (cd $1; cmake .; make)
-        else
-            wmake $1
-        fi
+        wmake $1
     else
         # We make sure to serialize the compilation in case we are called simultaneously
         lockFilename="./compileApplication.lock"
@@ -121,28 +112,15 @@ compileApplication ()
 
         # We wait for the lock release at most 10 x 10 seconds = 100 seconds
         lockfile -10 -r 10 $lockFilename
-        if [ "$WM_USE_CMAKE" = "1" ];
-        then
-            (cd $1; cmake .; make)
-        else
-            wmake $1
-        fi
+        wmake $1
         rm -rf $lockFilename
-        echo DONE
     fi
 }
 
 compileLibrary ()
 {
-    echo "Compiling $1 library"
-    echo $WM_USE_CMAKE
-    if [ "$WM_USE_CMAKE" = "1" ];
-    then
-        (cd $1; cmake .; make)
-    else
-        wmake libso $1
-    fi
-    echo DONE
+    echo "Compiling $1 application"
+    wmake libso $1
 }
 
 cloneCase ()

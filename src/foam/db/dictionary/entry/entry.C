@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -27,27 +27,16 @@ License
 #include "dictionary.H"
 #include "OStringStream.H"
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-Foam::debug::infoSwitch Foam::entry::disableFunctionEntries
-(
-    "disableFunctionEntries",
-    0
-);
-
-
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::entry::entry(const keyType& keyword)
 :
-    IDLList<entry>::link(),
     keyword_(keyword)
 {}
 
 
 Foam::entry::entry(const entry& e)
 :
-    IDLList<entry>::link(),
     keyword_(e.keyword_)
 {}
 
@@ -65,7 +54,7 @@ void Foam::entry::operator=(const entry& e)
     // check for assignment to self
     if (this == &e)
     {
-        FatalErrorInFunction
+        FatalErrorIn("entry::operator=(const entry&)")
             << "attempted assignment to self"
             << abort(FatalError);
     }

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -52,6 +52,20 @@ inletOutletFvPatchField<Type>::inletOutletFvPatchField
 template<class Type>
 inletOutletFvPatchField<Type>::inletOutletFvPatchField
 (
+    const inletOutletFvPatchField<Type>& ptf,
+    const fvPatch& p,
+    const DimensionedField<Type, volMesh>& iF,
+    const fvPatchFieldMapper& mapper
+)
+:
+    mixedFvPatchField<Type>(ptf, p, iF, mapper),
+    phiName_(ptf.phiName_)
+{}
+
+
+template<class Type>
+inletOutletFvPatchField<Type>::inletOutletFvPatchField
+(
     const fvPatch& p,
     const DimensionedField<Type, volMesh>& iF,
     const dictionary& dict
@@ -60,9 +74,6 @@ inletOutletFvPatchField<Type>::inletOutletFvPatchField
     mixedFvPatchField<Type>(p, iF),
     phiName_(dict.lookupOrDefault<word>("phi", "phi"))
 {
-    // Read patch type
-    this->readPatchType(dict);
-    
     this->refValue() = Field<Type>("inletValue", dict, p.size());
 
     if (dict.found("value"))
@@ -80,20 +91,6 @@ inletOutletFvPatchField<Type>::inletOutletFvPatchField
     this->refGrad() = pTraits<Type>::zero;
     this->valueFraction() = 0.0;
 }
-
-
-template<class Type>
-inletOutletFvPatchField<Type>::inletOutletFvPatchField
-(
-    const inletOutletFvPatchField<Type>& ptf,
-    const fvPatch& p,
-    const DimensionedField<Type, volMesh>& iF,
-    const fvPatchFieldMapper& mapper
-)
-:
-    mixedFvPatchField<Type>(ptf, p, iF, mapper),
-    phiName_(ptf.phiName_)
-{}
 
 
 template<class Type>

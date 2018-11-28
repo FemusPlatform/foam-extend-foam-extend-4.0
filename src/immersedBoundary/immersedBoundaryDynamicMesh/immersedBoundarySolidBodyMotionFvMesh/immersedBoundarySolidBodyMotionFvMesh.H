@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -55,11 +55,11 @@ class immersedBoundarySolidBodyMotionFvMesh
 {
     // Private data
 
+        //- Dictionary of motion control parameters
+        dictionary dynamicMeshCoeffs_;
+
         //- Immersed boundary motion control function
         PtrList<movingImmersedBoundary> ibMotions_;
-
-        //- Current mesh motion time index
-        label curTimeIndex_;
 
 
     // Private Member Functions

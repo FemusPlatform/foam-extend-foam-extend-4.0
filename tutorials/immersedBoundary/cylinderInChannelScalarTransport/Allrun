@@ -8,9 +8,8 @@ application="scalarTransportFoam"
 runApplication blockMesh
 \cp save/boundary constant/polyMesh/
 
-\rm -rf 0
-\cp -r 0_org 0
+mkdir 0
+\cp -f 0_org/* 0/
 
-runApplication potentialFoam
+runApplication potentialIbFoam
 runApplication $application
-runApplication writeIbMasks

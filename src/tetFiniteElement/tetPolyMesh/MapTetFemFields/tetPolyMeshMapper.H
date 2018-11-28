@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ SourceFiles
 #define tetPolyMeshMapper_H
 
 #include "tetPointMapper.H"
-#include "mapPolyMesh.H"
 #include "pointMapper.H"
 #include "faceMapper.H"
 #include "cellMapper.H"
@@ -77,9 +76,6 @@ class tetPolyMeshMapper
         //- Boundary mapper
         tetPolyBoundaryMapper boundaryMap_;
 
-        //- Reset patch flag.  Set true for the rebuilt patch (no mapping)
-        boolList resetPatchFlag_;
-
 
     // Private Member Functions
 
@@ -98,16 +94,15 @@ public:
         tetPolyMeshMapper
         (
             const tetPolyMesh& mesh,
-            const mapPolyMesh& mpm
+            const mapPolyMesh& meshMap
         )
         :
             mesh_(mesh),
-            pointMap_(mpm),
-            faceMap_(mpm),
-            cellMap_(mpm),
-            tetPointMap_(mesh, mpm, pointMap_, faceMap_, cellMap_),
-            boundaryMap_(mesh, mpm, pointMap_, faceMap_),
-            resetPatchFlag_(mpm.resetPatchFlag())
+            pointMap_(meshMap),
+            faceMap_(meshMap),
+            cellMap_(meshMap),
+            tetPointMap_(mesh, meshMap, pointMap_, faceMap_, cellMap_),
+            boundaryMap_(mesh, meshMap, pointMap_, faceMap_)
         {}
 
 
@@ -142,12 +137,6 @@ public:
         const tetPolyBoundaryMapper& boundaryMap() const
         {
             return boundaryMap_;
-        }
-
-        //- Return reset patch flag
-        const boolList& resetPatchFlag() const
-        {
-            return resetPatchFlag_;
         }
 };
 

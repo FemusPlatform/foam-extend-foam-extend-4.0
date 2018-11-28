@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -157,16 +157,6 @@ Foam::polyMesh::readUpdateState Foam::processorMeshes::readUpdate()
         // Check if any new meshes need to be read.
         polyMesh::readUpdateState procStat = meshes_[procI].readUpdate();
 
-        // Force changed mesh if the processor mesh holds points. This is
-        // essential for changed region meshes and if the current time is
-        // equal to the initial time during construction.
-        // Pascal Beckstein, 14/Jul/2016
-        fileName timePath = meshes_[procI].time().timePath();
-        if (isFile(timePath/meshes_[procI].meshDir()/"points"))
-        {
-            procStat = polyMesh::POINTS_MOVED;
-        }
-
         // Combine into overall mesh change status
         if (stat == polyMesh::UNCHANGED)
         {
@@ -206,36 +196,8 @@ Foam::polyMesh::readUpdateState Foam::processorMeshes::readUpdate()
 
 void Foam::processorMeshes::reconstructPoints(fvMesh& mesh)
 {
-    // We may not use
-    //   mesh.movePoints(newPoints);
-    //   mesh.write();
-    // here, as this will fail for mesh regions containing
-    //   directMappedPolyPatches or
-    //   directMappedWallPolyPatches
-    // and probably other region-coupled patches. E.g. for both above
-    // mentioned directMapped patch types we have calls to
-    //   directMappedPatchBase::map()
-    // in the corresponding initMovePoints(const pointField& p) member
-    // function. This however involves parallel communication and it would
-    // require all other connected regions to be already reconstructed and
-    // registered during reconstruction of the current region!
-    // Pascal Beckstein, 14/Jul/2016
-
     // Create the new points
-    pointIOField newPoints
-    (
-        IOobject
-        (
-            "points",
-            mesh.time().timeName(),
-            mesh.meshSubDir,
-            mesh,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE,
-            false
-        ),
-        mesh.allPoints()
-    );
+    vectorField newPoints(mesh.nPoints());
 
     forAll (meshes_, procI)
     {
@@ -263,8 +225,8 @@ void Foam::processorMeshes::reconstructPoints(fvMesh& mesh)
         }
     }
 
-    newPoints.write();
-    mesh.readUpdate();
+    mesh.movePoints(newPoints);
+    mesh.write();
 }
 
 

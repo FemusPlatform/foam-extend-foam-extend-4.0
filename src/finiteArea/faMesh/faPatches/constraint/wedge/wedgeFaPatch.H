@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -55,14 +55,14 @@ class wedgeFaPatch
 
         const wedgePolyPatch* wedgePolyPatchPtr_;
 
-        //- Axis point labels
-        mutable labelList axisPoints_;
+        //- Axis point label
+        mutable label axisPoint_;
 
-        //- Have axis points already been checked?
-        mutable bool axisPointsChecked_;
+        //- Is it axis point looked for?
+        mutable bool axisPointChecked_;
 
-        //- Find axis points
-        void findAxisPoints() const;
+        //- Finde axis point
+        void findAxisPoint() const;
 
 public:
 
@@ -116,33 +116,15 @@ public:
                 return wedgePolyPatchPtr_->cellT();
             }
 
-            //- Return first axis point label
+            //- Return axis point label
             label axisPoint() const
             {
-                if (!axisPointsChecked_)
+                if(axisPoint_ == -1 && !axisPointChecked_)
                 {
-                    findAxisPoints();
+                    findAxisPoint();
                 }
 
-                if (axisPoints_.size() > 0)
-                {
-                    return axisPoints_[0];
-                }
-                else
-                {
-                    return -1;
-                }
-            }
-
-            //- Return all axis point labels
-            const labelList& axisPoints() const
-            {
-                if (!axisPointsChecked_)
-                {
-                    findAxisPoints();
-                }
-
-                return axisPoints_;
+                return axisPoint_;
             }
 };
 

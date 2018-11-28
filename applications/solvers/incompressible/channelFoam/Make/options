@@ -10,7 +10,6 @@ EXE_INC = \
 EXE_LIBS = \
     -lincompressibleLESModels \
     -lincompressibleTransportModels \
-    -lincompressibleTurbulenceModel \
     -lfiniteVolume \
     -lmeshTools \
     -llduSolvers

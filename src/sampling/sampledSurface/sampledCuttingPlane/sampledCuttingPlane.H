@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -65,13 +65,10 @@ class sampledCuttingPlane
         //- Whether to coarsen
         const Switch regularise_;
 
-        //- Whether to recalculate cell values as average of point values
-        const Switch average_;
-
-        //- Zone name/index (if restricted to zones)
+        //- zone name/index (if restricted to zones)
         mutable cellZoneID zoneID_;
 
-        //- For zones: patch to put exposed faces into
+        //- for zones: patch to put exposed faces into
         mutable word exposedPatchName_;
 
         //- Track if the surface needs an update
@@ -90,7 +87,7 @@ class sampledCuttingPlane
         //- Constructed iso surface
         autoPtr<isoSurface> isoSurfPtr_;
 
-        //- Triangles converted to faceList
+        //- triangles converted to faceList
         mutable autoPtr<faceList> facesPtr_;
 
 
@@ -99,7 +96,7 @@ class sampledCuttingPlane
         //- Create iso surface
         void createGeometry();
 
-        //- Sample field on faces
+        //- sample field on faces
         template <class Type>
         tmp<Field<Type> > sampleField
         (
@@ -129,8 +126,9 @@ public:
         );
 
 
-    //- Destructor
-    virtual ~sampledCuttingPlane();
+    // Destructor
+
+        virtual ~sampledCuttingPlane();
 
 
     // Member Functions
@@ -176,74 +174,66 @@ public:
             return isoSurfPtr_();
         }
 
-
-    // Sample
-
-        //- Sample field on surface
+        //- sample field on surface
         virtual tmp<scalarField> sample
         (
             const volScalarField&
         ) const;
 
-        //- Sample field on surface
+        //- sample field on surface
         virtual tmp<vectorField> sample
         (
             const volVectorField&
         ) const;
 
-        //- Sample field on surface
+        //- sample field on surface
         virtual tmp<sphericalTensorField> sample
         (
             const volSphericalTensorField&
         ) const;
 
-        //- Sample field on surface
+        //- sample field on surface
         virtual tmp<symmTensorField> sample
         (
             const volSymmTensorField&
         ) const;
 
-        //- Sample field on surface
+        //- sample field on surface
         virtual tmp<tensorField> sample
         (
             const volTensorField&
         ) const;
 
 
-    // Interpolate
-
-        //- Interpolate field on surface
+        //- interpolate field on surface
         virtual tmp<scalarField> interpolate
         (
             const interpolation<scalar>&
         ) const;
 
-        //- Interpolate field on surface
+        //- interpolate field on surface
         virtual tmp<vectorField> interpolate
         (
             const interpolation<vector>&
         ) const;
 
-        //- Interpolate field on surface
+        //- interpolate field on surface
         virtual tmp<sphericalTensorField> interpolate
         (
             const interpolation<sphericalTensor>&
         ) const;
 
-        //- Interpolate field on surface
+        //- interpolate field on surface
         virtual tmp<symmTensorField> interpolate
         (
             const interpolation<symmTensor>&
         ) const;
 
-        //- Interpolate field on surface
+        //- interpolate field on surface
         virtual tmp<tensorField> interpolate
         (
             const interpolation<tensor>&
         ) const;
-
-
-    // Output
 
         //- Write
         virtual void print(Ostream&) const;

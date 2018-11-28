@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -28,19 +28,7 @@ Description
     Boundary condition for turbulent (kinematic) viscosity when for use with
     low Reynolds number models.
 
-    Sets mut to zero, and provides an access function to calculate y+.
-
-Usage
-    Example of the boundary condition specification:
-    \verbatim
-    <patchName>
-    {
-        type            mutLowReWallFunction;
-    }
-    \endverbatim
-
-See also
-    Foam::nutWallFunctionFvPatchScalarField
+    Sets mut to zero, and provides an access to calculate y+.
 
 SourceFiles
     mutLowReWallFunctionFvPatchScalarField.C
@@ -71,7 +59,7 @@ class mutLowReWallFunctionFvPatchScalarField
 {
 protected:
 
-    // Protected Member Functions
+    // Private member functions
 
         //- Calculate the turbulence viscosity
         virtual tmp<scalarField> calcMut() const;
@@ -144,12 +132,6 @@ public:
                 new mutLowReWallFunctionFvPatchScalarField(*this, iF)
             );
         }
-
-
-    // Member functions
-
-        //- Calculate and return the yPlus at the boundary
-        virtual tmp<scalarField> yPlus() const;
 };
 
 

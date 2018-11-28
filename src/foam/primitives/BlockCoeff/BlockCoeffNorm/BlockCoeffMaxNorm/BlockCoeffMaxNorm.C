@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -46,14 +46,9 @@ Foam::BlockCoeffMaxNorm<Type>::BlockCoeffMaxNorm
 template<class Type>
 Foam::scalar Foam::BlockCoeffMaxNorm<Type>::normalize
 (
-    const BlockCoeff<Type>& a
+    const Foam::BlockCoeff<Type>& a
 )
 {
-    // Note.  This does not properly account for the sign of the
-    // off-diagonal coefficient.  If the off-diag is negative
-    // the function should look for cmptMin and vice-versa
-    // HJ, 28/Feb/2017
-
     if (a.activeType() == BlockCoeff<Type>::SCALAR)
     {
         return mag(a.asScalar());
@@ -79,23 +74,23 @@ Foam::scalar Foam::BlockCoeffMaxNorm<Type>::normalize
 
 
 template<class Type>
-void Foam::BlockCoeffMaxNorm<Type>::normalize
+void Foam::BlockCoeffMaxNorm<Type>::coeffMag
 (
-    Field<scalar>& b,
-    const CoeffField<Type>& a
+    const Foam::CoeffField<Type>& a,
+    Foam::Field<scalar>& b
 )
 {
     if (a.activeType() == BlockCoeff<Type>::SCALAR)
     {
-        b = a.asScalar();
+        b = mag(a.asScalar());
     }
     else if (a.activeType() == BlockCoeff<Type>::LINEAR)
     {
-        b = cmptMax(a.asLinear());
+        b = cmptMax(cmptMag(a.asLinear()));
     }
     else if (a.activeType() == BlockCoeff<Type>::SQUARE)
     {
-        b = cmptMax(a.asSquare());
+        b = cmptMax(cmptMag(a.asSquare()));
     }
     else
     {

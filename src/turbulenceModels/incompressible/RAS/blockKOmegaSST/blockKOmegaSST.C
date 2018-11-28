@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -355,12 +355,10 @@ tmp<volSymmTensorField> blockKOmegaSST::devReff() const
 
 tmp<fvVectorMatrix> blockKOmegaSST::divDevReff() const
 {
-    const volScalarField nuEffective = nuEff();
-
     return
     (
-      - fvm::laplacian(nuEffective, U_)
-      - (fvc::grad(U_) & fvc::grad(nuEffective))
+      - fvm::laplacian(nuEff(), U_)
+      - fvc::div(nuEff()*dev(T(fvc::grad(U_))))
     );
 }
 

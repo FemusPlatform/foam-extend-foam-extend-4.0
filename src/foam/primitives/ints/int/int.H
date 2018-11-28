@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ Description
     System integer
 
 SourceFiles
+    int.C
     intIO.C
 
 \*---------------------------------------------------------------------------*/
@@ -35,40 +36,26 @@ SourceFiles
 #ifndef int_H
 #define int_H
 
-#include "int32.H"
-#include "int64.H"
+#include "word.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-#define MAXMIN(retType, type1, type2)              \
-                                                   \
-inline retType max(const type1 s1, const type2 s2) \
-{                                                  \
-    return (s1 > s2)? s1: s2;                      \
-}                                                  \
-                                                   \
-inline retType min(const type1 s1, const type2 s2) \
-{                                                  \
-    return (s1 < s2)? s1: s2;                      \
-}
+class Istream;
+class Ostream;
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-MAXMIN(int8_t, int8_t, int8_t)
-MAXMIN(int16_t, int16_t, int16_t)
-
-MAXMIN(int32_t, int32_t, int32_t)
-MAXMIN(int64_t, int64_t, int32_t)
-MAXMIN(int64_t, int32_t, int64_t)
-MAXMIN(int64_t, int64_t, int64_t)
-
+//- Return a word representation of an int
+word name(const int);
 
 // * * * * * * * * * * * * * * * IOstream Operators  * * * * * * * * * * * * //
 
 int readInt(Istream&);
-
+Istream& operator>>(Istream&, int&);
+Ostream& operator<<(Ostream&, const int);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.1                                |
+|  \\    /   O peration     | Version:     4.0                                |
 |   \\  /    A nd           | Web:         http://www.foam-extend.org         |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -94,6 +94,7 @@ boundary
             (0 10 13 3)
         );
     }
+
     outlet1
     {
         type patch;
@@ -102,6 +103,7 @@ boundary
             (6 7 17 16)
         );
     }
+
     outlet2
     {
         type patch;
@@ -109,11 +111,6 @@ boundary
         (
             (8 18 19 9)
         );
-    }
-    defaultFaces
-    {
-        type wall;
-        faces ();
     }
 );
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -197,9 +197,9 @@ public:
         );
 
 
-    //- Destructor
-    virtual ~globalTetPolyPatch();
+    // Destructor
 
+        virtual ~globalTetPolyPatch();
 
     // Member functions
 
@@ -221,15 +221,6 @@ public:
         virtual label nFaces() const
         {
             return 0;
-        }
-
-        //- Does this side own the patch ?
-        //  HACKED: the patch contains both master and slave
-        //  This influences parallel Cholesky and ILU preconditioning
-        //  HJ, 22/Jun/2017
-        virtual bool master() const
-        {
-            return true;
         }
 
         //- Return total number of shared points
@@ -300,7 +291,6 @@ public:
         {
             return meshCutEdgeMask_;
         }
-
 
         // Access functions for demand driven data
 

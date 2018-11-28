@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -70,13 +70,13 @@ protected:
     // Protected Member functions
 
         //- Make patch weighting factors
-        virtual void makeWeights(fvsPatchScalarField&) const;
+        virtual void makeWeights(scalarField&) const;
 
         //- Make patch face - neighbour cell distances
-        virtual void makeDeltaCoeffs(fvsPatchScalarField&) const;
+        virtual void makeDeltaCoeffs(scalarField&) const;
 
         //- Make patch face non-orthogonality correction vectors
-        virtual void makeCorrVecs(fvsPatchVectorField&) const;
+        virtual void makeCorrVecs(vectorField&) const;
 
 
 public:
@@ -219,11 +219,11 @@ public:
 
             //- Return addressing.  Master side returns own addressing and
             //  slave side returns addressing from master
-            virtual const labelListList& ggiAddressing() const;
+            virtual const labelListList& addressing() const;
 
             //- Return weights.  Master side returns own weights and
             //  slave side returns weights from master
-            virtual const scalarListList& ggiWeights() const;
+            virtual const scalarListList& weights() const;
 
             //- Return face transformation tensor
             virtual const tensorField& forwardT() const

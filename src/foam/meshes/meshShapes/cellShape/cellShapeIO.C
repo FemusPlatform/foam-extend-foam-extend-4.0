@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -64,11 +64,11 @@ Istream& operator>>(Istream& is, cellShape& s)
     // it is allowed to have either a word or a number describing the model
     if (t.isLabel())
     {
-        s.m_ = cellModeller::lookup(int(t.labelToken()));
+        s.m = cellModeller::lookup(int(t.labelToken()));
     }
     else if (t.isWord())
     {
-        s.m_ = cellModeller::lookup(t.wordToken());
+        s.m = cellModeller::lookup(t.wordToken());
     }
     else
     {
@@ -79,12 +79,11 @@ Istream& operator>>(Istream& is, cellShape& s)
     }
 
     // Check that a model was found
-    if (!s.m_)
+    if (!s.m)
     {
         FatalIOErrorIn("operator>>(Istream& is, cellShape& s)", is)
             << "CellShape has unknown model " << t.info()
             << exit(FatalIOError);
-
         return is;
     }
 
@@ -107,10 +106,10 @@ Ostream& operator<<(Ostream& os, const cellShape & s)
     os << token::BEGIN_LIST;
 
     // Write the list label for the symbol (ONE OR THE OTHER !!!)
-    os << (s.m_)->index() << token::SPACE;
+    os << (s.m)->index() << token::SPACE;
 
     // Write the model name instead of the label (ONE OR THE OTHER !!!)
-    // os << (s.m_)->name() << token::SPACE;
+    // os << (s.m)->name() << token::SPACE;
 
     // Write the geometry
     os << static_cast<const labelList&>(s);
@@ -129,7 +128,7 @@ Ostream& operator<<(Ostream& os, const InfoProxy<cellShape>& ip)
 {
     const cellShape& cs = ip.t_;
 
-    if (!cs.validModel())
+    if (!(&cs.model()))
     {
         os  << "    cellShape has no model!\n";
     }

@@ -1,2 +1,2 @@
 
-    const faMesh& aMesh = faMesh::New(mesh);
+    faMesh aMesh(mesh);

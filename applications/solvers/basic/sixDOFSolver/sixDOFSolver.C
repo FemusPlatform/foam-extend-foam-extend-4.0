@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ Description
 #include "objectRegistry.H"
 #include "foamTime.H"
 #include "ODESolver.H"
-#include "sixDOFBodies.H"
+#include "sixDOFbodies.H"
 #include "OFstream.H"
 
 using namespace Foam;
@@ -48,11 +48,8 @@ int main(int argc, char *argv[])
 #   include "setRootCase.H"
 #   include "createTime.H"
 
-    sixDOFBodies structure(runTime);
+    sixDOFbodies structure(runTime);
     OFstream of(runTime.path()/"motion.dat");
-
-    // Write header for output file
-    of << "# Time, CoG_x, CoG_y, CoG_z, omega_x, omega_y, omega_z" << endl;
 
     Info<< "\nStarting time loop\n" << endl;
 
@@ -76,14 +73,11 @@ int main(int argc, char *argv[])
                 << structure()[bodyI].omegaAverage().value() << nl
                 << "Current omega in time instant = "
                 << structure()[bodyI].omega().value()  << nl
+                << "Average omegaAbs in time step = "
+                << structure()[bodyI].omegaAverageAbsolute().value() << nl
                 << endl;
 
-            of  << structure()[bodyI].X().value().x() << tab
-                << structure()[bodyI].X().value().y() << tab
-                << structure()[bodyI].X().value().z() << tab
-                << structure()[bodyI].omega().value().x() << tab
-                << structure()[bodyI].omega().value().y() << tab
-                << structure()[bodyI].omega().value().z() << tab;
+            of  << structure()[bodyI].X().value().x() << tab;
         }
 
         of << endl;

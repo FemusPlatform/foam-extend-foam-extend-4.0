@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -77,6 +77,10 @@ void Foam::polyMesh::initMesh()
                 nIntFaces++;
             }
         }
+
+        InfoIn("void polyMesh::initMesh()")
+            << "Truncating neighbour list at " << nIntFaces
+            << " for backward compatibility" << endl;
 
         neighbour_.setSize(nIntFaces);
     }

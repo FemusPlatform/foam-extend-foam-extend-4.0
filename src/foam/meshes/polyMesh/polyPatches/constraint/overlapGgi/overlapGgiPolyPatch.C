@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -210,7 +210,29 @@ Foam::overlapGgiPolyPatch::overlapGgiPolyPatch
 {}
 
 
-// Construct as copy, resetting the face list and boundary mesh data
+//- Construct as copy, resetting the boundary mesh
+Foam::overlapGgiPolyPatch::overlapGgiPolyPatch
+(
+    const overlapGgiPolyPatch& pp,
+    const polyBoundaryMesh& bm
+)
+:
+    coupledPolyPatch(pp, bm),
+    shadowName_(pp.shadowName_),
+    zoneName_(pp.zoneName_),
+    shadowIndex_(-1),
+    zoneIndex_(-1),
+    rotationAxis_(pp.rotationAxis_),
+    nCopies_(pp.nCopies_),
+    expandedMasterPtr_(NULL),
+    expandedSlavePtr_(NULL),
+    patchToPatchPtr_(NULL),
+    localParallelPtr_(NULL),
+    reconFaceCellCentresPtr_(NULL)
+{}
+
+
+//- Construct as copy, resetting the face list and boundary mesh data
 Foam::overlapGgiPolyPatch::overlapGgiPolyPatch
 (
     const overlapGgiPolyPatch& pp,
@@ -221,49 +243,6 @@ Foam::overlapGgiPolyPatch::overlapGgiPolyPatch
 )
 :
     coupledPolyPatch(pp, bm, index, newSize, newStart),
-    shadowName_(pp.shadowName_),
-    zoneName_(pp.zoneName_),
-    shadowIndex_(-1),
-    zoneIndex_(-1),
-    rotationAxis_(pp.rotationAxis_),
-    nCopies_(pp.nCopies_),
-    expandedMasterPtr_(NULL),
-    expandedSlavePtr_(NULL),
-    patchToPatchPtr_(NULL),
-    localParallelPtr_(NULL),
-    reconFaceCellCentresPtr_(NULL)
-{}
-
-
-// Construct as copy, resetting the boundary mesh
-Foam::overlapGgiPolyPatch::overlapGgiPolyPatch
-(
-    const overlapGgiPolyPatch& pp
-)
-:
-    coupledPolyPatch(pp),
-    shadowName_(pp.shadowName_),
-    zoneName_(pp.zoneName_),
-    shadowIndex_(-1),
-    zoneIndex_(-1),
-    rotationAxis_(pp.rotationAxis_),
-    nCopies_(pp.nCopies_),
-    expandedMasterPtr_(NULL),
-    expandedSlavePtr_(NULL),
-    patchToPatchPtr_(NULL),
-    localParallelPtr_(NULL),
-    reconFaceCellCentresPtr_(NULL)
-{}
-
-
-//- Construct as copy, resetting the boundary mesh
-Foam::overlapGgiPolyPatch::overlapGgiPolyPatch
-(
-    const overlapGgiPolyPatch& pp,
-    const polyBoundaryMesh& bm
-)
-:
-    coupledPolyPatch(pp, bm),
     shadowName_(pp.shadowName_),
     zoneName_(pp.zoneName_),
     shadowIndex_(-1),
@@ -378,6 +357,19 @@ const Foam::label& Foam::overlapGgiPolyPatch::nCopies() const
     // Read the number of copies to be made from the dictionary for the
     // expanded slave and expanded master to cover 360 degrees
     return nCopies_;
+}
+
+
+bool Foam::overlapGgiPolyPatch::master() const
+{
+    // The first overlapggi interface is master,second one is slave
+    if (angle() == shadow().angle())
+    {
+        return index() < shadowIndex();
+    }
+
+    // Master is the one with the larger angle
+    return angle() > shadow().angle();
 }
 
 

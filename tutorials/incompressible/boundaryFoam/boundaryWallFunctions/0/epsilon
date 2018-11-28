@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | foam-extend: Open Source CFD                    |
-|  \\    /   O peration     | Version:     4.1                                |
+|  \\    /   O peration     | Version:     4.0                                |
 |   \\  /    A nd           | Web:         http://www.foam-extend.org         |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -10,7 +10,6 @@ FoamFile
     version     2.0;
     format      ascii;
     class       volScalarField;
-    location    "0";
     object      epsilon;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -23,22 +22,14 @@ boundaryField
 {
     lowerWall
     {
-        type            epsilonWallFunction;
-        refValue        uniform 0;
-        value           uniform 14.855;
-        Cmu             0.09;
-        kappa           0.41;
-        E               9.8;
+        type            zeroGradient;
     }
+
     upperWall
     {
-        type            epsilonWallFunction;
-        refValue        uniform 0;
-        value           uniform 14.855;
-        Cmu             0.09;
-        kappa           0.41;
-        E               9.8;
+        type            zeroGradient;
     }
+
     defaultFaces
     {
         type            empty;

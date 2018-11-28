@@ -8,5 +8,5 @@ application="elasticSolidFoam"
 runApplication blockMesh
 runApplication $application
 
-compileApplication analyticalPlateHole
+(cd analyticalPlateHole && runApplication wmake)
 runApplication analyticalPlateHole

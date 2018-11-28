@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const token& t)
             os << *t.compoundTokenPtr_;
         break;
 
-        case token::ERROR:
+        case token::FATALERROR:
             os << "FATALERROR";
             WarningIn("Ostream& operator<<(Ostream&, const token&)")
                 << "Error token" << endl;
@@ -191,7 +191,7 @@ ostream& Foam::operator<<(ostream& os, const InfoProxy<token>& ip)
         }
         break;
 
-        case token::ERROR:
+        case token::FATALERROR:
             os  << " an error";
         break;
 
@@ -265,7 +265,7 @@ Ostream& operator<<(Ostream& os, const InfoProxy<token>& ip)
         }
         break;
 
-        case token::ERROR:
+        case token::FATALERROR:
             os  << " an error";
         break;
 

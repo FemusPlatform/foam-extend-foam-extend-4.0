@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,13 +26,13 @@ Class
 
 Description
     A functionObject wrapper around OutputFilter to allow them to be
-    created via the functions entry within controlDict.
+    created via the functions list within controlDict.
 
 Note
     Since the timeIndex is used directly from Foam::Time, it is unaffected
-    by user-time conversions. For example, Foam::engineTime might cause \a
+    by user-time conversions. For example, Foam::engineTime might cause @a
     writeInterval to be degrees crank angle, but the functionObject
-    execution \a interval would still be in timestep.
+    execution @a interval would still be in timestep.
 
 SourceFiles
     OutputFilterFunctionObject.C
@@ -68,38 +68,21 @@ class OutputFilterFunctionObject
         //- Input dictionary
         dictionary dict_;
 
+        //- Name of region
+        word regionName_;
 
-        // Optional user inputs
+        //- Optional dictionary name to supply required inputs
+        word dictName_;
 
-            //- Name of region - defaults to name of polyMesh::defaultRegion
-            word regionName_;
+        //- Switch for the execution of the functionObject
+        bool enabled_;
 
-            //- Dictionary name to supply required inputs
-            word dictName_;
-
-            //- Switch for the execution - defaults to 'yes/on'
-            bool enabled_;
-
-            //- Switch to store filter in between writes or use on-the-fly
-            //  construction - defaults to true
-            bool storeFilter_;
-
-            //- Activation time - defaults to -VGREAT
-            scalar timeStart_;
-
-            //- De-activation time - defaults to VGREAT
-            scalar timeEnd_;
-
-            //- Number of steps before the dumping time in which the deltaT
-            // will start to change (valid for ocAdjustableTime)
-            label nStepsToStartTimeChange_;
-
+        //- Switch to store filter in between writes or use on-the-fly
+        //  construction
+        bool storeFilter_;
 
         //- Output controls
         outputFilterOutputControl outputControl_;
-
-        //- Evaluate controls
-        outputFilterOutputControl evaluateControl_;
 
         //- Pointer to the output filter
         autoPtr<OutputFilter> ptr_;
@@ -115,9 +98,6 @@ class OutputFilterFunctionObject
 
         //- Destroys most of the data associated with this object.
         void destroyFilter();
-
-        //- Returns true if active (enabled and within time bounds)
-        bool active() const;
 
         //- Disallow default bitwise copy construct
         OutputFilterFunctionObject(const OutputFilterFunctionObject&);
@@ -203,25 +183,14 @@ public:
             virtual bool start();
 
             //- Called at each ++ or += of the time-loop
-            virtual bool execute(const bool forceWrite);
+            virtual bool execute();
 
             //- Called when Time::run() determines that the time-loop exits
             virtual bool end();
 
-            //- Called when time was set at the end of the Time::operator++
-            virtual bool timeSet();
-
-            //- Called at the end of Time::adjustDeltaT() if adjustTime is true
-            virtual bool adjustTimeStep();
 
             //- Read and set the function object if its data have changed
             virtual bool read(const dictionary&);
-
-            //- Update for changes of mesh
-            virtual void updateMesh(const mapPolyMesh& mpm);
-
-            //- Update for changes of mesh
-            virtual void movePoints(const pointField& mesh);
 };
 
 

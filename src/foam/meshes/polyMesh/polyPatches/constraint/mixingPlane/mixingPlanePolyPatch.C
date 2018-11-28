@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -605,7 +605,30 @@ Foam::mixingPlanePolyPatch::mixingPlanePolyPatch
 }
 
 
-// Construct as copy, resetting the face list and boundary mesh data
+Foam::mixingPlanePolyPatch::mixingPlanePolyPatch
+(
+    const mixingPlanePolyPatch& pp,
+    const polyBoundaryMesh& bm
+)
+:
+    coupledPolyPatch(pp, bm),
+    shadowName_(pp.shadowName_),
+    zoneName_(pp.zoneName_),
+    csPtr_(pp.csPtr_->clone()),
+    discretisationType_(pp.discretisationType_),
+    sweepAxisType_(pp.sweepAxisType_),
+    stackAxisType_(pp.stackAxisType_),
+    userProfileFile_(pp.userProfileFile_),
+    shadowIndex_(-1),
+    patchToPatchPtr_(NULL),
+    zoneAddressingPtr_(NULL),
+    reconFaceCellCentresPtr_(NULL),
+    localParallelPtr_(NULL),
+    receiveAddrPtr_(NULL)
+{}
+
+
+//- Construct as copy, resetting the face list and boundary mesh data
 Foam::mixingPlanePolyPatch::mixingPlanePolyPatch
 (
     const mixingPlanePolyPatch& pp,
@@ -616,51 +639,6 @@ Foam::mixingPlanePolyPatch::mixingPlanePolyPatch
 )
 :
     coupledPolyPatch(pp, bm, index, newSize, newStart),
-    shadowName_(pp.shadowName_),
-    zoneName_(pp.zoneName_),
-    csPtr_(pp.csPtr_->clone()),
-    discretisationType_(pp.discretisationType_),
-    sweepAxisType_(pp.sweepAxisType_),
-    stackAxisType_(pp.stackAxisType_),
-    userProfileFile_(pp.userProfileFile_),
-    shadowIndex_(-1),
-    patchToPatchPtr_(NULL),
-    zoneAddressingPtr_(NULL),
-    reconFaceCellCentresPtr_(NULL),
-    localParallelPtr_(NULL),
-    receiveAddrPtr_(NULL)
-{}
-
-
-Foam::mixingPlanePolyPatch::mixingPlanePolyPatch
-(
-    const mixingPlanePolyPatch& pp
-)
-:
-    coupledPolyPatch(pp),
-    shadowName_(pp.shadowName_),
-    zoneName_(pp.zoneName_),
-    csPtr_(pp.csPtr_->clone()),
-    discretisationType_(pp.discretisationType_),
-    sweepAxisType_(pp.sweepAxisType_),
-    stackAxisType_(pp.stackAxisType_),
-    userProfileFile_(pp.userProfileFile_),
-    shadowIndex_(-1),
-    patchToPatchPtr_(NULL),
-    zoneAddressingPtr_(NULL),
-    reconFaceCellCentresPtr_(NULL),
-    localParallelPtr_(NULL),
-    receiveAddrPtr_(NULL)
-{}
-
-
-Foam::mixingPlanePolyPatch::mixingPlanePolyPatch
-(
-    const mixingPlanePolyPatch& pp,
-    const polyBoundaryMesh& bm
-)
-:
-    coupledPolyPatch(pp, bm),
     shadowName_(pp.shadowName_),
     zoneName_(pp.zoneName_),
     csPtr_(pp.csPtr_->clone()),

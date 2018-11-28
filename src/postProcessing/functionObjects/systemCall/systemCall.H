@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,59 +24,8 @@ License
 Class
     Foam::systemCall
 
-Group
-    grpFunctionObjects
-
 Description
-    This function object executes system calls, entered in the form of a
-    string lists.  Calls can be made at the following points in the
-    calculation:
-    - every time step
-    - every output time
-    - end of the calculation
-
-    Example of function object specification:
-    \verbatim
-    systemCall1
-    {
-        type        systemCall;
-        functionObjectLibs ("libsystemCall.so");
-        ...
-        executeCalls
-        (
-            "echo execute"
-        );
-        writeCalls
-        (
-            "echo \*\*\* writing data \*\*\*"
-        );
-        endCalls
-        (
-            "echo \*\*\* writing .bashrc \*\*\*"
-            "cat ~/.bashrc"
-            "echo \*\*\* done \*\*\*"
-        );
-    }
-    \endverbatim
-
-    \heading Function object usage
-    \table
-        Property     | Description             | Required    | Default value
-        type         | type name: systemCall   | yes         |
-        executeCalls | list of calls on execute | yes        |
-        writeCalls   | list of calls on write  | yes         |
-        endCalls     | list of calls on end    | yes         |
-    \endtable
-
-Note
-    Since this function object executes system calls, there is a potential
-    security risk.  In order to use the \c systemCall function object, the
-    \c allowSystemOperations must be set to '1'; otherwise, system calls will
-    not be allowed.
-
-SeeAlso
-    Foam::functionObject
-    Foam::OutputFilterFunctionObject
+    Executes system calls, entered in the form of a string list
 
 SourceFiles
     systemCall.C
@@ -88,7 +37,7 @@ SourceFiles
 #define systemCall_H
 
 #include "stringList.H"
-#include "pointField.H"
+#include "pointFieldFwd.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -98,11 +47,10 @@ namespace Foam
 // Forward declaration of classes
 class objectRegistry;
 class dictionary;
-class polyMesh;
 class mapPolyMesh;
 
 /*---------------------------------------------------------------------------*\
-                         Class systemCall Declaration
+                       Class systemCall Declaration
 \*---------------------------------------------------------------------------*/
 
 class systemCall
@@ -152,8 +100,9 @@ public:
         );
 
 
-    //- Destructor
-    virtual ~systemCall();
+    // Destructor
+
+        virtual ~systemCall();
 
 
     // Member Functions
@@ -172,9 +121,6 @@ public:
 
         //- Execute the "endCalls" at the final time-loop
         virtual void end();
-
-        //- Called when time was set at the end of the Time::operator++
-        virtual void timeSet();
 
         //- Write, execute the "writeCalls"
         virtual void write();

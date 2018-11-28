@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -43,12 +43,7 @@ SourceFiles
 #include "tmp.H"
 #include "primitiveFields.H"
 #include "SubField.H"
-#include "DimensionedField.H"
 #include "fvPatchFieldsFwd.H"
-#include "fvsPatchFieldsFwd.H"
-#include "surfaceFieldsFwd.H"
-#include "slicedVolFieldsFwd.H"
-#include "slicedSurfaceFieldsFwd.H"
 #include "autoPtr.H"
 #include "runTimeSelectionTables.H"
 
@@ -57,7 +52,6 @@ SourceFiles
 namespace Foam
 {
 
-class fvMesh;
 class fvBoundaryMesh;
 class surfaceInterpolation;
 
@@ -89,57 +83,26 @@ protected:
 
     // Protected Member Functions
 
-        // Geometry correction functions
+        //- Make patch weighting factors
+        virtual void makeWeights(scalarField&) const;
 
-            //- Make mesh face centres
-            virtual void makeCf(slicedSurfaceVectorField&) const
-            {}
+        //- Make patch face - neighbour cell distances
+        virtual void makeDeltaCoeffs(scalarField&) const;
 
-            //- Make mesh face areas
-            virtual void makeSf(slicedSurfaceVectorField&) const
-            {}
+        //- Make patch face non-orthogonality correction vectors
+        virtual void makeCorrVecs(vectorField&) const;
 
-            //- Make mesh cell centres
-            virtual void makeC(slicedVolVectorField&) const
-            {}
+        //- Initialise the patches for moving points
+        virtual void initMovePoints();
 
-            //- Make mesh cell volumes
-            virtual void makeV(scalarField&) const
-            {}
-
-            //- Update mesh motion fluxes
-            virtual void updatePhi
-            (
-                DimensionedField<scalar, volMesh>& V,
-                DimensionedField<scalar, volMesh>& V0,
-                surfaceScalarField& phi
-            ) const
-            {}
-
-
-        // Discretisation correction functions
-
-            //- Make patch weighting factors
-            virtual void makeWeights(fvsPatchScalarField&) const;
-
-            //- Make patch face - neighbour cell distances
-            virtual void makeDeltaCoeffs(fvsPatchScalarField&) const;
-
-            //- Make patch face non-orthogonality correction vectors
-            virtual void makeCorrVecs(fvsPatchVectorField&) const;
-
-            //- Initialise the patches for moving points
-            virtual void initMovePoints();
-
-            //- Correct patches after moving points
-            virtual void movePoints();
+        //- Correct patches after moving points
+        virtual void movePoints();
 
 
 public:
 
     typedef fvBoundaryMesh BoundaryMesh;
 
-    friend class fvMesh;
     friend class fvBoundaryMesh;
     friend class surfaceInterpolation;
 
@@ -149,6 +112,7 @@ public:
 
     // Declare run-time constructor selection tables
 
+#ifndef SWIG
         declareRunTimeSelectionTable
         (
             autoPtr,
@@ -157,6 +121,7 @@ public:
             (const polyPatch& patch, const fvBoundaryMesh& bm),
             (patch, bm)
         );
+#endif
 
 
     // Constructors
@@ -171,13 +136,14 @@ public:
         static autoPtr<fvPatch> New(const polyPatch&, const fvBoundaryMesh&);
 
 
-    //- Destructor
-    virtual ~fvPatch();
+    // Destructor
+
+        virtual ~fvPatch();
 
 
     // Member Functions
 
-        // Access
+    // Access
 
             //- Return the polyPatch
             const polyPatch& patch() const
@@ -191,20 +157,14 @@ public:
                 return polyPatch_.name();
             }
 
-            //- Return patch size
+            //- Return size
             virtual label size() const
             {
                 return polyPatch_.size();
             }
 
-            //- Return patch slice size.  Immersed boundary support
-            virtual label sliceSize() const
-            {
-                return size();
-            }
-
             //- Return true if this patch is coupled
-            virtual bool coupled() const
+            bool coupled() const
             {
                 return polyPatch_.coupled();
             }
@@ -239,12 +199,11 @@ public:
             {
                 return typename List<T>::subList
                 (
-                    l, sliceSize(),
+                    l, size(),
                     polyPatch_.start()
                 );
             }
 
-            //- Slice list to patch
             template<class T>
             const typename Field<T>::subField patchSlice
             (
@@ -253,7 +212,7 @@ public:
             {
                 return typename Field<T>::subField
                 (
-                    l, sliceSize(),
+                    l, size(),
                     polyPatch_.start()
                 );
             }

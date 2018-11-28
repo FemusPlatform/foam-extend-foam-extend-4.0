@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -47,11 +47,10 @@ int main(int argc, char *argv[])
 {
 #   include "setRootCase.H"
 #   include "createTime.H"
-#   include "createMesh.H"
+#   include "createFluidMesh.H"
 #   include "createSolidMesh.H"
 
     pisoControl piso(mesh);
-    simpleControl simpleSolid(solidMesh);
 
 #   include "readGravitationalAcceleration.H"
 #   include "createFields.H"
@@ -73,7 +72,7 @@ int main(int argc, char *argv[])
 #       include "CourantNo.H"
 #       include "setDeltaT.H"
 
-        // Detach coupled CHT patches
+        // Detach patches
 #       include "detachPatches.H"
 
 #       include "UEqn.H"
@@ -100,7 +99,7 @@ int main(int argc, char *argv[])
         rhoCpsolid.oldTime();
         rhoCpsolid = solidThermo.rho()*solidThermo.C();
 
-        // Attached coupled CHT patches
+        // Coupled patches
 #       include "attachPatches.H"
 
         kappaEff.correctBoundaryConditions();

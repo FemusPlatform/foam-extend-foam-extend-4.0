@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
 {
     argList::validOptions.insert("ibCells", "");
     argList::validOptions.insert("ibCellCells", "");
+    argList::validOptions.insert("ibCellCellFaces", "");
 
 #   include "setRootCase.H"
 
@@ -60,6 +61,13 @@ int main(int argc, char *argv[])
         rc = rib.refinementCells
         (
             refineImmersedBoundaryMesh::IB_CELL_CELLS
+        );
+    }
+    else if (args.optionFound("ibCellCellFaces"))
+    {
+        rc = rib.refinementCells
+        (
+            refineImmersedBoundaryMesh::IB_CELL_CELL_FACES
         );
     }
     else

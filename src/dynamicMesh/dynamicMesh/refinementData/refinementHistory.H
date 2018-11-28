@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ Description
     All refinement history. Used in unrefinement.
 
     - visibleCells: valid for the current mesh and contains per cell -1
-      (cell unrefined) or an index into splitCells_.
+    (cell unrefined) or an index into splitCells_.
     - splitCells: for every split contains the parent (also index into
       splitCells) and optionally a subsplit as 8 indices into splitCells.
       Note that the numbers in splitCells are not cell labels, they are purely

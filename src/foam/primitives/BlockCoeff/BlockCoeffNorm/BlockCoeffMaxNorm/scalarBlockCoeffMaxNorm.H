@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -68,10 +68,10 @@ inline scalar BlockCoeffMaxNorm<scalar>::normalize
 
 
 template<>
-inline void BlockCoeffMaxNorm<scalar>::normalize
+inline void BlockCoeffMaxNorm<scalar>::coeffMag
 (
-    Field<scalar>& b,
-    const CoeffField<scalar>& a
+    const CoeffField<scalar>& a,
+    Field<scalar>& b
 )
 {
     b = mag(a.asScalar());

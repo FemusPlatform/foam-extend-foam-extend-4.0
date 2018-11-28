@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -58,11 +58,10 @@ RASModel::RASModel
     const volScalarField& rho,
     const volVectorField& U,
     const surfaceScalarField& phi,
-    const basicThermo& thermophysicalModel,
-    const word& turbulenceModelName
+    const basicThermo& thermophysicalModel
 )
 :
-    turbulenceModel(rho, U, phi, thermophysicalModel, turbulenceModelName),
+    turbulenceModel(rho, U, phi, thermophysicalModel),
 
     IOdictionary
     (
@@ -71,7 +70,7 @@ RASModel::RASModel
             "RASProperties",
             U.time().constant(),
             U.db(),
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE
         )
     ),
@@ -85,7 +84,9 @@ RASModel::RASModel
     epsilonSmall_("epsilonSmall", epsilon0_.dimensions(), SMALL),
     omega0_("omega0", dimless/dimTime, SMALL),
     omegaSmall_("omegaSmall", omega0_.dimensions(), SMALL),
-    muRatio_(lookupOrDefault<scalar>("muRatio", 1e6))
+    muRatio_(lookupOrDefault<scalar>("muRatio", 1e6)),
+
+    y_(mesh_)
 {
     // Force the construction of the mesh deltaCoeffs which may be needed
     // for the construction of the derived models and BCs
@@ -100,8 +101,7 @@ autoPtr<RASModel> RASModel::New
     const volScalarField& rho,
     const volVectorField& U,
     const surfaceScalarField& phi,
-    const basicThermo& thermophysicalModel,
-    const word& turbulenceModelName
+    const basicThermo& thermophysicalModel
 )
 {
     word modelName;
@@ -117,7 +117,7 @@ autoPtr<RASModel> RASModel::New
                 "RASProperties",
                 U.time().constant(),
                 U.db(),
-                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::MUST_READ,
                 IOobject::NO_WRITE
             )
         );
@@ -146,12 +146,25 @@ autoPtr<RASModel> RASModel::New
 
     return autoPtr<RASModel>
     (
-        cstrIter()(rho, U, phi, thermophysicalModel, turbulenceModelName)
+        cstrIter()(rho, U, phi, thermophysicalModel)
     );
 }
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+scalar RASModel::yPlusLam(const scalar kappa, const scalar E) const
+{
+    scalar ypl = 11.0;
+
+    for (int i=0; i<10; i++)
+    {
+        ypl = log(E*ypl)/kappa;
+    }
+
+    return ypl;
+}
+
 
 tmp<volScalarField> RASModel::muEff() const
 {
@@ -168,30 +181,50 @@ tmp<volScalarField> RASModel::muEff() const
 }
 
 
+tmp<scalarField> RASModel::yPlus(const label patchNo, const scalar Cmu) const
+{
+    const fvPatch& curPatch = mesh_.boundary()[patchNo];
+
+    tmp<scalarField> tYp(new scalarField(curPatch.size()));
+    scalarField& Yp = tYp();
+
+    if (curPatch.isWall())
+    {
+        Yp = pow(Cmu, 0.25)
+            *y_[patchNo]
+            *sqrt(k()().boundaryField()[patchNo].patchInternalField())
+           /(
+                mu().boundaryField()[patchNo].patchInternalField()
+               /rho_.boundaryField()[patchNo]
+            );
+    }
+    else
+    {
+        WarningIn
+        (
+            "tmp<scalarField> RASModel::yPlus(const label patchNo) const"
+        )   << "Patch " << patchNo << " is not a wall. Returning null field"
+            << nl << endl;
+
+        Yp.setSize(0);
+    }
+
+    return tYp;
+}
+
+
 void RASModel::correct()
 {
-    turbulenceModel::correct();
+    if (mesh_.changing())
+    {
+        y_.correct();
+    }
 }
 
 
 bool RASModel::read()
 {
-    //if (regIOobject::read())
-
-    // Bit of trickery : we are both IOdictionary ('RASProperties') and
-    // an regIOobject from the turbulenceModel level. Problem is to distinguish
-    // between the two - we only want to reread the IOdictionary.
-
-    bool ok = IOdictionary::readData
-    (
-        IOdictionary::readStream
-        (
-            IOdictionary::type()
-        )
-    );
-    IOdictionary::close();
-
-    if (ok)
+    if (regIOobject::read())
     {
         lookup("turbulence") >> turbulence_;
 

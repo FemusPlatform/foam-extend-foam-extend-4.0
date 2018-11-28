@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -34,8 +34,7 @@ Author
 
 #include "coarseAmgLevel.H"
 #include "SubField.H"
-#include "cgSolver.H"
-#include "bicgStabSolver.H"
+#include "gmresSolver.H"
 #include "vector2D.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -61,9 +60,6 @@ Foam::coarseAmgLevel::coarseAmgLevel
         (
             policyType,
             matrixPtr_->matrix(),
-            matrixPtr_->coupleBouCoeffs(),
-            matrixPtr_->coupleIntCoeffs(),
-            matrixPtr_->interfaceFields(),
             groupSize,
             minCoarseEqns
         )
@@ -193,35 +189,33 @@ void Foam::coarseAmgLevel::solve
 {
     lduSolverPerformance coarseSolverPerf;
 
+    label maxIter = Foam::min(2*policyPtr_->minCoarseEqns(), 1000);
+
     dictionary topLevelDict;
-    topLevelDict.add("preconditioner", "ILUC0");
-    topLevelDict.add("minIter", 0);
-    topLevelDict.add("maxIter", 500);
+    topLevelDict.add("nDirections", "5");
+    topLevelDict.add("minIter", 1);
+    topLevelDict.add("maxIter", maxIter);
     topLevelDict.add("tolerance", tolerance);
     topLevelDict.add("relTol", relTol);
 
-    // Top-level round-off error control.  HJ, 28/May/2018
-    x = 0;
+    // Avoid issues with round-off on strict tolerance setup
+    // HJ, 27/Jun/2013
+    x = b/matrixPtr_->matrix().diag();
+
+    // Do not solve if the number of equations is smaller than 5
+    if (policyPtr_->minCoarseEqns() < 5)
+    {
+        return;
+    }
 
     // Switch off debug in top-level direct solve
-    label oldDebug = blockLduMatrix::debug();
-
-    if (blockLduMatrix::debug >= 4)
-    {
-        blockLduMatrix::debug = 2;
-    }
-    else if (blockLduMatrix::debug == 3)
-    {
-        blockLduMatrix::debug = 1;
-    }
-    else
-    {
-        blockLduMatrix::debug = 0;
-    }
+    label oldDebug = lduMatrix::debug();
 
     if (matrixPtr_->matrix().symmetric())
     {
-        coarseSolverPerf = cgSolver
+        topLevelDict.add("preconditioner", "Cholesky");
+
+        coarseSolverPerf = gmresSolver
         (
             "topLevelCorr",
             matrixPtr_->matrix(),
@@ -233,7 +227,9 @@ void Foam::coarseAmgLevel::solve
     }
     else
     {
-        coarseSolverPerf = bicgStabSolver
+        topLevelDict.add("preconditioner", "ILU0");
+
+        coarseSolverPerf = gmresSolver
         (
             "topLevelCorr",
             matrixPtr_->matrix(),
@@ -244,25 +240,28 @@ void Foam::coarseAmgLevel::solve
         ).solve(x, b, cmpt);
     }
 
-    // Check for convergence
-    const scalar magInitialRes = mag(coarseSolverPerf.initialResidual());
-    const scalar magFinalRes = mag(coarseSolverPerf.finalResidual());
+    // Restore debug
+    lduMatrix::debug = oldDebug;
 
-    if (magFinalRes > magInitialRes && magInitialRes > 1e-12)
+    // Escape cases of top-level solver divergence
+    if
+    (
+        coarseSolverPerf.nIterations() == maxIter
+     && (
+            coarseSolverPerf.finalResidual()
+         >= coarseSolverPerf.initialResidual()
+        )
+    )
     {
-        if (blockLduMatrix::debug)
-        {
-            Info<< "Divergence in top AMG level" << endl;
-            coarseSolverPerf.print();
-        }
+        // Top-level solution failed.  Attempt rescue
+        // HJ, 27/Jul/2013
+        x = b/matrixPtr_->matrix().diag();
 
-        x = 0;
+        // Print top level correction failure as info for user
+        coarseSolverPerf.print();
     }
 
-    // Restore debug
-    blockLduMatrix::debug = oldDebug;
-
-    if (blockLduMatrix::debug >= 3)
+    if (lduMatrix::debug >= 3)
     {
         coarseSolverPerf.print();
     }
@@ -339,7 +338,12 @@ Foam::autoPtr<Foam::amgLevel> Foam::coarseAmgLevel::makeNextLevel() const
         (
             new coarseAmgLevel
             (
-                policyPtr_->restrictMatrix(),
+                policyPtr_->restrictMatrix
+                (
+                    matrixPtr_->coupleBouCoeffs(),
+                    matrixPtr_->coupleIntCoeffs(),
+                    matrixPtr_->interfaceFields()
+                ),
                 dict(),
                 policyPtr_->type(),
                 policyPtr_->groupSize(),

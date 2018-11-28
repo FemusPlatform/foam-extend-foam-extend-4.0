@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -235,45 +235,26 @@ int main(int argc, char *argv[])
     }
 
     Info<< "Create mesh for region " << regionName << endl;
-    fvMesh mesh
+    domainDecomposition mesh
     (
         IOobject
         (
             regionName,
             runTime.timeName(),
-            runTime,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
+            runTime
         )
     );
-
-    domainDecomposition meshDecomp
-    (
-        mesh,
-        IOdictionary
-        (
-            IOobject
-            (
-                "decomposeParDict",
-                runTime.system(),
-                mesh,
-                IOobject::MUST_READ,
-                IOobject::NO_WRITE
-            )
-        )
-    );
-
 
     // Decompose the mesh
     if (!decomposeFieldsOnly)
     {
-        meshDecomp.decomposeMesh(filterPatches);
+        mesh.decomposeMesh(filterPatches);
 
-        meshDecomp.writeDecomposition();
+        mesh.writeDecomposition();
 
         if (writeCellDist)
         {
-            const labelList& procIds = meshDecomp.cellToProc();
+            const labelList& procIds = mesh.cellToProc();
 
             // Write the decomposition as labelList for use with 'manual'
             // decomposition method.
@@ -303,7 +284,6 @@ int main(int argc, char *argv[])
                 (
                     "cellDist",
                     runTime.timeName(),
-                    mesh.dbDir(),
                     mesh,
                     IOobject::NO_READ,
                     IOobject::NO_WRITE
@@ -364,7 +344,7 @@ int main(int argc, char *argv[])
 
     // Construct the point fields
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~
-    const pointMesh& pMesh = pointMesh::New(mesh);
+    pointMesh pMesh(mesh);
 
     PtrList<pointScalarField> pointScalarFields;
     readFields(pMesh, objects, pointScalarFields);
@@ -614,7 +594,7 @@ int main(int argc, char *argv[])
     Info<< endl;
 
     // Split the fields over processors
-    for (label procI = 0; procI < meshDecomp.nProcs(); procI++)
+    for (label procI = 0; procI < mesh.nProcs(); procI++)
     {
         Info<< "Processor " << procI << ": field transfer" << endl;
 
@@ -641,7 +621,7 @@ int main(int argc, char *argv[])
             rm(timeDir/"nut.gz");
         }
 
-        // Read the mesh
+        // read the mesh
         fvMesh procMesh
         (
             IOobject
@@ -649,32 +629,6 @@ int main(int argc, char *argv[])
                 regionName,
                 processorDb.timeName(),
                 processorDb
-            )
-        );
-
-        labelIOList pointProcAddressing
-        (
-            IOobject
-            (
-                "pointProcAddressing",
-                procMesh.facesInstance(),
-                procMesh.meshSubDir,
-                procMesh,
-                IOobject::MUST_READ,
-                IOobject::NO_WRITE
-            )
-        );
-
-        labelIOList faceProcAddressing
-        (
-            IOobject
-            (
-                "faceProcAddressing",
-                procMesh.facesInstance(),
-                procMesh.meshSubDir,
-                procMesh,
-                IOobject::MUST_READ,
-                IOobject::NO_WRITE
             )
         );
 
@@ -719,6 +673,19 @@ int main(int argc, char *argv[])
          || surfaceTensorFields.size()
         )
         {
+            labelIOList faceProcAddressing
+            (
+                IOobject
+                (
+                    "faceProcAddressing",
+                    procMesh.facesInstance(),
+                    procMesh.meshSubDir,
+                    procMesh,
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE
+                )
+            );
+
             fvFieldDecomposer fieldDecomposer
             (
                 mesh,
@@ -752,7 +719,20 @@ int main(int argc, char *argv[])
          || pointTensorFields.size()
         )
         {
-            const pointMesh& procPMesh = pointMesh::New(procMesh, true);
+            labelIOList pointProcAddressing
+            (
+                IOobject
+                (
+                    "pointProcAddressing",
+                    procMesh.facesInstance(),
+                    procMesh.meshSubDir,
+                    procMesh,
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE
+                )
+            );
+
+            pointMesh procPMesh(procMesh, true);
 
             pointFieldDecomposer fieldDecomposer
             (
@@ -775,6 +755,34 @@ int main(int argc, char *argv[])
         {
             const tetPolyMesh& tetMesh = *tetMeshPtr;
             tetPolyMesh procTetMesh(procMesh);
+
+            // Read the point addressing information
+            labelIOList pointProcAddressing
+            (
+                IOobject
+                (
+                    "pointProcAddressing",
+                    procMesh.facesInstance(),
+                    procMesh.meshSubDir,
+                    procMesh,
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE
+                )
+            );
+
+            // Read the point addressing information
+            labelIOList faceProcAddressing
+            (
+                IOobject
+                (
+                    "faceProcAddressing",
+                    procMesh.facesInstance(),
+                    procMesh.meshSubDir,
+                    procMesh,
+                    IOobject::MUST_READ,
+                    IOobject::NO_WRITE
+                )
+            );
 
             tetPointFieldDecomposer fieldDecomposer
             (
@@ -863,7 +871,7 @@ int main(int argc, char *argv[])
         {
             const fileName timePath = processorDb.timePath();
 
-            if (copyUniform || meshDecomp.distributed())
+            if (copyUniform || mesh.distributed())
             {
                 cp
                 (
@@ -906,7 +914,7 @@ int main(int argc, char *argv[])
         "faBoundary",
         mesh.time().findInstance
         (
-            mesh.meshDir(),
+            mesh.dbDir()/polyMesh::meshSubDir,
             "boundary"
         ),
         faMesh::meshSubDir,
@@ -953,7 +961,7 @@ int main(int argc, char *argv[])
         Info << endl;
 
         // Split the fields over processors
-        for (label procI = 0; procI < meshDecomp.nProcs(); procI++)
+        for (label procI = 0; procI < mesh.nProcs(); procI++)
         {
             Info<< "Processor " << procI
                 << ": finite area field transfer" << endl;
@@ -981,20 +989,12 @@ int main(int argc, char *argv[])
 
             faMesh procMesh(procFvMesh);
 
-            word faceLabelsInstance =
-                procMesh.time().findInstance
-                (
-                    procMesh.meshDir(),
-                    "faceLabels"
-                );
-
-
             labelIOList faceProcAddressing
             (
                 IOobject
                 (
                     "faceProcAddressing",
-                    faceLabelsInstance,
+                    "constant",
                     procMesh.meshSubDir,
                     procFvMesh,
                     IOobject::MUST_READ,
@@ -1007,7 +1007,7 @@ int main(int argc, char *argv[])
                 IOobject
                 (
                     "boundaryProcAddressing",
-                    faceLabelsInstance,
+                    "constant",
                     procMesh.meshSubDir,
                     procFvMesh,
                     IOobject::MUST_READ,
@@ -1031,7 +1031,7 @@ int main(int argc, char *argv[])
                     IOobject
                     (
                         "edgeProcAddressing",
-                        faceLabelsInstance,
+                        "constant",
                         procMesh.meshSubDir,
                         procFvMesh,
                         IOobject::MUST_READ,

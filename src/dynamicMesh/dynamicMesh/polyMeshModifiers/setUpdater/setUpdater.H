@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ Class
     Foam::setUpdater
 
 Description
-    Keeps cell/face/vertex sets up-to-date: both the ones loaded and the ones
+    Keeps cell/face/vertex sets uptodate. Both the ones loaded and the ones
     on disk.
 
 SourceFiles
@@ -116,7 +116,6 @@ public:
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
 #ifdef NoRepository
 #   include "setUpdaterTemplates.C"
 #endif

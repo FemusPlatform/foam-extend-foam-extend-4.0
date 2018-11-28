@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -68,13 +68,11 @@ Smagorinsky::Smagorinsky
     const volScalarField& rho,
     const volVectorField& U,
     const surfaceScalarField& phi,
-    const basicThermo& thermophysicalModel,
-    const word& turbulenceModelName,
-    const word& modelName
+    const basicThermo& thermoPhysicalModel
 )
 :
-    LESModel(modelName, rho, U, phi, thermophysicalModel, turbulenceModelName),
-    GenEddyVisc(rho, U, phi, thermophysicalModel),
+    LESModel(typeName, rho, U, phi, thermoPhysicalModel),
+    GenEddyVisc(rho, U, phi, thermoPhysicalModel),
 
     ck_
     (

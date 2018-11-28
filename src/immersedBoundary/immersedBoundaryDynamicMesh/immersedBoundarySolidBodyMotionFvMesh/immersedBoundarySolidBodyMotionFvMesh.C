@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -41,6 +41,9 @@ namespace Foam
 }
 
 
+// * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 Foam::immersedBoundarySolidBodyMotionFvMesh::
@@ -50,11 +53,7 @@ immersedBoundarySolidBodyMotionFvMesh
 )
 :
     dynamicFvMesh(io),
-    ibMotions_(),
-    curTimeIndex_(-1)
-{
-    // Read motion function for all regions
-    dictionary dynamicMeshCoeffs
+    dynamicMeshCoeffs_
     (
         IOdictionary
         (
@@ -63,13 +62,15 @@ immersedBoundarySolidBodyMotionFvMesh
                 "dynamicMeshDict",
                 time().constant(),
                 *this,
-                IOobject::MUST_READ_IF_MODIFIED,
+                IOobject::MUST_READ,
                 IOobject::NO_WRITE
             )
         ).subDict(typeName + "Coeffs")
-    );
-
-    PtrList<entry> motionDicts(dynamicMeshCoeffs.lookup("motionFunctions"));
+    ),
+    ibMotions_()
+{
+    // Read motion function for all regions
+    PtrList<entry> motionDicts(dynamicMeshCoeffs_.lookup("motionFunctions"));
 
     ibMotions_.setSize(motionDicts.size());
 
@@ -100,28 +101,15 @@ Foam::immersedBoundarySolidBodyMotionFvMesh::
 
 bool Foam::immersedBoundarySolidBodyMotionFvMesh::update()
 {
-    // Move points based on new motion
-    if (curTimeIndex_ < this->time().timeIndex())
-    {
-        // Grab old volumes before moving the mesh
-        setV0();
-
-        curTimeIndex_ = this->time().timeIndex();
-    }
-
     forAll (ibMotions_, ibI)
     {
         ibMotions_[ibI].movePoints();
     }
 
-    // Force quasi-topological change to rebuild addressing on motion of the
-    // immersed boundary
-    // HJ, 12/Dec/2017
-    fvMesh::syncUpdateMesh();
+    // Force flux and addressing recalculation as in topo change
+    pointField newAllPoints = allPoints();
 
-    // Execute dummy mesh motion for the background mesh
-    const pointField oldPoints = allPoints();
-    fvMesh::movePoints(oldPoints);
+    movePoints(newAllPoints);
 
     return true;
 }

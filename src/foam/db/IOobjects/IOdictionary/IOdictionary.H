@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,10 +25,10 @@ Class
     Foam::IOdictionary
 
 Description
-    IOdictionary is derived from dictionary and IOobject to give the dictionary
-    automatic IO functionality via the objectRegistry.  To facilitate IO,
-    IOdictioanry is provided with a constructor from IOobject and writeData and
-    write functions.
+    IOdictionary is derived from dictionary and IOobject to give the
+    dictionary automatic IO functionality via the objectRegistry.  To facilitate
+    IO, IOdictioanry is provided with a constructor from IOobject and writeData
+    and write functions.
 
 SourceFiles
     IOdictionary.C
@@ -56,16 +56,6 @@ class IOdictionary
     public regIOobject,
     public dictionary
 {
-    // Private data
-
-        static bool writeDictionaries;
-
-
-    // Private Member Functions
-
-        //- Read dictionary from file
-        void readFile(const bool);
-
 
 public:
 
@@ -80,12 +70,10 @@ public:
         //- Construct given an IOobject and dictionary
         IOdictionary(const IOobject&, const dictionary&);
 
-        //- Construct given an IOobject and Istream
-        IOdictionary(const IOobject&, Istream&);
 
+    // Destructor
 
-    //- Destructor
-    virtual ~IOdictionary();
+        virtual ~IOdictionary();
 
 
     // Member functions
@@ -95,10 +83,10 @@ public:
         const word& name() const;
 
         //- ReadData function required for regIOobject read operation
-        bool readData(Istream&);
+        virtual bool readData(Istream&);
 
         //- WriteData function required for regIOobject write operation
-        bool writeData(Ostream&) const;
+        virtual bool writeData(Ostream&) const;
 
 
     // Member operators

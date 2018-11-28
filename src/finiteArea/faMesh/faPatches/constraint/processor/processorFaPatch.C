@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ Description
 #include "addToRunTimeSelectionTable.H"
 #include "IPstream.H"
 #include "OPstream.H"
-#include "IOmanip.H"
 #include "transformField.H"
 #include "faBoundaryMesh.H"
 #include "faMesh.H"
@@ -210,25 +209,17 @@ void processorFaPatch::calcGeometry()
         forAll(magEl, edgei)
         {
             scalar nmagEl = mag(neighbEdgeLengths_[edgei]);
-            scalar maxEl = Foam::max(magEl[edgei], nmagEl);
+            scalar avEl = (magEl[edgei] + nmagEl)/2.0;
 
-            if (mag(magEl[edgei] - nmagEl) > faPatch::matchTol_()*maxEl)
+            if (mag(magEl[edgei] - nmagEl)/avEl > 1e-6)
             {
                 FatalErrorIn
                 (
-                    "processorFaPatch::makeWeights(scalarField& w) const"
+                    "processorFvPatch::makeWeights(scalarField& w) const"
                 )   << "edge " << edgei
                     << " length does not match neighbour by "
-                    << 100*mag(magEl[edgei] - nmagEl)/maxEl
-                    << "% -- possible edge ordering problem." << nl
-                    << "Local: " << magEl[edgei]
-                    << " Remote: " << nmagEl
-                    << " diff: " << magEl[edgei] - nmagEl << nl
-                    << "Edge: "
-                    << boundaryMesh().mesh().edges()[start() + edgei]
-                    << " points: "
-                    << boundaryMesh().mesh().edges()[start() + edgei]
-                           .line(boundaryMesh().mesh().points())
+                    << 100*mag(magEl[edgei] - nmagEl)/avEl
+                    << "% -- possible edge ordering problem"
                     << exit(FatalError);
             }
         }

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -243,6 +243,13 @@ public:
             const polyBoundaryMesh&
         );
 
+        //- Construct as copy, resetting the boundary mesh
+        regionCouplePolyPatch
+        (
+            const regionCouplePolyPatch&,
+            const polyBoundaryMesh&
+        );
+
         //- Construct as given the original patch and resetting the
         //  face list and boundary mesh information
         regionCouplePolyPatch
@@ -252,16 +259,6 @@ public:
             const label index,
             const label newSize,
             const label newStart
-        );
-
-        //- Construct as copy, resetting the boundary mesh
-        regionCouplePolyPatch(const regionCouplePolyPatch&);
-
-        //- Construct as copy, resetting the boundary mesh
-        regionCouplePolyPatch
-        (
-            const regionCouplePolyPatch&,
-            const polyBoundaryMesh&
         );
 
         //- Construct and return a clone, resetting the boundary mesh
@@ -366,9 +363,15 @@ public:
         // Interpolation data
 
             //- Is this the master side?
-            virtual bool master() const
+            bool master() const
             {
                 return master_;
+            }
+
+            //- Is this the slave side?
+            bool slave() const
+            {
+                return !master();
             }
 
             //- Use bridging to fix overlap error in interpolation
@@ -406,11 +409,11 @@ public:
             template<class Type>
             tmp<Field<Type> > interpolate(const tmp<Field<Type> >& tpf) const;
 
-            //- Set given field for fully uncovered faces
+            //- Bridge interpolated face field for uncovered faces
             template<class Type>
-            void setUncoveredFaces
+            void bridge
             (
-                const Field<Type>& fieldToSet,
+                const Field<Type>& bridgeField,
                 Field<Type>& ff
             ) const;
 

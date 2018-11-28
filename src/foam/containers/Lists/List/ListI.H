@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -94,19 +94,14 @@ inline Foam::Xfer< Foam::List<T> > Foam::List<T>::xfer()
 
 
 template<class T>
-inline void Foam::List<T>::append(const T& t)
-{
-    setSize(size()+1, t);
-}
-
-
-template<class T>
 inline void Foam::List<T>::append(const UList<T>& lst)
 {
     if (this == &lst)
     {
-        FatalErrorInFunction
-            << "attempted appending to self" << abort(FatalError);
+        FatalErrorIn
+        (
+            "List<T>::append(const UList<T>&)"
+        )   << "attempted appending to self" << abort(FatalError);
     }
 
     label nextFree = this->size();

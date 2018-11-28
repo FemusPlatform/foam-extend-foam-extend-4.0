@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -925,7 +925,7 @@ void Foam::multiSolver::readMultiDictDirectory
                             sourcePath.name(),
                             local,
                             multiDictRegistry_,
-                            IOobject::MUST_READ_IF_MODIFIED,
+                            IOobject::MUST_READ,
                             IOobject::NO_WRITE
                         )
                     )
@@ -1136,7 +1136,7 @@ Foam::multiSolver::multiSolver
             multiControlDictName,
             multiDictRegistry_.system(),
             multiDictRegistry_,
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
         ),
@@ -1196,7 +1196,7 @@ Foam::multiSolver::multiSolver
             multiControlDictName,
             multiDictRegistry_.system(),
             multiDictRegistry_,
-            IOobject::MUST_READ_IF_MODIFIED,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
         )

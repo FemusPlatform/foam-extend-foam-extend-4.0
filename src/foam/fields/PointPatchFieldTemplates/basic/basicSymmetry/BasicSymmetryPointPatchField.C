@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -133,7 +133,7 @@ BasicSymmetryPointPatchField
 :
     ValuePointPatchField<PatchField, Mesh, PointPatch, MatrixType, Type>(p, iF)
 {
-    // Cannot update boundary: internal field not set.  HJ, 28/Feb/2018
+    updateBoundaryField();
 }
 
 
@@ -178,7 +178,7 @@ BasicSymmetryPointPatchField
     ValuePointPatchField
         <PatchField, Mesh, PointPatch, MatrixType, Type>(ptf, iF)
 {
-    // Cannot update boundary: internal field not set.  HJ, 28/Feb/2018
+    updateBoundaryField();
 }
 
 

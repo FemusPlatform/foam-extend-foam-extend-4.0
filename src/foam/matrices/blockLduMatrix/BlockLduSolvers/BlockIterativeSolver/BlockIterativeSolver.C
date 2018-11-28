@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ Foam::scalar Foam::BlockIterativeSolver<Type>::normFactor
 
     scalar normFactor = gSum(mag(wA - pA) + mag(b - pA)) + this->small_;
 
-    if (blockLduMatrix::debug >= 2)
+    if (BlockLduMatrix<Type>::debug >= 2)
     {
         Info<< "Iterative solver normalisation factor = "
             << normFactor << endl;

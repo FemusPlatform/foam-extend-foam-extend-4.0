@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ bool Foam::minMaxField::start()
 }
 
 
-bool Foam::minMaxField::execute(const bool forceWrite)
+bool Foam::minMaxField::execute()
 {
     const fvMesh& mesh =
         time_.lookupObject<fvMesh>(regionName_);
@@ -92,12 +92,8 @@ bool Foam::minMaxField::execute(const bool forceWrite)
             fieldName_
         );
 
-        Info<< "Field " << fieldName_
-            << " min = " << Foam::min(f).value()
-            << " (" << gMin(f.internalField()) << ")"
-            << " max = " << max(f).value()
-            << " (" << gMax(f.internalField()) << ")"
-            << endl;
+        Info<< "Field " << fieldName_ << " min = " << Foam::min(f).value()
+            << " max = " << Foam::max(f).value() << endl;
 
         return true;
     }
@@ -107,12 +103,9 @@ bool Foam::minMaxField::execute(const bool forceWrite)
 
         volScalarField magF = mag(f);
 
-        Info<< "Field " << fieldName_
-             << " magnitude min = " << Foam::min(magF).value()
-            << " (" << gMin(magF.internalField()) << ")"
-            << " max = " << max(magF).value()
-            << " (" << gMax(magF.internalField()) << ")"
-            << endl;
+        Info<< "Field " << fieldName_ << " magnitude min = "
+            << Foam::min(magF).value()
+            << " max = " << Foam::max(magF).value() << endl;
 
         return true;
     }

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -131,7 +131,15 @@ Foam::FieldActivatedInjection<CloudType>::FieldActivatedInjection
     this->volumeTotal_ =
         nParcelsPerInjector_*sum(pow3(diameters_))*mathematicalConstant::pi/6.0;
 
-    updateMesh();
+    // Set/cache the injector cells
+    forAll(positions_, i)
+    {
+        this->findCellAtPosition
+        (
+            injectorCells_[i],
+            positions_[i]
+        );
+    }
 }
 
 
@@ -148,17 +156,6 @@ template<class CloudType>
 bool Foam::FieldActivatedInjection<CloudType>::active() const
 {
     return true;
-}
-
-
-template<class CloudType>
-void Foam::FieldActivatedInjection<CloudType>::updateMesh()
-{
-    // Set/cache the injector cell
-    forAll(positions_, i)
-    {
-        this->findCellAtPosition(injectorCells_[i], positions_[i]);
-    }
 }
 
 

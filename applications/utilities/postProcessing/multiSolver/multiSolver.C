@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ void parseOptions
         token nextOption(optionsStream);
 
         // Bug workaround
-        if (nextOption.type() == token::ERROR)
+        if (nextOption.type() == token::FATALERROR)
         {
             break;
         }
@@ -89,7 +89,7 @@ void parseOptions
         token nextOption(optionsStream);
 
         // Bug workaround
-        if (nextOption.type() == token::ERROR)
+        if (nextOption.type() == token::FATALERROR)
         {
             break;
         }

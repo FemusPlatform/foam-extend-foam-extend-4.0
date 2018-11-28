@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -307,8 +307,9 @@ public:
         //- Correct patch after moving points
         virtual void movePoints(const pointField&);
 
-        //- Update for changes in topology
-        virtual void updateMesh();
+        //- Update for changes in topology  Note: Zone has been rebuilt
+        //  and no mapping is required.  HJ, 1/Mar/2009
+        void updateMesh();
 
         //- Write
         virtual void write(Ostream&) const;

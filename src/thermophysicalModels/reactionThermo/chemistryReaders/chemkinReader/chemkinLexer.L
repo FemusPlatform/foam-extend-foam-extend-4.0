@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ int Foam::chemkinReader::yyBufSize = YY_BUF_SIZE;
 //! @cond dummy
 int yyFlexLexer::yylex()
 {
-    FatalErrorIn("yyFlexLexer::yylex()")
+    Foam::FatalErrorIn("yyFlexLexer::yylex()")
         << "should not have called this function"
         << abort(Foam::FatalError);
 

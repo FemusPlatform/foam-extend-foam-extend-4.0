@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -417,7 +417,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::polyTopoChanger::changeMesh
 
     if (debug)
     {
-        Pout<< " modified = "
+        Pout<< "Added retired points: modified = "
             << nNewPoints - debugPointCounter;
 
         debugPointCounter = nNewPoints;
@@ -498,7 +498,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::polyTopoChanger::changeMesh
 
     if (debug)
     {
-        Pout<< "Inserted untouched faces into cells" << endl;
+        Info << "Inserted untouched faces into cells" << endl;
     }
 
     // Add the modified internal faces
@@ -546,7 +546,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::polyTopoChanger::changeMesh
 
     if (debug)
     {
-        Pout<< "Inserted modified faces into cells" << endl;
+        Info << "Inserted modified faces into cells" << endl;
     }
 
     // Add the new faces
@@ -1148,7 +1148,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::polyTopoChanger::changeMesh
 
             if (rotate != 0)
             {
-                Pout<< "Rotating face" << endl;
+                Info<< "Rotating face" << endl;
                 newFaces[faceI] = rotateFace(newFaces[faceI], rotate);
             }
         }
@@ -2267,7 +2267,7 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::polyTopoChanger::changeMesh
 
         if (debug)
         {
-            Pout<< " nOldPoints: " << points.size()
+            Info<< " nOldPoints: " << points.size()
                 << " nPoints: " << newPointsZeroVol.size()
                 << " nUsedFaces: " << nUsedFaces
                 << " newFaces: " << newFaces.size()
@@ -2416,10 +2416,6 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::polyTopoChanger::changeMesh
     List<objectMap> facesFromFaces;
     List<objectMap> cellsFromCells;
 
-    // Patch reset map is currently dummy: does not support change in number
-    // of boundary patches
-    // HJ, 23/Apr/2018
-    boolList resetPatchFlag(boundary.size(), false);
 
     autoPtr<mapPolyMesh> topoChangeMap
     (
@@ -2456,8 +2452,6 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::polyTopoChanger::changeMesh
             fzPointRenumber,
             fzFaceRenumber,
             czRenumber,
-
-            resetPatchFlag,
 
             newPointsMotion,
             oldPatchStarts,
@@ -2497,9 +2491,6 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::polyTopoChanger::changeMesh()
         // Increment the morph index
         morphIndex_++;
 
-        // Mark the mesh as changing
-        mesh_.changing(true);
-
         return topoChangeMap;
     }
     else
@@ -2513,9 +2504,6 @@ Foam::autoPtr<Foam::mapPolyMesh> Foam::polyTopoChanger::changeMesh()
 
             // Sync mesh update
             mesh_.syncUpdateMesh();
-
-            // Mark the mesh as changing
-            mesh_.changing(true);
         }
 
         return autoPtr<mapPolyMesh>(new mapPolyMesh(mesh_));

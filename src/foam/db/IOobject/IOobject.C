@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,8 +24,8 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "IOobject.H"
-#include "foamTime.H"
 #include "IFstream.H"
+#include "objectRegistry.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -33,7 +33,18 @@ defineTypeNameAndDebug(Foam::IOobject, 0);
 
 // * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * * //
 
-bool Foam::IOobject::fileNameComponents
+// Return components following the IOobject requirements
+//
+// behaviour
+//    input               IOobject(instance, local, name)
+//    -----               ------
+//    "foo"               ("", "", "foo")
+//    "foo/bar"           ("foo", "", "bar")
+//    "/XXX"              ERROR - no absolute path
+//    "foo/bar/"          ERROR - no name
+//    "foo/xxx/bar"       ("foo", "xxx", "bar")
+//    "foo/xxx/yyy/bar"   ("foo", "xxx/yyy", "bar")
+bool Foam::IOobject::IOobject::fileNameComponents
 (
     const fileName& path,
     fileName& instance,
@@ -48,72 +59,50 @@ bool Foam::IOobject::fileNameComponents
     // called with directory
     if (isDir(path))
     {
-        WarningIn
-        (
-            "IOobject::fileNameComponents"
-            "("
-                "const fileName&, "
-                "fileName&, "
-                "fileName&, "
-                "word&"
-            ")"
-        )   << " called with directory: " << path << endl;
-
+        WarningIn("IOobject::fileNameComponents(const fileName&, ...)")
+            << " called with directory: " << path << "\n";
         return false;
     }
 
-    if (path.isAbsolute())
-    {
-        string::size_type last = path.rfind('/');
-        instance = path.substr(0, last);
+    string::size_type first = path.find('/');
 
-        // Check afterwards
-        name.string::operator=(path.substr(last+1));
+    if (first == 0)
+    {
+        // called with absolute path
+        WarningIn("IOobject::fileNameComponents(const fileName&, ...)")
+            << "called with absolute path: " << path << "\n";
+        return false;
+    }
+
+    if (first == string::npos)
+    {
+        // no '/' found - no instance or local
+
+        // check afterwards
+        name.string::operator=(path);
     }
     else
     {
-        string::size_type first = path.find('/');
+        instance = path.substr(0, first);
 
-        if (first == string::npos)
+        string::size_type last = path.rfind('/');
+        if (last > first)
         {
-            // no '/' found - no instance or local
-
-            // check afterwards
-            name.string::operator=(path);
+            // with local
+            local = path.substr(first+1, last-first-1);
         }
-        else
-        {
-            instance = path.substr(0, first);
 
-            string::size_type last = path.rfind('/');
-            if (last > first)
-            {
-                // with local
-                local = path.substr(first+1, last-first-1);
-            }
-
-            // check afterwards
-            name.string::operator=(path.substr(last+1));
-        }
+        // check afterwards
+        name.string::operator=(path.substr(last+1));
     }
 
 
-    // Check for valid (and stripped) name, regardless of the debug level
+    // check for valid (and stripped) name, regardless of the debug level
     if (name.empty() || string::stripInvalid<word>(name))
     {
-        WarningIn
-        (
-            "IOobject::fileNameComponents"
-            "("
-                "const fileName&, "
-                "fileName&, "
-                "fileName&, "
-                "word&"
-            ")"
-        )
+        WarningIn("IOobject::fileNameComponents(const fileName&, ...)")
             << "has invalid word for name: \"" << name
-            << "\"\nwhile processing path: " << path << endl;
-
+            << "\"\nwhile processing path: " << path << "\n";
         return false;
     }
 
@@ -236,16 +225,9 @@ Foam::IOobject::IOobject
     {
         FatalErrorIn
         (
-            "IOobject::IOobject"
-            "("
-                "const fileName&, "
-                "const objectRegistry&, "
-                "readOption, "
-                "writeOption, "
-                "bool"
-            ")"
+            "IOobject::IOobject" "(const fileName&, const objectRegistry&, ...)"
         )
-            << " invalid path specification"
+            << " invalid path specification\n"
             << exit(FatalError);
     }
 
@@ -284,36 +266,6 @@ const Foam::fileName& Foam::IOobject::caseName() const
 }
 
 
-Foam::word Foam::IOobject::group() const
-{
-    word::size_type i = name_.find_last_of('.');
-
-    if (i == word::npos || i == 0)
-    {
-        return word::null;
-    }
-    else
-    {
-        return name_.substr(i+1, word::npos);
-    }
-}
-
-
-Foam::word Foam::IOobject::member() const
-{
-    word::size_type i = name_.find_last_of('.');
-
-    if (i == word::npos || i == 0)
-    {
-        return name_;
-    }
-    else
-    {
-        return name_.substr(0, i);
-    }
-}
-
-
 const Foam::fileName& Foam::IOobject::rootPath() const
 {
     return time().rootPath();
@@ -322,14 +274,7 @@ const Foam::fileName& Foam::IOobject::rootPath() const
 
 Foam::fileName Foam::IOobject::path() const
 {
-    if (instance().isAbsolute())
-    {
-        return instance();
-    }
-    else
-    {
-        return rootPath()/caseName()/instance()/db_.dbDir()/local();
-    }
+    return rootPath()/caseName()/instance()/db_.dbDir()/local();
 }
 
 
@@ -339,91 +284,68 @@ Foam::fileName Foam::IOobject::path
     const fileName& local
 ) const
 {
-    // Note: can only be called with relative instance since is word type
     return rootPath()/caseName()/instance/db_.dbDir()/local;
 }
 
 
 Foam::fileName Foam::IOobject::filePath() const
 {
-    if (instance().isAbsolute())
+    fileName path = this->path();
+    fileName objectPath = path/name();
+
+    if (isFile(objectPath))
     {
-        fileName objectPath = instance()/name();
-        if (isFile(objectPath))
-        {
-            return objectPath;
-        }
-        else
-        {
-            return fileName::null;
-        }
+        return objectPath;
     }
     else
     {
-        fileName path = this->path();
-        fileName objectPath = path/name();
-
-        if (isFile(objectPath))
-        {
-            return objectPath;
-        }
-        else
-        {
-            if
-            (
-                time().processorCase()
-             && (
-                    instance() == time().system()
-                 || instance() == time().constant()
-                )
+        if
+        (
+            time().processorCase()
+         && (
+                instance() == time().system()
+             || instance() == time().constant()
             )
-            {
-                fileName parentObjectPath =
-                    rootPath()/time().globalCaseName()
-                   /instance()/db_.dbDir()/local()/name();
+        )
+        {
+            fileName parentObjectPath =
+                rootPath()/caseName()
+               /".."/instance()/db_.dbDir()/local()/name();
 
-                if (isFile(parentObjectPath))
-                {
-                    return parentObjectPath;
-                }
+            if (isFile(parentObjectPath))
+            {
+                return parentObjectPath;
             }
+        }
 
-            if (!isDir(path))
+        if (!isDir(path))
+        {
+            word newInstancePath = time().findInstancePath(instant(instance()));
+
+            if (newInstancePath.size())
             {
-                word newInstancePath = time().findInstancePath
+                fileName fName
                 (
-                    instant(instance())
+                    rootPath()/caseName()
+                   /newInstancePath/db_.dbDir()/local()/name()
                 );
 
-                if (newInstancePath.size())
+                if (isFile(fName))
                 {
-                    fileName fName
-                    (
-                        rootPath()/caseName()
-                       /newInstancePath/db_.dbDir()/local()/name()
-                    );
-
-                    if (isFile(fName))
-                    {
-                        return fName;
-                    }
+                    return fName;
                 }
             }
         }
-
-        return fileName::null;
     }
+
+    return fileName::null;
 }
 
 
 Foam::Istream* Foam::IOobject::objectStream()
 {
-    return objectStream(filePath());
-}
+    fileName fName = filePath();
 
-
-Foam::Istream* Foam::IOobject::objectStream(const fileName& fName)
-{
     if (fName.size())
     {
         IFstream* isPtr = new IFstream(fName);

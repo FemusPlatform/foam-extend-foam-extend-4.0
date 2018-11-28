@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -52,38 +52,16 @@ class coordSet
     public pointField
 {
 
-public:
-
-    // Public data types
-
-        //- Enumeration defining the output format for coordinates
-        enum coordFormat
-        {
-            XYZ,
-            X,
-            Y,
-            Z,
-            DISTANCE
-        };
-
-
-private:
-
-        //- String representation of coordFormat enums
-        static const NamedEnum<coordFormat, 5> coordFormatNames_;
-
-
 protected:
 
         //- Name
         const word name_;
 
         //- Axis write type
-        const coordFormat axis_;
+        const word axis_;
 
-        //- Cumulative distance "distance" write specifier.
-        scalarList curveDist_;
-
+        //- Reference point for "distance" write specifier.
+        point refPoint_;
 
 public:
 
@@ -103,7 +81,16 @@ public:
             const word& name,
             const word& axis,
             const List<point>& points,
-            const scalarList& curveDist
+            const point& refPoint = point::zero
+        );
+
+        //- Construct from components
+        coordSet
+        (
+            const word& name,
+            const word& axis,
+            const scalarField& points,
+            const scalar refPoint = 0.0
         );
 
 
@@ -114,26 +101,33 @@ public:
             return name_;
         }
 
-        word axis() const
+        const word& axis() const
         {
-            return coordFormatNames_[axis_];
+            return axis_;
         }
 
-        //- Cumulative distance
-        const scalarList& curveDist() const
+        const point& refPoint() const
         {
-            return curveDist_;
+            return refPoint_;
         }
 
         //- Is axis specification a vector
         bool hasVectorAxis() const;
 
         //- Get coordinate of point according to axis specification.
-        //  If axis="distance" is the curveDist[index]
-        scalar scalarCoord(const label index) const;
+        //  If axis="distance" can be: -distance to starting point (e.g.
+        //  uniformSet) or -distance to first sampling point
+        //  (e.g. cloudSet)
+        scalar scalarCoord
+        (
+            const label index
+        ) const;
 
-        //- Get point according to axis="xyz" specification
-        vector vectorCoord(const label index) const;
+        //- Get point according to axis="full" specification
+        vector vectorCoord
+        (
+            const label index
+        ) const;
 
         Ostream& write(Ostream& os) const;
 };

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -715,101 +715,21 @@ backwardDdtScheme<Type>::fvcDdtPhiCorr
 
 
 template<class Type>
-tmp<typename backwardDdtScheme<Type>::fluxFieldType>
-backwardDdtScheme<Type>::fvcDdtConsistentPhiCorr
-(
-    const GeometricField<Type, fvsPatchField, surfaceMesh>& faceU,
-    const GeometricField<Type, fvPatchField, volMesh>& U,
-    const surfaceScalarField& rAUf
-)
-{
-    const scalar deltaT = deltaT_();
-    const scalar deltaT0 = deltaT0_(U);
-
-    const scalar coefft   = 1 + deltaT/(deltaT + deltaT0);
-    const scalar coefft00 = deltaT*deltaT/(deltaT0*(deltaT + deltaT0));
-    const scalar coefft0  = coefft + coefft00;
-
-    const scalar rDeltaT = 1.0/deltaT;
-
-    // Note: minus sign in gamma coefficient so we can simply add the fluxes
-    // together at the end
-    const dimensionedScalar beta("beta", dimless/dimTime, coefft0*rDeltaT);
-    const dimensionedScalar gamma("gamma", dimless/dimTime, -coefft00*rDeltaT);
-
-    // Calculate old and old-old flux contributions
-    fluxFieldType oldTimeFlux =
-        beta*rAUf*(mesh().Sf() & faceU.oldTime());
-    fluxFieldType oldOldTimeFlux =
-        gamma*rAUf*(mesh().Sf() & faceU.oldTime().oldTime());
-
-    if (mesh().moving())
-    {
-        // Mesh is moving, need to take into account the ratio between old and
-        // current cell volumes for old flux contribution
-        volScalarField V0ByV
-        (
-            IOobject
-            (
-                "V0ByV",
-                mesh().time().timeName(),
-                mesh(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh(),
-            dimensionedScalar("one", dimless, 1.0),
-            zeroGradientFvPatchScalarField::typeName
-        );
-        V0ByV.internalField() = mesh().V0()/mesh().V();
-        V0ByV.correctBoundaryConditions();
-
-        // Correct old time flux contribution
-        oldTimeFlux *= fvc::interpolate(V0ByV);
-
-
-        // Also need to take into account the ratio between old-old and current
-        // cell volumes for old-old time flux contribution
-        volScalarField V00ByV
-        (
-            IOobject
-            (
-                "V00ByV",
-                mesh().time().timeName(),
-                mesh(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh(),
-            dimensionedScalar("one", dimless, 1.0),
-            zeroGradientFvPatchScalarField::typeName
-        );
-        V00ByV.internalField() = mesh().V00()/mesh().V();
-        V00ByV.correctBoundaryConditions();
-
-        // Correct old-old time flux contribution
-        oldOldTimeFlux *= fvc::interpolate(V00ByV);
-    }
-
-    return oldTimeFlux + oldOldTimeFlux;
-}
-
-
-template<class Type>
 tmp<surfaceScalarField> backwardDdtScheme<Type>::meshPhi
 (
     const GeometricField<Type, fvPatchField, volMesh>& vf
 )
 {
-    const scalar deltaT = deltaT_();
-    const scalar deltaT0 = deltaT0_(vf);
+    scalar deltaT = deltaT_();
+    scalar deltaT0 = deltaT0_(vf);
 
-    // Bugfix: missing possibility of having the variable time step
-    // Reported by Sopheak Seng, Bureau Veritas, 6/Sep/2018.
-    const scalar coefft00 = deltaT*deltaT/(deltaT0*(deltaT + deltaT0));
-    const scalar coefft  = 1 + deltaT/(deltaT + deltaT0);
+    // Coefficient for t-3/2 (between times 0 and 00)
+    scalar coefft0_00 = deltaT/(deltaT + deltaT0);
 
-    return coefft*mesh().phi() - coefft00*mesh().phi().oldTime();
+    // Coefficient for t-1/2 (between times n and 0)
+    scalar coefftn_0 = 1 + coefft0_00;
+
+    return coefftn_0*mesh().phi() - coefft0_00*mesh().phi().oldTime();
 }
 
 

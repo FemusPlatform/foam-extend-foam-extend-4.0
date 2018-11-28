@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -83,6 +83,7 @@ Description
         - mark indices for which information has changed
      endloop until nothing changes.
 
+
 SourceFiles
     globalPoints.C
 
@@ -115,12 +116,11 @@ class cyclicPolyPatch;
 
 class globalPoints
 {
-    // Private typedefs
+    // Private classes
 
         //- Define procPointList as holding a list of meshPoint/processor labels
         typedef FixedList<label, 2> procPoint;
         typedef List<procPoint> procPointList;
-
 
     // Private data
 
@@ -253,6 +253,7 @@ public:
             {
                 return nGlobalPoints_;
             }
+
 };
 
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ public:
             const dictionary& dict
         );
 
-        //- Construct as copy for the given parent dictionary
+        //- Construct as copy for the given parentDict
         dictionaryEntry
         (
             const dictionary& parentDict,
@@ -106,19 +106,13 @@ public:
 
     // Member functions
 
-        //- Return the local dictionary name (final part of scoped name)
-        const word dictName() const
-        {
-            return dictionary::dictName();
-        }
-
-        //- Return the dictionary name (scoped, e.g. dictA::dictB::dictC)
+        //- Return the dictionary name
         const fileName& name() const
         {
             return dictionary::name();
         }
 
-        //- Return the dictionary name (scoped, e.g. dictA::dictB::dictC)
+        //- Return the dictionary name
         fileName& name()
         {
             return dictionary::name();
@@ -146,7 +140,7 @@ public:
         //- Return non-const access to dictionary
         dictionary& dict();
 
-        //- Write
+        // Write
         void write(Ostream&) const;
 
         //- Return info proxy.

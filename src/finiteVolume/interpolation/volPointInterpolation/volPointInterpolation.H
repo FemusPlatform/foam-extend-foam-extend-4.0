@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -60,9 +60,9 @@ class volPointInterpolation
         //- Boundary interpolation engine
         pointPatchInterpolation boundaryInterpolator_;
 
-        //- Interpolation scheme weighting factor array using lazy evaluation
+        //- Interpolation scheme weighting factor array
         //  Updated for MeshObject.  HJ, 30/Aug/2010
-        mutable scalarListList* pointWeightsPtr_;
+        mutable scalarListList pointWeights_;
 
 
     // Private member functions
@@ -92,21 +92,17 @@ public:
 
     // Destructor
 
-        virtual ~volPointInterpolation();
+        ~volPointInterpolation();
 
 
     // Member functions
 
         // Access
 
-            //- Const reference to fvMesh
             const fvMesh& mesh() const
             {
                 return boundaryInterpolator_.mesh();
             }
-
-            //- Return interpolation weights (lazy evaluation)
-            const scalarListList& pointWeights() const;
 
 
         // Edit

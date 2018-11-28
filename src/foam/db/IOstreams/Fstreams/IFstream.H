@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.1
+   \\    /   O peration     | Version:     4.0
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ namespace Foam
 class IFstream;
 
 /*---------------------------------------------------------------------------*\
-                      Class IFstreamAllocator Declaration
+                       Class IFstreamAllocator Declaration
 \*---------------------------------------------------------------------------*/
 
 //- A std::istream with ability to handle compressed files
@@ -70,13 +70,22 @@ class IFstreamAllocator
         IFstreamAllocator(const fileName& pathname);
 
 
-    //- Destructor
-    ~IFstreamAllocator();
+    // Destructor
+
+        ~IFstreamAllocator();
+
+
+public:
+
+    // Member functions
+
+        //- Access to underlying std::istream (for e.g. lexer)
+        istream& stdStream();
 };
 
 
 /*---------------------------------------------------------------------------*\
-                          Class IFstream Declaration
+                           Class IFstream Declaration
 \*---------------------------------------------------------------------------*/
 
 class IFstream
@@ -105,8 +114,9 @@ public:
         );
 
 
-    //- Destructor
-    ~IFstream();
+    // Destructor
+
+        ~IFstream();
 
 
     // Member functions
@@ -124,16 +134,6 @@ public:
             {
                 return pathname_;
             }
-
-
-        // STL stream
-
-            //- Access to underlying std::istream
-            virtual istream& stdStream();
-
-            //- Const access to underlying std::istream
-            virtual const istream& stdStream() const;
-
 
         // Print
 

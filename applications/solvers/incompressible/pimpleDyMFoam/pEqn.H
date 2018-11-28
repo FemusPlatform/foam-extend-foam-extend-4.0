@@ -1,32 +1,26 @@
 {
     p.boundaryField().updateCoeffs();
 
-    // Prepare clean 1/a_p without time derivative and under-relaxation
-    // contribution
-    rAU = 1.0/HUEqn.A();
+    // Prepare clean Ap without time derivative contribution and
+    // without contribution from under-relaxation
+    // HJ, 26/Oct/2015
+    aU = HUEqn.A();
 
-    // Calculate U from convection-diffusion matrix
-    U = rAU*HUEqn.H();
+    // Store velocity under-relaxation point before using U for the flux
+    // precursor
+    U.storePrevIter();
 
-    // Consistently calculate flux
-    pimple.calcTransientConsistentFlux(phi, U, rAU, ddtUEqn);
+    U = HUEqn.H()/aU;
+    phi = (fvc::interpolate(U) & mesh.Sf());
 
     // Global flux balance
     adjustPhi(phi, U, p);
 
-    // Non-orthogonal pressure corrector loop
     while (pimple.correctNonOrthogonal())
     {
         fvScalarMatrix pEqn
         (
-            fvm::laplacian
-            (
-                fvc::interpolate(rAU)/pimple.aCoeff(U.name()),
-                p,
-                "laplacian(rAU," + p.name() + ')'
-            )
-         ==
-            fvc::div(phi)
+            fvm::laplacian(1/aU, p) == fvc::div(phi)
         );
 
         pEqn.setReference(pRefCell, pRefValue);
@@ -41,16 +35,24 @@
         }
     }
 
-    // Explicitly relax pressure for momentum corrector except for last
-    // corrector
+    // Explicitly relax pressure for momentum corrector except for last corrector
     if (!pimple.finalIter())
     {
         p.relax();
     }
 
+    // Make the fluxes relative to the mesh motion
+    fvc::makeRelative(phi, U);
+
 #   include "movingMeshContinuityErrs.H"
 
-    // Consistently reconstruct velocity after pressure equation. Note: flux is
-    // made relative inside the function
-    pimple.reconstructTransientVelocity(U, phi, ddtUEqn, rAU, p);
+    U = UUrf*
+        (
+            1.0/(aU + ddtUEqn.A())*
+            (
+                U*aU - fvc::grad(p) + ddtUEqn.H()
+            )
+        )
+      + (1 - UUrf)*U.prevIter();
+    U.correctBoundaryConditions();
 }
