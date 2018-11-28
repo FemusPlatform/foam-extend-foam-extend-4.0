@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -77,14 +77,16 @@ public:
 
         PUNCTUATION,
         WORD,
+        VARIABLE,
         STRING,
+        VERBATIMSTRING,
         LABEL,
         FLOAT_SCALAR,
         DOUBLE_SCALAR,
         LONG_DOUBLE_SCALAR,
         COMPOUND,
 
-        FATALERROR
+        ERROR
     };
 
 
@@ -105,6 +107,7 @@ public:
         END_BLOCK      = '}',
         COLON          = ':',
         COMMA          = ',',
+        HASH           = '#',
 
         BEGIN_STRING   = '"',
         END_STRING     = BEGIN_STRING,
@@ -168,7 +171,7 @@ public:
             static autoPtr<compound> New(const word& type, Istream&);
 
 
-        // Destructor
+        //- Destructor
 
             virtual ~compound();
 
@@ -210,7 +213,6 @@ public:
 
     //- A templated class for holding compound tokens
 
-#ifndef SWIG
     template<class T>
     class Compound
     :
@@ -237,7 +239,7 @@ public:
             operator<<(os, static_cast<const T&>(*this));
         }
     };
-#endif
+
 
     //- Static undefined token
     static token undefinedToken;
@@ -326,6 +328,7 @@ public:
         // Access
 
             inline tokenType type() const;
+            inline tokenType& type();
 
             inline bool good() const;
             inline bool undefined() const;
@@ -336,6 +339,8 @@ public:
 
             inline bool isWord() const;
             inline const word& wordToken() const;
+
+            inline bool isVariable() const;
 
             inline bool isString() const;
             inline const string& stringToken() const;
@@ -360,7 +365,7 @@ public:
 
             inline bool isCompound() const;
             inline const compound& compoundToken() const;
-            compound& transferCompoundToken();
+            compound& transferCompoundToken(const Istream& is);
 
             inline label lineNumber() const;
             inline label& lineNumber();
@@ -442,9 +447,12 @@ public:
 
 Ostream& operator<<(Ostream&, const token::punctuationToken&);
 ostream& operator<<(ostream&, const token::punctuationToken&);
-ostream& operator<<(ostream&, const InfoProxy<token>&);
 Ostream& operator<<(Ostream&, const token::compound&);
 
+ostream& operator<<(ostream&, const InfoProxy<token>&);
+
+template<>
+Ostream& operator<<(Ostream& os, const InfoProxy<token>& ip);
 
 #define defineCompoundTypeName(Type, Name)                                    \
     typedef token::Compound<Type > tokenCompound##Name##_;                    \

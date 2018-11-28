@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -34,12 +34,12 @@ void Foam::solutionControl::storePrevIter() const
 {
     typedef GeometricField<Type, fvPatchField, volMesh> GeoField;
 
-    HashTable<const GeoField*>
+    HashTable<GeoField*>
         flds(mesh_.objectRegistry::lookupClass<GeoField>());
 
-    forAllIter(typename HashTable<const GeoField*>, flds, iter)
+    forAllIter(typename HashTable<GeoField*>, flds, iter)
     {
-        const GeoField& fld = *iter();
+        GeoField& fld = *iter();
 
         const word& fName = fld.name();
 

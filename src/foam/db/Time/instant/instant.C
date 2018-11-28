@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "instantList.H"
-#include "objectRegistry.H"
+#include "foamTime.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -54,15 +54,19 @@ Foam::instant::instant(const word& tname)
 {}
 
 
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+bool Foam::instant::equal(const scalar b) const
+{
+    return (value_ < b + SMALL  && value_ > b - SMALL);
+}
+
+
 // * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
 
 bool Foam::operator==(const instant& a, const instant& b)
 {
-    return
-    (
-        a.value_ < b.value_ + SMALL
-     && a.value_ > b.value_ - SMALL
-    );
+    return a.equal(b.value_);
 }
 
 

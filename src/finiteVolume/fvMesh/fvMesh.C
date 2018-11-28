@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -48,6 +48,13 @@ defineTypeNameAndDebug(Foam::fvMesh, 0);
 
 void Foam::fvMesh::clearGeomNotOldVol()
 {
+    if (debug)
+    {
+        InfoIn("void Foam::fvMesh::clearGeomNotOldVol()")
+            << "Clearing geometry but not old volumes"
+            << endl;
+    }
+
     deleteDemandDrivenData(VPtr_);
 
     deleteDemandDrivenData(SfPtr_);
@@ -59,6 +66,13 @@ void Foam::fvMesh::clearGeomNotOldVol()
 
 void Foam::fvMesh::clearGeom()
 {
+    if (debug)
+    {
+        InfoIn("void Foam::fvMesh::clearGeomNotOldVol()")
+            << "Clearing geometry"
+            << endl;
+    }
+
     clearGeomNotOldVol();
 
     deleteDemandDrivenData(V0Ptr_);
@@ -75,6 +89,13 @@ void Foam::fvMesh::clearGeom()
 
 void Foam::fvMesh::clearAddressing()
 {
+    if (debug)
+    {
+        InfoIn("void Foam::fvMesh::clearAddressing()")
+            << "Clearing addressing"
+            << endl;
+    }
+
     deleteDemandDrivenData(lduPtr_);
 
     // Geometry dependent object updated through call-back
@@ -103,7 +124,7 @@ Foam::fvMesh::fvMesh(const IOobject& io)
 :
     polyMesh(io),
     surfaceInterpolation(*this),
-    boundary_(*this, boundaryMesh()),
+    boundary_(*this),
     lduPtr_(NULL),
     curTimeIndex_(time().timeIndex()),
     VPtr_(NULL),
@@ -117,13 +138,12 @@ Foam::fvMesh::fvMesh(const IOobject& io)
 {
     if (debug)
     {
-        Info<< "Constructing fvMesh from IOobject"
-            << endl;
+        InfoInFunction << "Constructing fvMesh from IOobject" << endl;
     }
 
     // Check the existance of the cell volumes and read if present
     // and set the storage of V00
-    if (isFile(time().timePath()/"V0"))
+    if (isFile(time().timePath()/polyMesh::dbDir()/"V0"))
     {
         if (debug)
         {
@@ -148,7 +168,7 @@ Foam::fvMesh::fvMesh(const IOobject& io)
 
     // Check the existance of the mesh fluxes, read if present and set the
     // mesh to be moving
-    if (isFile(time().timePath()/"meshPhi"))
+    if (isFile(time().timePath()/polyMesh::dbDir()/"meshPhi"))
     {
         if (debug)
         {
@@ -220,6 +240,34 @@ Foam::fvMesh::fvMesh
     if (debug)
     {
         Info<< "Constructing fvMesh from components" << endl;
+    }
+}
+
+
+Foam::fvMesh::fvMesh
+(
+    const IOobject& io,
+    Istream& is,
+    const bool syncPar
+)
+:
+    polyMesh(io, is, syncPar),
+    surfaceInterpolation(*this),
+    boundary_(*this),
+    lduPtr_(NULL),
+    curTimeIndex_(time().timeIndex()),
+    VPtr_(NULL),
+    V0Ptr_(NULL),
+    V00Ptr_(NULL),
+    SfPtr_(NULL),
+    magSfPtr_(NULL),
+    CPtr_(NULL),
+    CfPtr_(NULL),
+    phiPtr_(NULL)
+{
+    if (debug)
+    {
+        Info<< "Constructing fvMesh from Istream" << endl;
     }
 }
 
@@ -326,9 +374,9 @@ void Foam::fvMesh::addFvPatches
             << abort(FatalError);
     }
 
-    // first add polyPatches
+    // First add polyPatches
     addPatches(p, validBoundary);
-    boundary_.addPatches(boundaryMesh());
+    boundary_.addFvPatches();
 }
 
 
@@ -343,9 +391,40 @@ void Foam::fvMesh::removeFvBoundary()
 
     // Remove fvBoundaryMesh data first.
     boundary_.clear();
-    boundary_.setSize(0);
     polyMesh::removeBoundary();
 
+    clearOut();
+}
+
+
+void Foam::fvMesh::resetFvPrimitives
+(
+    const Xfer<pointField>& points,
+    const Xfer<faceList>& faces,
+    const Xfer<labelList>& owner,
+    const Xfer<labelList>& neighbour,
+    const labelList& patchSizes,
+    const labelList& patchStarts,
+    const boolList& resetFvPatchFlag,
+    const bool validBoundary
+)
+{
+    // Reset polyMesh primitives
+    polyMesh::resetPrimitives
+    (
+        points,
+        faces,
+        owner,
+        neighbour,
+        patchSizes,
+        patchStarts,
+        validBoundary
+    );
+
+    // Reset fvPatches  HJ, 16/Apr/2018
+    boundary_.resetFvPatches(resetFvPatchFlag);
+
+    // Clear all mesh data
     clearOut();
 }
 
@@ -369,7 +448,7 @@ Foam::polyMesh::readUpdateState Foam::fvMesh::readUpdate()
             Info << "Boundary and topological update" << endl;
         }
 
-        boundary_.readUpdate(boundaryMesh());
+        boundary_.readUpdate();
 
         clearOut();
 
@@ -435,7 +514,9 @@ void Foam::fvMesh::mapFields(const mapPolyMesh& meshMap) const
 
     // Map all the volFields in the objectRegistry
     MapGeometricFields<scalar, fvPatchField, fvMeshMapper, volMesh>(mapper);
+
     MapGeometricFields<vector, fvPatchField, fvMeshMapper, volMesh>(mapper);
+
     MapGeometricFields<sphericalTensor, fvPatchField, fvMeshMapper, volMesh>
         (mapper);
 
@@ -443,10 +524,10 @@ void Foam::fvMesh::mapFields(const mapPolyMesh& meshMap) const
         (mapper);
 
     MapGeometricFields<symmTensor4thOrder, fvPatchField, fvMeshMapper, volMesh>
-      (mapper);
+        (mapper);
 
     MapGeometricFields<diagTensor, fvPatchField, fvMeshMapper, volMesh>
-      (mapper);
+        (mapper);
 
     MapGeometricFields<tensor, fvPatchField, fvMeshMapper, volMesh>(mapper);
 
@@ -459,14 +540,15 @@ void Foam::fvMesh::mapFields(const mapPolyMesh& meshMap) const
 
     MapGeometricFields
         <sphericalTensor, fvsPatchField, fvMeshMapper, surfaceMesh>(mapper);
+
     MapGeometricFields<symmTensor, fvsPatchField, fvMeshMapper, surfaceMesh>
         (mapper);
 
-    MapGeometricFields<symmTensor4thOrder, fvsPatchField, fvMeshMapper, surfaceMesh>
-      (mapper);
+    MapGeometricFields
+        <symmTensor4thOrder, fvsPatchField, fvMeshMapper, surfaceMesh>(mapper);
 
     MapGeometricFields<diagTensor, fvsPatchField, fvMeshMapper, surfaceMesh>
-      (mapper);
+        (mapper);
 
     MapGeometricFields<tensor, fvsPatchField, fvMeshMapper, surfaceMesh>
         (mapper);
@@ -569,10 +651,8 @@ void Foam::fvMesh::updateMesh(const mapPolyMesh& mpm)
 
 void Foam::fvMesh::syncUpdateMesh()
 {
-    // Update polyMesh. This needs to keep volume existent!
+    // Update polyMesh. This needs to keep cell volumes
     polyMesh::syncUpdateMesh();
-
-    // Not sure how much clean-up is needed here.  HJ, 27/Nov/2009
 
     surfaceInterpolation::clearOut();
     clearGeomNotOldVol();
@@ -583,9 +663,10 @@ void Foam::fvMesh::syncUpdateMesh()
     // This is a temporary solution
     surfaceInterpolation::movePoints();
 
-    // Note: deltaCoeffs cannot be left on lazy evaluation on mesh motion
-    // because tangled comms will occur when they are accessed from
-    // individual boundary conditions
+    // Note:
+    // Not allowed to call deltaCoeffs here because the faces and cells may be
+    // at zero area/volume.  It will be called in movePoints after the
+    // topo change.
     // HJ, VV and IG, 25/Oct/2016
 
     // Function object update moved to polyMesh

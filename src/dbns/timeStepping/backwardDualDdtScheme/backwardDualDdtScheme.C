@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -837,6 +837,31 @@ backwardDualDdtScheme<Type>::fvcDdtPhiCorr
 
         return fluxFieldType::null();
     }
+}
+
+
+template<class Type>
+tmp<typename backwardDualDdtScheme<Type>::fluxFieldType>
+backwardDualDdtScheme<Type>::fvcDdtConsistentPhiCorr
+(
+    const GeometricField<Type, fvsPatchField, surfaceMesh>& faceU,
+    const GeometricField<Type, fvPatchField, volMesh>& U,
+    const surfaceScalarField& rAUf
+)
+{
+    notImplemented
+    (
+        type()
+      + "::fvcDdtConsistentPhiCorr"
+      + "\n("
+      + "\n    const GeometricField<Type, fvsPatchField, surfaceMesh>& faceU,"
+      + "\n    const GeometricField<Type, fvPatchField, volMesh>& U"
+      + "\n    const surfaceScalarField rAUf"
+      + "\n)"
+    );
+
+    // Dummy return
+    return tmp<fluxFieldType>(NULL);
 }
 
 

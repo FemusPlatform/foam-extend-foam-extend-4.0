@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ class constantThermal
 {
     // Private data
 
-        //- Specific heat capacity
+        //- Density
         dimensionedScalar rho_;
 
         //- Specific heat capacity
@@ -63,6 +63,12 @@ class constantThermal
 
         //- Thermal conductivity
         dimensionedScalar k_;
+
+        //- Thermal expansion coefficient
+        dimensionedScalar alpha_;
+
+        //- Reference temperature
+        dimensionedScalar T0_;
 
 
     // Private Member Functions
@@ -109,6 +115,13 @@ public:
         //- Return thermal conductivity
         virtual tmp<volScalarField> k() const;
 
+        //- Return thermal expansion coefficient
+        virtual tmp<volScalarField> alpha() const;
+
+        //- Return reference temperature
+        virtual tmp<volScalarField> T0() const;
+
+        //- Correct the thermal model
         virtual void correct()
         {}
 };

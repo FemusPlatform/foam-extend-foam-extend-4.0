@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -135,6 +135,7 @@ class freeSurface
         //- Interface smoothing at the begining of time step
         Switch smoothing_;
 
+
     // Demand-driven data
 
         //- Patch to patch interpolation object which deals with
@@ -229,6 +230,7 @@ class freeSurface
             const vector& axis
         ) const;
 
+
 public:
 
     // Declare name of the class and it's debug switch
@@ -247,9 +249,8 @@ public:
     );
 
 
-    // Destructor
-
-    ~freeSurface();
+    //- Destructor
+    virtual ~freeSurface();
 
 
     // Member Functions

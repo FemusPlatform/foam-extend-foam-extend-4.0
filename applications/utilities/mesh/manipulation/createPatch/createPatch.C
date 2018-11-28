@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -46,6 +46,7 @@ Description
 #include "mapPolyMesh.H"
 #include "directTopoChange.H"
 #include "polyModifyFace.H"
+#include "wordReList.H"
 
 using namespace Foam;
 
@@ -343,7 +344,7 @@ void syncPoints
             (
                 isA<processorPolyPatch>(pp)
              && pp.nPoints() > 0
-             && refCast<const processorPolyPatch>(pp).owner()
+             && refCast<const processorPolyPatch>(pp).master()
             )
             {
                 const processorPolyPatch& procPatch =
@@ -380,7 +381,7 @@ void syncPoints
             (
                 isA<processorPolyPatch>(pp)
              && pp.nPoints() > 0
-             && !refCast<const processorPolyPatch>(pp).owner()
+             && !refCast<const processorPolyPatch>(pp).master()
             )
             {
                 const processorPolyPatch& procPatch =
@@ -698,7 +699,10 @@ int main(int argc, char *argv[])
 
         if (sourceType == "patches")
         {
-            labelHashSet patchSources(patches.patchSet(dict.lookup("patches")));
+            labelHashSet patchSources
+            (
+                patches.patchSet(wordReList(dict.lookup("patches")))
+            );
 
             // Repatch faces of the patches.
             forAllConstIter(labelHashSet, patchSources, iter)

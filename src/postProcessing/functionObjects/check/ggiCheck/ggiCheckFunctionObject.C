@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -79,13 +79,14 @@ bool Foam::ggiCheckFunctionObject::start()
 }
 
 
-bool Foam::ggiCheckFunctionObject::execute()
+bool Foam::ggiCheckFunctionObject::execute(const bool forceWrite)
 {
     const objectRegistry& mesh =
         time_.lookupObject<objectRegistry>(regionName_);
 
     if (mesh.foundObject<surfaceScalarField>(phiName_))
     {
+        Info<< "Checking flux " << phiName_ << " GGI balance." << endl;
         const surfaceScalarField& phi =
             mesh.lookupObject<surfaceScalarField>(phiName_);
 
@@ -110,24 +111,22 @@ bool Foam::ggiCheckFunctionObject::execute()
                 visited[patchI] = true;
                 visited[shadowPatchI] = true;
 
-                // Calculate local and shadow flux
-                scalar localArea =
+                // Calculate local flux and area
+                const scalar localArea =
                     gSum(phi.mesh().magSf().boundaryField()[patchI]);
 
-                scalar localFlux = gSum(phi.boundaryField()[patchI]);
-                scalar localFluxMag = gSumMag(phi.boundaryField()[patchI]);
+                const scalar localFlux = gSum(phi.boundaryField()[patchI]);
+                const scalar localFluxMag = mag(localFlux);
 
-
-
-                scalar shadowArea =
+                // Calculate shadow flux and area
+                const scalar shadowArea =
                     gSum(phi.mesh().magSf().boundaryField()[shadowPatchI]);
 
-                scalar shadowFlux =
+                const scalar shadowFlux =
                     gSum(phi.boundaryField()[shadowPatchI]);
+                const scalar shadowFluxMag = mag(shadowFlux);
 
-                scalar shadowFluxMag =
-                    gSumMag(phi.boundaryField()[shadowPatchI]);
-
+                // Report
                 Info<< "GGI pair (" << ggiPatch.name() << ", "
                     << ggiPatch.shadow().name() << ")" << nl
                     << "Area: " << localArea << " " << shadowArea
@@ -138,7 +137,7 @@ bool Foam::ggiCheckFunctionObject::execute()
                     << "Flux: " << localFluxMag << " " << shadowFluxMag
                     << " Diff = " << localFlux + shadowFlux << " or "
                     << mag(localFlux + shadowFlux)/
-                       (localFluxMag + SMALL)*100
+                       (Foam::max(localFluxMag, shadowFluxMag) + SMALL)*100
                     << " %" << endl;
             }
             else if
@@ -157,22 +156,22 @@ bool Foam::ggiCheckFunctionObject::execute()
                 visited[patchI] = true;
                 visited[shadowPatchI] = true;
 
-                // Calculate local and shadow flux
-                scalar localArea =
+                // Calculate local flux and area
+                const scalar localArea =
                     gSum(phi.mesh().magSf().boundaryField()[patchI]);
 
-                scalar localFlux = gSum(phi.boundaryField()[patchI]);
-                scalar localFluxMag = gSumMag(phi.boundaryField()[patchI]);
+                const scalar localFlux = gSum(phi.boundaryField()[patchI]);
+                const scalar localFluxMag = mag(localFlux);
 
-                scalar shadowArea =
+                // Calculate shadow flux and area
+                const scalar shadowArea =
                     gSum(phi.mesh().magSf().boundaryField()[shadowPatchI]);
 
-                scalar shadowFlux =
+                const scalar shadowFlux =
                     gSum(phi.boundaryField()[shadowPatchI]);
+                const scalar shadowFluxMag = mag(shadowFlux);
 
-                scalar shadowFluxMag =
-                    gSumMag(phi.boundaryField()[shadowPatchI]);
-
+                // Report
                 Info<< "Cyclic GGI pair (" << ggiPatch.name() << ", "
                     << ggiPatch.shadow().name() << ")" << nl
                     << "Area: " << localArea << " " << shadowArea
@@ -183,7 +182,7 @@ bool Foam::ggiCheckFunctionObject::execute()
                     << "Flux: " << localFluxMag << " " << shadowFluxMag
                     << " Diff = " << localFlux + shadowFlux << " or "
                     << mag(localFlux + shadowFlux)/
-                       (localFluxMag + SMALL)*100
+                       (Foam::max(localFluxMag, shadowFluxMag) + SMALL)*100
                     << " %" << endl;
             }
             else if
@@ -208,30 +207,25 @@ bool Foam::ggiCheckFunctionObject::execute()
                 visited[patchI] = true;
                 visited[shadowPatchI] = true;
 
-                // Calculate local and shadow flux
-                scalar localArea =
+                // Calculate local flux and area
+                const scalar localArea =
                     gSum(phi.mesh().magSf().boundaryField()[patchI])
                    *ggiPatch.nCopies();
 
-                scalar localFlux =
+                const scalar localFlux =
                     gSum(phi.boundaryField()[patchI])
                    *ggiPatch.nCopies();
+                const scalar localFluxMag = mag(localFlux);
 
-                scalar localFluxMag =
-                    gSumMag(phi.boundaryField()[patchI])
-                   *ggiPatch.nCopies();
-
-                scalar shadowArea =
+                // Calculate shadow flux and area
+                const scalar shadowArea =
                     gSum(phi.mesh().magSf().boundaryField()[shadowPatchI])
                    *ggiShadowPatch.nCopies();
 
-                scalar shadowFlux =
+                const scalar shadowFlux =
                     gSum(phi.boundaryField()[shadowPatchI])
                    *ggiShadowPatch.nCopies();
-
-                scalar shadowFluxMag =
-                    gSumMag(phi.boundaryField()[shadowPatchI])
-                   *ggiShadowPatch.nCopies();
+                const scalar shadowFluxMag = mag(shadowFlux);
 
                 Info<< "Overlap GGI pair (" << ggiPatch.name() << ", "
                     << ggiPatch.shadow().name() << ")" << nl
@@ -252,12 +246,18 @@ bool Foam::ggiCheckFunctionObject::execute()
     }
     else
     {
-        InfoIn("bool ggiCheckFunctionObject::execute()")
-            << "Cannot find flux field phi"
+        InfoIn("bool ggiCheckFunctionObject::execute(const bool forceWrite)")
+            << "Cannot find flux field " << phiName_
             << endl;
 
         return false;
     }
+}
+
+
+bool Foam::ggiCheckFunctionObject::timeSet()
+{
+    return true;
 }
 
 

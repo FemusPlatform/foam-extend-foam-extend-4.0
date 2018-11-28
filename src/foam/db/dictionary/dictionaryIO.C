@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -27,68 +27,6 @@ License
 #include "IFstream.H"
 #include "inputModeEntry.H"
 #include "regExp.H"
-
-// * * * * * * * * * * * * * Private Member Functions * * * * * * * * * * * //
-
-bool Foam::dictionary::read(Istream& is)
-{
-    if (!is.good())
-    {
-        FatalIOErrorIn("dictionary::read(Istream&, const word&)", is)
-            << "Istream not OK for reading dictionary "
-            << exit(FatalIOError);
-
-        return false;
-    }
-
-    token currToken(is);
-    if (currToken != token::BEGIN_BLOCK)
-    {
-        is.putBack(currToken);
-    }
-
-    while (!is.eof() && entry::New(*this, is))
-    {}
-
-    // Remove the FoamFile header entry if it exists
-    remove("FoamFile");
-
-    if (is.bad())
-    {
-        Info<< "dictionary::read(Istream&, const word&) : "
-            << "Istream not OK after reading dictionary " << name()
-            << endl;
-
-        return false;
-    }
-
-    return true;
-}
-
-
-bool Foam::dictionary::substituteKeyword(const word& keyword)
-{
-    word varName = keyword(1, keyword.size()-1);
-
-    // lookup the variable name in the given dictionary
-    const entry* ePtr = lookupEntryPtr(varName, true, true);
-
-    // if defined insert its entries into this dictionary
-    if (ePtr != NULL)
-    {
-        const dictionary& addDict = ePtr->dict();
-
-        forAllConstIter(IDLList<entry>, addDict, iter)
-        {
-            add(iter());
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -118,9 +56,100 @@ Foam::dictionary::dictionary(Istream& is)
 }
 
 
+Foam::dictionary::dictionary(Istream& is, const bool keepHeader)
+:
+    dictionaryName(is.name()),
+    parent_(dictionary::null)
+{
+    // Reset input mode as this is a "top-level" dictionary
+    functionEntries::inputModeEntry::clear();
+
+    read(is, keepHeader);
+}
+
+
+// * * * * * * * * * * * * * * * * Selectors * * * * * * * * * * * * * * * * //
+
 Foam::autoPtr<Foam::dictionary> Foam::dictionary::New(Istream& is)
 {
     return autoPtr<dictionary>(new dictionary(is));
+}
+
+
+// * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
+
+bool Foam::dictionary::read(Istream& is, const bool keepHeader)
+{
+    // Check for empty dictionary
+    if (is.eof())
+    {
+        return true;
+    }
+
+    if (!is.good())
+    {
+        FatalIOErrorIn("dictionary::read(Istream&, bool)", is)
+            << "Istream not OK for reading dictionary "
+            << exit(FatalIOError);
+
+        return false;
+    }
+
+    token currToken(is);
+    if (currToken != token::BEGIN_BLOCK)
+    {
+        is.putBack(currToken);
+    }
+
+    while (!is.eof() && entry::New(*this, is))
+    {}
+
+    // normally remove the FoamFile header entry if it exists
+    if (!keepHeader)
+    {
+        remove("FoamFile");
+    }
+
+    if (is.bad())
+    {
+        Info<< "dictionary::read(Istream&, bool) : "
+            << "Istream not OK after reading dictionary " << name()
+            << endl;
+
+        return false;
+    }
+
+    return true;
+}
+
+
+bool Foam::dictionary::read(Istream& is)
+{
+    return this->read(is, false);
+}
+
+
+bool Foam::dictionary::substituteKeyword(const word& keyword)
+{
+    word varName = keyword(1, keyword.size()-1);
+
+    // lookup the variable name in the given dictionary
+    const entry* ePtr = lookupEntryPtr(varName, true, true);
+
+    // if defined insert its entries into this dictionary
+    if (ePtr != NULL)
+    {
+        const dictionary& addDict = ePtr->dict();
+
+        forAllConstIter(IDLList<entry>, addDict, iter)
+        {
+            add(iter());
+        }
+
+        return true;
+    }
+
+    return false;
 }
 
 

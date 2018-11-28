@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class BlockAMGSolver Declaration
+                      Class BlockAMGSolver Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
@@ -93,10 +93,9 @@ public:
         );
 
 
-    // Destructor
-
-        virtual ~BlockAMGSolver()
-        {}
+    //- Destructor
+    virtual ~BlockAMGSolver()
+    {}
 
 
     // Member Functions
@@ -107,6 +106,13 @@ public:
             Field<Type>& x,
             const Field<Type>& b
         );
+
+        //- Re-initialise solver after matrix coefficient update
+        virtual void initMatrix()
+        {
+            Info<< "REINITIALISE AMG" << endl;
+            amg_.initMatrix();
+        }
 };
 
 

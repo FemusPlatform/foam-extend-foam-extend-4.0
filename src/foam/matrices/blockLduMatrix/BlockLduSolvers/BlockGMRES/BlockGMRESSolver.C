@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -50,13 +50,13 @@ void Foam::BlockGMRESSolver<Type>::givensRotation
     else if (mag(beta) > mag(h))
     {
         scalar tau = -h/beta;
-        s = 1.0/Foam::sqrt(1.0 + sqr(tau));
+        s = 1.0/sqrt(1.0 + sqr(tau));
         c = s*tau;
     }
     else
     {
         scalar tau = -beta/h;
-        c = 1.0/Foam::sqrt(1.0 + sqr(tau));
+        c = 1.0/sqrt(1.0 + sqr(tau));
         s = c*tau;
     }
 }
@@ -151,7 +151,7 @@ Foam::BlockGMRESSolver<Type>::solve
             preconPtr_->precondition(wA, rA);
 
             // Calculate beta and scale first vector
-            scalar beta = Foam::sqrt(gSumProd(wA, wA));
+            scalar beta = sqrt(gSumProd(wA, wA));
 
             // Set initial rhs and bh[0] = beta
             bh = 0;
@@ -181,7 +181,7 @@ Foam::BlockGMRESSolver<Type>::solve
                     }
                 }
 
-                beta = Foam::sqrt(gSumProd(wA, wA));
+                beta = sqrt(gSumProd(wA, wA));
 
                 // Apply previous Givens rotations to new column of H.
                 for (label j = 0; j < i; j++)

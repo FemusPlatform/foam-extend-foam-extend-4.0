@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,8 +25,9 @@ Application
     simpleFoam
 
 Description
-    Steady-state solver for incompressible, turbulent flow
+    Steady-state solver for incompressible, turbulent flow.
     Consistent formulation without time-step and relaxation dependence by Jasak
+    and Tukovic.
 
 Author
     Hrvoje Jasak, Wikki Ltd.  All rights reserved

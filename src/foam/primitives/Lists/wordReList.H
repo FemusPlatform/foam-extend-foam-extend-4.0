@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -22,10 +22,16 @@ License
     along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
 
 Typedef
+    Foam::wordReUList
+
+Description
+    A UList of wordRe (word or regular expression)
+
+Typedef
     Foam::wordReList
 
 Description
-    List of wordRe (word or regular expression)
+    A List of wordRe (word or regular expression)
 
 \*---------------------------------------------------------------------------*/
 
@@ -39,6 +45,8 @@ Description
 
 namespace Foam
 {
+    typedef UList<wordRe> wordReUList;
+
     typedef List<wordRe> wordReList;
 }
 

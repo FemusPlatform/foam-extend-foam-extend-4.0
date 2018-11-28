@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -103,6 +103,10 @@ class faMeshMapper
             //- Boundary mapper
             faBoundaryMeshMapper boundaryMap_;
 
+            //- Reset patch flag.  Set true for the rebuilt patch (no mapping)
+            //- Disabled.  HJ, 24/Apr/2018
+            boolList resetPatchFlag_;
+
 
     // Private Member Functions
 
@@ -200,6 +204,13 @@ public:
             const faBoundaryMeshMapper& boundaryMap() const
             {
                 return boundaryMap_;
+            }
+
+            //- Return reset patch flag
+            //- Disabled.  HJ, 24/Apr/2018
+            const boolList& resetPatchFlag() const
+            {
+                return resetPatchFlag_;
             }
 };
 

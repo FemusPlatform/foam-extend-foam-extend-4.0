@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -169,6 +169,25 @@ Foam::pimpleControl::~pimpleControl()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+const Foam::dimensionedScalar Foam::pimpleControl::relaxFactor
+(
+    const Foam::volVectorField& U
+) const
+{
+    scalar urf = 1;
+
+    if (mesh_.solutionDict().relaxEquation(U.select(finalIter())))
+    {
+        urf = mesh_.solutionDict().equationRelaxationFactor
+            (
+                U.select(finalIter())
+            );
+    }
+
+    return dimensionedScalar("alphaU", dimless, urf);
+}
+
 
 bool Foam::pimpleControl::loop()
 {

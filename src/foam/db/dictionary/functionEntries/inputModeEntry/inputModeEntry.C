@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ void Foam::functionEntries::inputModeEntry::setMode(Istream& is)
     }
     else if (mode == "error")
     {
-        mode_ = FATALERROR;
+        mode_ = ERROR;
     }
     else
     {
@@ -136,7 +136,7 @@ bool Foam::functionEntries::inputModeEntry::protect()
 
 bool Foam::functionEntries::inputModeEntry::error()
 {
-    return mode_ == FATALERROR;
+    return mode_ == ERROR;
 }
 
 

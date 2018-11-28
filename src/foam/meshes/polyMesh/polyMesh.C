@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -719,6 +719,9 @@ void Foam::polyMesh::resetPrimitives
     // Clear addressing. Keep geometric props for mapping.
     clearAddressing();
 
+    // Clear everything
+    clearOut();
+
     // Take over new primitive data.
     // Optimized to avoid overwriting data at all
     if (!pts().empty())
@@ -736,30 +739,35 @@ void Foam::polyMesh::resetPrimitives
         // Faces will be reset in initMesh(), using size of owner list
     }
 
+    // HR 25.06.18: A mesh with a single cell has an empty neighbour list and
+    // we need to be able reset to such a mesh eg. during load balancing
     if (!own().empty())
     {
+        // Mesh has at least one face in owner list. Reset both lists even if
+        // neighbours are empty (single cell mesh).
         owner_.transfer(own());
-    }
-
-    if (!nei().empty())
-    {
         neighbour_.transfer(nei());
+    }
+    else
+    {
+        if (!nei().empty())
+        {
+            // This mesh is invalid, but the operation was valid before.
+            // Therefore we do what was done before.
+            neighbour_.transfer(nei());
+        }
     }
 
 
     // Reset patch sizes and starts
     forAll (boundary_, patchI)
     {
-        boundary_[patchI] = polyPatch
+        boundary_[patchI].resetPatch
         (
-            boundary_[patchI].name(),
             patchSizes[patchI],
-            patchStarts[patchI],
-            patchI,
-            boundary_
+            patchStarts[patchI]
         );
     }
-
 
     // Flags the mesh files as being changed
     setInstance(time().timeName());
@@ -804,11 +812,9 @@ void Foam::polyMesh::resetPrimitives
         }
     }
 
-
     // Set the primitive mesh from the owner_, neighbour_.
     // Works out from patch end where the active faces stop.
     initMesh();
-
 
     if (validBoundary)
     {
@@ -1235,9 +1241,12 @@ Foam::tmp<Foam::scalarField> Foam::polyMesh::movePoints
     geometricD_ = Vector<label>::zero;
     solutionD_ = Vector<label>::zero;
 
-    // Update all function objects
+    // Update all mesh objects
     // Moved from fvMesh.C in 1.6.x merge.  HJ, 29/Aug/2010
     meshObjectBase::allMovePoints<polyMesh>(*this);
+
+    // Update all function objects
+    const_cast<Time&>(time()).functionObjects().movePoints(allPoints_);
 
     return sweptVols;
 }
@@ -1267,7 +1276,7 @@ void Foam::polyMesh::setOldPoints
                 "    const pointField& setPoints\n"
                 ")\n"
             )   << "setPoints size " << setPoints.size()
-                << "different from the mesh points size "
+                << " is different from the mesh points size "
                 << allPoints_.size()
                 << abort(FatalError);
     }
@@ -1296,65 +1305,9 @@ const Foam::globalMeshData& Foam::polyMesh::globalData() const
                 << "Constructing parallelData from processor topology"
                 << endl;
         }
+
         // Construct globalMeshData using processorPatch information only.
         globalMeshDataPtr_ = new globalMeshData(*this);
-
-        // Old method.  HJ, 6/Dec/2006
-
-//         // Check for parallel boundaries
-//         bool parBoundaries = false;
-
-//         forAll (boundaryMesh(), patchI)
-//         {
-//             if
-//             (
-//                 typeid(boundaryMesh()[patchI])
-//              == typeid(processorPolyPatch)
-//             )
-//             {
-//                 parBoundaries = true;
-//                 break;
-//             }
-//         }
-
-//         if (parBoundaries)
-//         {
-//             // All is well - read the parallel data
-
-//             globalDataPtr_ =
-//                 new globalMeshData
-//                 (
-//                     IOobject
-//                     (
-//                         "globalData",
-//                         time().findInstance(meshDir(), "globalData"),
-//                         meshSubDir,
-//                         *this,
-//                         IOobject::MUST_READ,
-//                         IOobject::NO_WRITE
-//                     ),
-//                     *this
-//                 );
-//         }
-//         else
-//         {
-//             // The mesh has no parallel boundaries.  Create and hook a
-//             // "non-parallel" parallel info
-//             globalDataPtr_ =
-//                 new globalMeshData
-//                 (
-//                     *this,
-//                     false,
-//                     false,  // cyclicParallel.  Remove when fixed
-//                     nPoints(),
-//                     nFaces(),
-//                     nCells(),
-//                     0,
-//                     labelList(0),
-//                     labelList(0),
-//                     labelList(0)
-//                 );
-//         }
     }
 
     return *globalMeshDataPtr_;

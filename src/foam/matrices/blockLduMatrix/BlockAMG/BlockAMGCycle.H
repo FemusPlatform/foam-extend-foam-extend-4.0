@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -143,6 +143,9 @@ public:
             return nLevels_;
         }
 
+        //- Return coarse matrix
+        BlockLduMatrix<Type>& coarseMatrix();
+
         //- Calculate residual
         void residual
         (
@@ -166,6 +169,9 @@ public:
             const label nPostSweeps,
             const bool scale
         ) const;
+
+        //- Re-initialise preconditioner after matrix coefficient update
+        void initMatrix();
 };
 
 

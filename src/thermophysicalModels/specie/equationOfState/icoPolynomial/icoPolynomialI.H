@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -88,7 +88,7 @@ Foam::icoPolynomial<PolySize>::New(Istream& is)
 template<int PolySize>
 inline Foam::scalar Foam::icoPolynomial<PolySize>::rho(scalar, scalar T) const
 {
-    return rhoPolynomial_.evaluate(T)/this->W();
+    return rhoPolynomial_.value(T)/this->W();
 }
 
 

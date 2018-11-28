@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -50,18 +50,18 @@ Foam::scalar Foam::BlockCoeffComponentNorm<Type>::normalize
     const Foam::BlockCoeff<Type>& a
 )
 {
-    return mag(a.component(cmpt_));
+    return a.component(cmpt_);
 }
 
 
 template<class Type>
-void Foam::BlockCoeffComponentNorm<Type>::coeffMag
+void Foam::BlockCoeffComponentNorm<Type>::normalize
 (
-    const Foam::CoeffField<Type>& a,
-    Foam::Field<scalar>& b
+    Foam::Field<scalar>& b,
+    const Foam::CoeffField<Type>& a
 )
 {
-    b = mag(a.component(cmpt_));
+    b = a.component(cmpt_);
 }
 
 

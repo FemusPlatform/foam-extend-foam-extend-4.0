@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ License
     along with foam-extend.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    wedgeFvPatchField
+    wedgeFaPatchField
 
 \*---------------------------------------------------------------------------*/
 
@@ -39,12 +39,6 @@ namespace Foam
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 template<class Type> class wedgeFaPatchField;
-
-// typedef wedgeFaPatchField<scalar> wedgeFaPatchScalarField;
-// typedef wedgeFaPatchField<vector> wedgeFaPatchVectorField;
-// typedef wedgeFaPatchField<tensor> wedgeFaPatchTensorField;
-
-// template<class Type> class wedgeFvPatchField;
 
 makeFaPatchTypeFieldTypedefs(wedge)
 

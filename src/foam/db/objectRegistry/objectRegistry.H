@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ SourceFiles
 
 #include "HashTable.H"
 #include "regIOobject.H"
+#include "wordReList.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -44,17 +45,13 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class objectRegistry Declaration
+                       Class objectRegistry Declaration
 \*---------------------------------------------------------------------------*/
 
 class objectRegistry
 :
     public regIOobject,
-#ifndef SWIG
     public HashTable<regIOobject*>
-#else
-    public HashTable<regIOobject*, word, string_hash>
-#endif
 {
     // Private Data
 
@@ -72,6 +69,10 @@ class objectRegistry
 
 
     // Private Member Functions
+
+        //- Is the objectRegistry parent_ different from time_
+        //  Used to terminate searching within the ancestors
+        bool parentNotTime() const;
 
         //- Disallow Copy constructor
         objectRegistry(const objectRegistry&);
@@ -149,21 +150,44 @@ public:
             //- Return the list of names of the IOobjects
             wordList names() const;
 
-            //- Return the list of names of the IOobjects of given class name
+            //- Return the sorted list of names of the IOobjects
+            wordList sortedNames() const;
+
+            //- Return the list of names of IOobjects of given class name
             wordList names(const word& className) const;
+
+            //- Return the sorted list of names of IOobjects of given class name
+            wordList sortedNames(const word& className) const;
 
             //- Return the list of names of the IOobjects of given type
             template<class Type>
             wordList names() const;
 
-            //- Lookup and return a const sub-objectRegistry
-            const objectRegistry& subRegistry(const word& name) const;
-
-            //- Lookup and return all the object of the given Type
+            //- Return the list of objects whose name matches the input regExp
             template<class Type>
-            HashTable<const Type*> lookupClass() const;
+            wordList names(const wordRe& name) const;
 
-            //- Is the named Type
+            //- Return the list of objects whose name matches the input regExp
+            template<class Type>
+            wordList names(const wordReList& name) const;
+
+            //- Lookup and return a const sub-objectRegistry. Optionally create
+            //  it if it does not exist.
+            const objectRegistry& subRegistry
+            (
+                const word& name,
+                const bool forceCreate = false
+            ) const;
+
+            //- Lookup and return all objects of the given Type
+            template<class Type>
+            HashTable<const Type*> lookupClass(const bool strict = false) const;
+
+            //- Lookup and return all objects of the given Type
+            template<class Type>
+            HashTable<Type*> lookupClass(const bool strict = false);
+
+            //- Is the named Type found?
             template<class Type>
             bool foundObject(const word& name) const;
 
@@ -205,11 +229,7 @@ public:
             //  for this class, write is used instead
             virtual bool writeData(Ostream&) const
             {
-                notImplemented
-                (
-                    "void objectRegistry::writeData(Ostream&) const: "
-                    "use write() instead"
-                );
+                NotImplemented;
 
                 return false;
             }
@@ -231,7 +251,7 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #ifdef NoRepository
-#   include "objectRegistryTemplates.C"
+    #include "objectRegistryTemplates.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

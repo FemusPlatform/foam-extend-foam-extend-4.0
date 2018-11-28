@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -81,7 +81,6 @@ class processorPolyPatch
         mutable labelList* neighbEdgesPtr_;
 
 
-
     // Private static data
 
         //- Whether to use geometric or topological matching
@@ -99,16 +98,16 @@ protected:
         virtual void calcAddressing();
 
         //- Initialise the calculation of the patch geometry
-        void initGeometry();
+        virtual void initGeometry();
 
         //- Calculate the patch geometry
-        void calcGeometry();
+        virtual void calcGeometry();
 
         //- Initialise the patches for moving points
-        void initMovePoints(const pointField&);
+        virtual void initMovePoints(const pointField&);
 
         //- Correct patches after moving points
-        void movePoints(const pointField&);
+        virtual void movePoints(const pointField&);
 
         //- Initialise the update of the patch topology
         virtual void initUpdateMesh();
@@ -146,9 +145,6 @@ public:
             const polyBoundaryMesh&
         );
 
-        //- Construct as copy, resetting the boundary mesh
-        processorPolyPatch(const processorPolyPatch&, const polyBoundaryMesh&);
-
         //- Construct as given the original patch and resetting the
         //  face list and boundary mesh information
         processorPolyPatch
@@ -159,6 +155,12 @@ public:
             const label newSize,
             const label newStart
         );
+
+        //- Construct as copy
+        processorPolyPatch(const processorPolyPatch&);
+
+        //- Construct as copy, resetting the boundary mesh
+        processorPolyPatch(const processorPolyPatch&, const polyBoundaryMesh&);
 
         //- Construct and return a clone, resetting the boundary mesh
         virtual autoPtr<polyPatch> clone(const polyBoundaryMesh& bm) const
@@ -217,16 +219,10 @@ public:
             virtual int tag() const;
 
 
-        //- Does the processor own the patch ?
-        bool owner() const
+        //- Is this the master side?
+        virtual bool master() const
         {
             return (myProcNo_ < neighbProcNo_);
-        }
-
-        //- Is the processor the patch neighbour ?
-        bool neighbour() const
-        {
-            return !owner();
         }
 
         //- Return processor-neighbbour patch face centres

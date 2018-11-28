@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -53,10 +53,13 @@ void volPointInterpolation::interpolateInternalField
 
     const labelListList& pointCells = vf.mesh().pointCells();
 
+    // Get point weights
+    const scalarListList& pWeights = this->pointWeights();
+
     // Multiply volField by weighting factor matrix to create pointField
     forAll(pointCells, pointi)
     {
-        const scalarList& pw = pointWeights_[pointi];
+        const scalarList& pw = pWeights[pointi];
         const labelList& ppc = pointCells[pointi];
 
         pf[pointi] = pTraits<Type>::zero;

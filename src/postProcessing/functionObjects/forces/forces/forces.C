@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -231,7 +231,7 @@ void Foam::forces::read(const dictionary& dict)
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
 
         patchSet_ =
-            mesh.boundaryMesh().patchSet(wordList(dict.lookup("patches")));
+            mesh.boundaryMesh().patchSet(wordReList(dict.lookup("patches")));
 
         dict.readIfPresent("directForceDensity", directForceDensity_);
 

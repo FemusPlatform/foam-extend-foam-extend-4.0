@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ bool Foam::maxFieldCell::start()
 }
 
 
-bool Foam::maxFieldCell::execute()
+bool Foam::maxFieldCell::execute(const bool forceWrite)
 {
     const fvMesh& mesh =
         time_.lookupObject<fvMesh>(regionName_);

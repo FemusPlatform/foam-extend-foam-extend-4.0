@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -50,8 +50,8 @@ Description
 
 int main(int argc, char *argv[])
 {
-    // enable -constant ... if someone really wants it
-    // enable -zeroTime to prevent accidentally trashing the initial fields
+    // disable -constant
+    // enable -noZero to prevent accidentally trashing the initial fields
     timeSelector::addOptions(false, true);
     argList::noParallel();
 #   include "addRegionOption.H"
@@ -132,12 +132,17 @@ int main(int argc, char *argv[])
     {
         Info<< "Reading database for processor " << procI << endl;
 
-        databases[procI].setTime(runTime.timeName(), runTime.timeIndex());
+        databases[procI].setTime(runTime, runTime.timeIndex());
     }
 
     // Read all meshes and addressing to reconstructed mesh
-    processorMeshesReconstructor procMeshes(databases, regionName);
+    processorMeshesReconstructor procMeshes
+    (
+        databases,
+        regionName
+    );
 
+    // Get reconstructed mesh
     autoPtr<fvMesh> meshPtr = procMeshes.reconstructMesh(runTime);
 
 
@@ -629,7 +634,7 @@ int main(int argc, char *argv[])
 
             faMesh aMesh(mesh);
 
-            processorFaMeshes procFaMeshes(procMeshes.meshes());
+            processorFaMeshes procFaMeshes(procMeshes.meshes(), true);
 
             faFieldReconstructor faReconstructor
             (

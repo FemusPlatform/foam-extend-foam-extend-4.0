@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -64,13 +64,13 @@ protected:
     // Protected Member Functions
 
         //- Make patch weighting factors
-        virtual void makeWeights(scalarField&) const = 0;
+        virtual void makeWeights(fvsPatchScalarField&) const = 0;
 
         //- Make patch face - neighbour cell distances
-        virtual void makeDeltaCoeffs(scalarField&) const = 0;
+        virtual void makeDeltaCoeffs(fvsPatchScalarField&) const = 0;
 
         //- Make patch face non-orthogonality correction vectors
-        virtual void makeCorrVecs(vectorField&) const;
+        virtual void makeCorrVecs(fvsPatchVectorField&) const;
 
 
 public:
@@ -92,9 +92,8 @@ public:
         {}
 
 
-    // Destructor
-
-        virtual ~coupledFvPatch();
+    //- Destructor
+    virtual ~coupledFvPatch();
 
 
     // Member Functions
@@ -105,6 +104,12 @@ public:
             virtual bool coupled() const
             {
                 return coupledPolyPatch_.coupled();
+            }
+
+            //- Return true if patch is coupled
+            virtual bool master() const
+            {
+                return coupledPolyPatch_.master();
             }
 
             //- Return face transformation tensor

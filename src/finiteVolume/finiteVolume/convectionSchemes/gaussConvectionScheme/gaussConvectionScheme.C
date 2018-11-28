@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -96,6 +96,15 @@ gaussConvectionScheme<Type>::fvmDiv
 
         fvm.internalCoeffs()[patchI] = patchFlux*psf.valueInternalCoeffs(pw);
         fvm.boundaryCoeffs()[patchI] = -patchFlux*psf.valueBoundaryCoeffs(pw);
+    }
+
+    // Manipulate internal and boundary coeffs for convection. Needed for very
+    // special treatment and is currently used only for ensuring implicit
+    // conservation across GGI interface that has partially covered faces. Does
+    // nothing for other fvPatchFields. VV, 8/Mar/2018.
+    forAll(fvm.psi().boundaryField(), patchI)
+    {
+        fvm.psi().boundaryField()[patchI].manipulateValueCoeffs(fvm);
     }
 
     if (tinterpScheme_().corrected())

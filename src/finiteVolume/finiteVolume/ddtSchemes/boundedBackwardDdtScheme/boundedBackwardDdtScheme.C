@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -653,6 +653,22 @@ tmp<surfaceScalarField> boundedBackwardDdtScheme::fvcDdtPhiCorr
     notImplemented
     (
         "boundedBackwardDdtScheme::fvcDdtPhiCorr"
+    );
+
+    return surfaceScalarField::null();
+}
+
+
+tmp<surfaceScalarField> boundedBackwardDdtScheme::fvcDdtConsistentPhiCorr
+(
+    const surfaceScalarField& faceU,
+    const volScalarField& U,
+    const surfaceScalarField& rAUf
+)
+{
+    notImplemented
+    (
+        "boundedBackwardDdtScheme::fvcDdtConsistentPhiCorr"
     );
 
     return surfaceScalarField::null();

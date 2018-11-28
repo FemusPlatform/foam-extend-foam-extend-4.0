@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ SourceFiles
 #ifndef patchIdentifier_H
 #define patchIdentifier_H
 
-#include "word.H"
+#include "wordList.H"
 #include "label.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -68,6 +68,8 @@ class patchIdentifier
         //- Optional physical type
         mutable word physicalType_;
 
+        //- Optional groups patch belongs to
+        wordList inGroups_;
 
 public:
 
@@ -78,7 +80,8 @@ public:
         (
             const word& name,
             const label index,
-            const word& physicalType = word::null
+            const word& physicalType = word::null,
+            const wordList& inGroups = wordList()
         );
 
         //- Construct from dictionary
@@ -97,9 +100,8 @@ public:
         );
 
 
-    // Destructor
-
-        virtual ~patchIdentifier();
+    //- Destructor
+    virtual ~patchIdentifier();
 
 
     // Member Functions
@@ -139,6 +141,21 @@ public:
         {
             return index_;
         }
+
+        //- Return the optional groups patch belongs to
+        const wordList& inGroups() const
+        {
+            return inGroups_;
+        }
+
+        //- Return the optional groups patch belongs to for modification
+        wordList& inGroups()
+        {
+            return inGroups_;
+        }
+
+        //- Test if in group
+        bool inGroup(const word&) const;
 
         //- Write patchIdentifier as a dictionary
         void write(Ostream&) const;

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -41,24 +41,30 @@ Description
 int main(int argc, char *argv[])
 {
 #   include "setRootCase.H"
-
 #   include "createTime.H"
-
 #   include "createDynamicFvMesh.H"
 
     pimpleControl pimple(mesh);
 
 #   include "createFields.H"
-
+#   include "createTimeControls.H"
 #   include "initContinuityErrs.H"
+#   include "CourantNo.H"
+#   include "setInitialDeltaT.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
     Info << "\nStarting time loop\n" << endl;
 
-    for (runTime++; !runTime.end(); runTime++)
+    while (runTime.run())
     {
-        Info << "Time = " << runTime.value() << endl << endl;
+#       include "readTimeControls.H"
+#       include "CourantNo.H"
+        //#       include "setSurfaceStabilityDeltaT.H"
+
+        runTime++;
+
+        Info<< "Time = " << runTime.timeName() << nl << endl;
 
         interface.moveMeshPointsForOldFreeSurfDisplacement();
 
@@ -116,6 +122,8 @@ int main(int argc, char *argv[])
                     {
                         phi -= pEqn.flux();
                     }
+
+                    p.relax();
                 }
 
 #               include "continuityErrs.H"

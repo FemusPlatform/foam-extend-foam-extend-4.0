@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -170,6 +170,16 @@ public:
             const volScalarField& U,
             const surfaceScalarField& phi
         );
+
+
+        // Member functions for the new time consistent formulation
+        tmp<surfaceScalarField> fvcDdtConsistentPhiCorr
+        (
+            const surfaceScalarField& faceU,
+            const volScalarField& U,
+            const surfaceScalarField& rAUf
+        );
+
 
         tmp<surfaceScalarField> meshPhi
         (

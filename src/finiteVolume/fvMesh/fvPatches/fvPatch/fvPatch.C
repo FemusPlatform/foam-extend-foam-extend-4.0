@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -41,6 +41,36 @@ namespace Foam
 defineTypeNameAndDebug(fvPatch, 0);
 defineRunTimeSelectionTable(fvPatch, polyPatch);
 addToRunTimeSelectionTable(fvPatch, fvPatch, polyPatch);
+
+
+// * * * * * * * * * * * * * Protected Member Functions  * * * * * * * * * * //
+
+void fvPatch::makeWeights(fvsPatchScalarField& w) const
+{
+    w = 1.0;
+}
+
+
+void fvPatch::makeDeltaCoeffs(fvsPatchScalarField& dc) const
+{
+    const vectorField d = delta();
+    dc = 1.0/max((nf() & d), 0.05*mag(d));
+}
+
+
+void fvPatch::makeCorrVecs(fvsPatchVectorField& cv) const
+{
+    cv = vector::zero;
+}
+
+
+void fvPatch::initMovePoints()
+{}
+
+
+void fvPatch::movePoints()
+{}
+
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -115,7 +145,10 @@ tmp<vectorField> fvPatch::Cn() const
     const unallocLabelList& faceCells = this->faceCells();
 
     // Get reference to global cell centres
-    const vectorField& gcc = boundaryMesh().mesh().cellCentres();
+    // Bugfix: access cell centres from fvMesh data, not polyMesh.
+    // HJ, 30/Nov/2017
+    const vectorField& gcc = boundaryMesh().mesh().C().internalField();
+    // const vectorField& gcc = boundaryMesh().mesh().cellCentres();
 
     forAll (faceCells, faceI)
     {
@@ -148,32 +181,6 @@ tmp<vectorField> fvPatch::delta() const
 {
     return Cf() - Cn();
 }
-
-
-void fvPatch::makeWeights(scalarField& w) const
-{
-    w = 1.0;
-}
-
-
-void fvPatch::makeDeltaCoeffs(scalarField& dc) const
-{
-    dc = 1.0/(nf() & delta());
-}
-
-
-void fvPatch::makeCorrVecs(vectorField& cv) const
-{
-    cv = vector::zero;
-}
-
-
-void fvPatch::initMovePoints()
-{}
-
-
-void fvPatch::movePoints()
-{}
 
 
 const scalarField& fvPatch::deltaCoeffs() const

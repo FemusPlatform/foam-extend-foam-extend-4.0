@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -33,68 +33,19 @@ License
 
 void Foam::nearWallDist::doAll()
 {
-    cellDistFuncs wallUtils(mesh_);
+    const fvPatchList& patches = mesh_.boundary();
 
-    // AJ: make sure to pick up all patches that are specified as a wall
-    const polyBoundaryMesh& bMesh = wallUtils.mesh().boundaryMesh();
-    labelHashSet wallPatchIDs(bMesh.size());
-    forAll(bMesh, patchI)
+    forAll (patches, patchI)
     {
-        if (bMesh[patchI].isWall())
+        fvPatchScalarField& yPatch = operator[](patchI);
+
+        if (patches[patchI].isWall())
         {
-            wallPatchIDs.insert(patchI);
-        }
-    }
-
-    // Get patch ids of walls
-    // labelHashSet wallPatchIDs(wallUtils.getPatchIDs<wallPolyPatch>());
-
-    // Size neighbours array for maximum possible
-
-    labelList neighbours(wallUtils.maxPatchSize(wallPatchIDs));
-
-
-    // Correct all cells with face on wall
-
-    const volVectorField& cellCentres = mesh_.C();
-
-    forAll(mesh_.boundary(), patchI)
-    {
-        fvPatchScalarField& ypatch = operator[](patchI);
-
-        const fvPatch& patch = mesh_.boundary()[patchI];
-
-        if (patch.isWall())
-        {
-            const polyPatch& pPatch = patch.patch();
-
-            const unallocLabelList& faceCells = patch.faceCells();
-
-            // Check cells with face on wall
-            forAll(patch, patchFaceI)
-            {
-                label nNeighbours = wallUtils.getPointNeighbours
-                (
-                    pPatch,
-                    patchFaceI,
-                    neighbours
-                );
-
-                label minFaceI = -1;
-
-                ypatch[patchFaceI] = wallUtils.smallestDist
-                (
-                    cellCentres[faceCells[patchFaceI]],
-                    pPatch,
-                    nNeighbours,
-                    neighbours,
-                    minFaceI
-                );
-            }
+            yPatch = 1/patches[patchI].deltaCoeffs();
         }
         else
         {
-            ypatch = 0.0;
+            yPatch = 0.0;
         }
     }
 }
@@ -128,9 +79,28 @@ void Foam::nearWallDist::correct()
 {
     if (mesh_.changing())
     {
-        // Update size of GeometricBoundaryField
-        forAll(mesh_.boundary(), patchI)
+        // Update size if not equal
+        if (size() != mesh_.boundary().size())
         {
+            setSize(mesh_.boundary().size());
+        }
+        
+        // Update size of GeometricBoundaryField
+        forAll (mesh_.boundary(), patchI)
+        {
+            if (!set(patchI))
+            {
+                set
+                (
+                    patchI,
+                    new calculatedFvPatchScalarField
+                    (
+                        mesh_.boundary()[patchI],
+                        mesh_.V()                // Dummy internal field
+                    )
+                );
+            }
+
             operator[](patchI).setSize(mesh_.boundary()[patchI].size());
         }
     }

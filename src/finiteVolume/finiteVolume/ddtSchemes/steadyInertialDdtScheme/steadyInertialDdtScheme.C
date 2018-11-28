@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ License
 #include "steadyInertialDdtScheme.H"
 #include "surfaceInterpolate.H"
 #include "fvMatrices.H"
+#include "autoPtr.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -42,8 +43,52 @@ namespace fv
 template<class Type>
 tmp<volScalarField> steadyInertialDdtScheme<Type>::CorDeltaT() const
 {
+    const objectRegistry& registry = this->mesh();
+
+    autoPtr<surfaceScalarField> cofrDeltaTPtr;
+
+    if (registry.foundObject<surfaceScalarField>(phiName_))
+    {
+        cofrDeltaTPtr.reset(convectionCofrDeltaT().ptr());
+        Info<< "Convection min ddt: "
+            << gMin(1/cofrDeltaTPtr().internalField())
+            << endl;
+    }
+
+    if
+    (
+        registry.foundObject<volScalarField>(nuName_)
+     || registry.foundObject<surfaceScalarField>(nuName_)
+    )
+    {
+        if (cofrDeltaTPtr.valid())
+        {
+            cofrDeltaTPtr() =
+                Foam::max(cofrDeltaTPtr(), diffusionCofrDeltaT());
+            Info<< "Combined min ddt: "
+                << gMin(1/cofrDeltaTPtr().internalField())
+                << endl;
+        }
+        else
+        {
+            cofrDeltaTPtr.reset(diffusionCofrDeltaT().ptr());
+            Info<< "Diffusion min ddt: "
+                << gMin(1/cofrDeltaTPtr().internalField())
+                << endl;
+        }
+    }
+
+    if (cofrDeltaTPtr.empty())
+    {
+        FatalErrorIn
+        (
+            "steaddyInertialDdtScheme<Type>::CorDeltaT() const"
+        )   << "Cannot find phi or nu: " << phiName_ << " " << nuName_
+            << abort(FatalError);
+    }
+
     // Collect face delta t and pick the smallest for the cell
-    surfaceScalarField cofrDeltaT = CofrDeltaT();
+    surfaceScalarField& cofrDeltaT = cofrDeltaTPtr();
 
     tmp<volScalarField> tcorDeltaT
     (
@@ -60,7 +105,6 @@ tmp<volScalarField> steadyInertialDdtScheme<Type>::CorDeltaT() const
             zeroGradientFvPatchScalarField::typeName
         )
     );
-
     volScalarField& corDeltaT = tcorDeltaT();
 
     const unallocLabelList& owner = mesh().owner();
@@ -100,7 +144,8 @@ tmp<volScalarField> steadyInertialDdtScheme<Type>::CorDeltaT() const
 
 
 template<class Type>
-tmp<surfaceScalarField> steadyInertialDdtScheme<Type>::CofrDeltaT() const
+tmp<surfaceScalarField>
+steadyInertialDdtScheme<Type>::convectionCofrDeltaT() const
 {
     const objectRegistry& registry = this->mesh();
 
@@ -143,8 +188,76 @@ tmp<surfaceScalarField> steadyInertialDdtScheme<Type>::CofrDeltaT() const
     }
     else
     {
-        FatalErrorIn("steaddyInertialDdtScheme<Type>::CofrDeltaT() const")
-            << "Incorrect dimensions of phi: " << phi.dimensions()
+        FatalErrorIn
+        (
+            "steaddyInertialDdtScheme<Type>::convectionCofrDeltaT() const"
+        )   << "Incorrect dimensions of phi: " << phi.dimensions()
+            << abort(FatalError);
+
+        return tmp<surfaceScalarField>(NULL);
+    }
+}
+
+
+template<class Type>
+tmp<surfaceScalarField>
+steadyInertialDdtScheme<Type>::diffusionCofrDeltaT() const
+{
+    const objectRegistry& registry = this->mesh();
+
+    if (registry.foundObject<volScalarField>(nuName_))
+    {
+        const volScalarField& nu =
+            registry.lookupObject<volScalarField>(nuName_);
+
+        return diffusionCofrDeltaT(fvc::interpolate(nu)());
+    }
+    else if (registry.foundObject<volScalarField>(nuName_))
+    {
+        const surfaceScalarField& nuf =
+            registry.lookupObject<surfaceScalarField>(nuName_);
+
+        return diffusionCofrDeltaT(nuf);
+    }
+    else
+    {
+        FatalErrorIn
+        (
+            "steaddyInertialDdtScheme<Type>::diffusionCofrDeltaT() const"
+        )   << "Cannot find nu"
+            << abort(FatalError);
+
+        return tmp<surfaceScalarField>(NULL);
+    }
+}
+
+template<class Type>
+tmp<surfaceScalarField>
+steadyInertialDdtScheme<Type>::diffusionCofrDeltaT
+(
+    const surfaceScalarField& nuf
+) const
+{
+    const objectRegistry& registry = this->mesh();
+
+    if (nuf.dimensions() == dimensionSet(0, 2, -1, 0, 0))
+    {
+        return nuf*sqr(mesh().surfaceInterpolation::deltaCoeffs())/maxCo_;
+    }
+    else if (nuf.dimensions() == dimensionSet(1, -1, -1, 0, 0))
+    {
+        const volScalarField& rho =
+            registry.lookupObject<volScalarField>(rhoName_);
+
+        return nuf*sqr(mesh().surfaceInterpolation::deltaCoeffs())/
+            (fvc::interpolate(rho)*maxCo_);
+    }
+    else
+    {
+        FatalErrorIn
+        (
+            "steaddyInertialDdtScheme<Type>::diffusionCofrDeltaT() const"
+        )   << "Incorrect dimensions of nu: " << nuf.dimensions()
             << abort(FatalError);
 
         return tmp<surfaceScalarField>(NULL);
@@ -638,7 +751,8 @@ steadyInertialDdtScheme<Type>::fvcDdtPhiCorr
                     (
                         fvc::interpolate(rDeltaT*rA)*phi
                       - (
-                            fvc::interpolate(rDeltaT*rA*U.prevIter()) & mesh().Sf()
+                            fvc::interpolate(rDeltaT*rA*U.prevIter())
+                          & mesh().Sf()
                         )
                     )
                 )
@@ -655,6 +769,47 @@ steadyInertialDdtScheme<Type>::fvcDdtPhiCorr
             return fluxFieldType::null();
         }
     }
+}
+
+
+template<class Type>
+tmp<typename steadyInertialDdtScheme<Type>::fluxFieldType>
+steadyInertialDdtScheme<Type>::fvcDdtConsistentPhiCorr
+(
+    const GeometricField<Type, fvsPatchField, surfaceMesh>& faceU,
+    const GeometricField<Type, fvPatchField, volMesh>& U,
+    const surfaceScalarField& rAUf
+)
+{
+    tmp<fluxFieldType> toldTimeFlux =
+        (mesh().Sf() & faceU.oldTime())*rAUf*convectionCofrDeltaT();
+
+    if (mesh().moving())
+    {
+        // Mesh is moving, need to take into account the ratio between old and
+        // current cell volumes
+        volScalarField V0ByV
+        (
+            IOobject
+            (
+                "V0ByV",
+                mesh().time().timeName(),
+                mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            mesh(),
+            dimensionedScalar("one", dimless, 1.0),
+            zeroGradientFvPatchScalarField::typeName
+        );
+        V0ByV.internalField() = mesh().V0()/mesh().V();
+        V0ByV.correctBoundaryConditions();
+
+        // Correct the flux with interpolated volume ratio
+        toldTimeFlux() *= fvc::interpolate(V0ByV);
+    }
+
+    return toldTimeFlux;
 }
 
 

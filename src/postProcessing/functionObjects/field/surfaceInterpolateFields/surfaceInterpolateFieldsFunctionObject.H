@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -25,8 +25,8 @@ Typedef
     Foam::surfaceInterpolateFieldsFunctionObject
 
 Description
-    FunctionObject wrapper around surfaceInterpolateFields to allow them to be created via
-    the functions entry within controlDict.
+    FunctionObject wrapper around surfaceInterpolateFields to allow
+    them to be created via the functions entry within controlDict.
 
 SourceFiles
     surfaceInterpolateFieldsFunctionObject.C

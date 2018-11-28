@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -249,7 +249,7 @@ Foam::mixerGgiFvMesh::mixerGgiFvMesh
                 "dynamicMeshDict",
                 time().constant(),
                 *this,
-                IOobject::MUST_READ,
+                IOobject::MUST_READ_IF_MODIFIED,
                 IOobject::NO_WRITE
             )
         ).subDict(typeName + "Coeffs")
@@ -317,8 +317,8 @@ bool Foam::mixerGgiFvMesh::update()
         cs_.globalPosition
         (
             cs_.localPosition(allPoints())
-          + vector(0, rpm_*360.0*time().deltaT().value()/60.0, 0)
-            *movingPointsMask()
+          + vector(0, rpm_*360.0*time().deltaT().value()/60.0, 0)*
+            movingPointsMask()
         )
     );
 

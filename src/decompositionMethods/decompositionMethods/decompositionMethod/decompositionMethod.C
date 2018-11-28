@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -431,15 +431,27 @@ Foam::autoPtr<Foam::decompositionMethod> Foam::decompositionMethod::New
     const dictionary& decompositionDict
 )
 {
-    loadExternalLibraries();
+    // HR 11.02.18: Library table is member of runtime (like in
+    // vanilla). Therefore need runtime here and we get it by
+    // traversing to the top of the dict in the hope that it is
+    // an IOdictionary.
+    const dictionary& topDict = decompositionDict.topDict();
+    if (isA<IOdictionary>(topDict))
+    {
+        Time& time = const_cast<Time&>
+        (
+            reinterpret_cast<const Time&>(topDict)
+        );
 
-    word decompositionMethodTypeName(decompositionDict.lookup("method"));
+        loadExternalLibraries(time);
+    }
 
-    Info<< "Selecting decompositionMethod "
-        << decompositionMethodTypeName << endl;
+    word methodName(decompositionDict.lookup("method"));
+
+    Info<< "Selecting decompositionMethod " << methodName << endl;
 
     dictionaryConstructorTable::iterator cstrIter =
-        dictionaryConstructorTablePtr_->find(decompositionMethodTypeName);
+        dictionaryConstructorTablePtr_->find(methodName);
 
     if (cstrIter == dictionaryConstructorTablePtr_->end())
     {
@@ -448,7 +460,7 @@ Foam::autoPtr<Foam::decompositionMethod> Foam::decompositionMethod::New
             "decompositionMethod::New"
             "(const dictionary& decompositionDict)"
         )   << "Unknown decompositionMethod "
-            << decompositionMethodTypeName << endl << endl
+            << methodName << endl << endl
             << "Valid decompositionMethods are : " << endl
             << dictionaryConstructorTablePtr_->sortedToc()
             << exit(FatalError);
@@ -464,15 +476,15 @@ Foam::autoPtr<Foam::decompositionMethod> Foam::decompositionMethod::New
     const polyMesh& mesh
 )
 {
-    loadExternalLibraries();
+    loadExternalLibraries(const_cast<Time&>(mesh.time()));
 
-    word decompositionMethodTypeName(decompositionDict.lookup("method"));
+    word methodName(decompositionDict.lookup("method"));
 
     Info<< "Selecting decompositionMethod "
-        << decompositionMethodTypeName << endl;
+        << methodName << endl;
 
     dictionaryMeshConstructorTable::iterator cstrIter =
-        dictionaryMeshConstructorTablePtr_->find(decompositionMethodTypeName);
+        dictionaryMeshConstructorTablePtr_->find(methodName);
 
     if (cstrIter == dictionaryMeshConstructorTablePtr_->end())
     {
@@ -482,7 +494,7 @@ Foam::autoPtr<Foam::decompositionMethod> Foam::decompositionMethod::New
             "(const dictionary& decompositionDict, "
             "const polyMesh& mesh)"
         )   << "Unknown decompositionMethod "
-            << decompositionMethodTypeName << endl << endl
+            << methodName << endl << endl
             << "Valid decompositionMethods are : " << endl
             << dictionaryMeshConstructorTablePtr_->sortedToc()
             << exit(FatalError);
@@ -491,20 +503,20 @@ Foam::autoPtr<Foam::decompositionMethod> Foam::decompositionMethod::New
     return autoPtr<decompositionMethod>(cstrIter()(decompositionDict, mesh));
 }
 
-void Foam::decompositionMethod::loadExternalLibraries()
+
+void Foam::decompositionMethod::loadExternalLibraries(Time& time)
 {
     wordList libNames(3);
     libNames[0]=word("scotchDecomp");
     libNames[1]=word("metisDecomp");
     libNames[2]=word("parMetisDecomp");
 
-    forAll(libNames,i) {
+    forAll(libNames,i)
+    {
         const word libName("lib"+libNames[i]+".so");
 
-        //        Info << "Loading " << libName << endl;
-
-        bool ok=dlLibraryTable::open(libName);
-        if(!ok) {
+        if(!time.libs().open(libName))
+        {
             WarningIn("decompositionMethod::loadExternalLibraries()")
                 << "Loading of decomposition library " << libName
                     << " unsuccesful. Some decomposition methods may not be "
@@ -513,6 +525,7 @@ void Foam::decompositionMethod::loadExternalLibraries()
         }
     }
 }
+
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 

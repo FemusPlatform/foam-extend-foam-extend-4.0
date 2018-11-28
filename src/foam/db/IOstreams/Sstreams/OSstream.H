@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -30,7 +30,6 @@ Description
 SourceFiles
     OSstreamI.H
     OSstream.C
-    chkStream.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -187,6 +186,21 @@ public:
 
             //- Set precision of output field (and return old precision)
             virtual int precision(const int);
+
+
+        // STL stream
+
+            //- Access to underlying std::ostream
+            virtual ostream& stdStream()
+            {
+                return os_;
+            }
+
+            //- Const access to underlying std::ostream
+            virtual const ostream& stdStream() const
+            {
+                return os_;
+            }
 
 
         // Print

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -152,10 +152,6 @@ Foam::scalar Foam::lduMatrix::solver::normFactor
     const direction cmpt
 ) const
 {
-    // Calculate A dot reference value of x
-//     matrix_.sumA(tmpField, coupleBouCoeffs_, interfaces_);
-//     tmpField *= gAverage(x);
-
     // Calculate normalisation factor using full multiplication
     // with mean value.  HJ, 5/Nov/2007
     scalarField xRef(x.size(), gAverage(x));

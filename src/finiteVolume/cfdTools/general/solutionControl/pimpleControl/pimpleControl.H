@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -89,6 +89,15 @@ protected:
 
         //- Return true if all convergence checks are satisfied
         virtual bool criteriaSatisfied();
+
+
+        // Time and under-relaxation consistency
+
+            //- Get relaxation factor for velocity field
+            virtual const dimensionedScalar relaxFactor
+            (
+                const volVectorField& U
+            ) const;
 
 
 public:

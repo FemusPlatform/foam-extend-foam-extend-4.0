@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -109,7 +109,7 @@ Foam::BlockSolverPerformance<Type> Foam::SegregatedSolver<Type>::solve
 
     if (blockMatrix.componentCoupled())
     {
-        if (BlockLduMatrix<Type>::debug >= 2)
+        if (blockLduMatrix::debug >= 2)
         {
             Info << " Component coupled segregation" << endl;
         }

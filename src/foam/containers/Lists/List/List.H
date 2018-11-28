@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -187,6 +187,9 @@ public:
             //- Clear the list, i.e. set size to zero.
             void clear();
 
+            //- Append an element at the end of the list
+            inline void append(const T&);
+
             //- Append a List at the end of this list
             inline void append(const UList<T>&);
 
@@ -238,10 +241,8 @@ public:
 
     // Istream operator
 
-#ifndef SWIG
         //- Read List from Istream, discarding contents of existing List.
         friend Istream& operator>> <T>(Istream&, List<T>&);
-#endif
 };
 
 

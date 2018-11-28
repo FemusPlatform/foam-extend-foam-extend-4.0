@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -1039,6 +1039,9 @@ void lengthScaleEstimator::calculateLengthScale
             // Lookup various field types, and evaluate the gradient
             bool invalidObject = true;
 
+            // Evaluate using gradient scheme
+            word gradName("grad(" + field_ + ')');
+
             // Register field under a name that's unique
             word registerName("lengthScaleGradient(" + field_ + ')');
 
@@ -1062,7 +1065,7 @@ void lengthScaleEstimator::calculateLengthScale
                             IOobject::NO_WRITE,
                             false
                         ),
-                        mag(fvc::grad(field))
+                        mag(fvc::grad(field, gradName))
                     )
                 );
 
@@ -1089,7 +1092,7 @@ void lengthScaleEstimator::calculateLengthScale
                             IOobject::NO_WRITE,
                             false
                         ),
-                        mag(fvc::grad(field))
+                        mag(fvc::grad(field, gradName))
                     )
                 );
 

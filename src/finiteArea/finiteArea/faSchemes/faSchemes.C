@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -68,8 +68,7 @@ Foam::faSchemes::faSchemes(const objectRegistry& obr)
             "faSchemes",
             obr.time().system(),
             obr,
-//             IOobject::MUST_READ,
-            IOobject::READ_IF_PRESENT,  // Allow default dictionary creation
+            IOobject::READ_IF_PRESENT_IF_MODIFIED,  // Allow default dictionary creation
             IOobject::NO_WRITE
         )
     ),

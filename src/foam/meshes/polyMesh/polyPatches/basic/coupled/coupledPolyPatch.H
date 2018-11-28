@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -131,6 +131,9 @@ public:
             const polyBoundaryMesh& bm
         );
 
+        //- Construct as copy
+        coupledPolyPatch(const coupledPolyPatch&);
+
         //- Construct as copy, resetting the boundary mesh
         coupledPolyPatch(const coupledPolyPatch&, const polyBoundaryMesh&);
 
@@ -146,9 +149,8 @@ public:
         );
 
 
-    // Destructor
-
-        virtual ~coupledPolyPatch();
+    //- Destructor
+    virtual ~coupledPolyPatch();
 
 
     // Member Functions
@@ -159,6 +161,15 @@ public:
             virtual bool coupled() const
             {
                 return true;
+            }
+
+            //- Does this side own the patch ?
+            virtual bool master() const = 0;
+
+            //- Does the coupled side own the patch ?
+            virtual bool slave() const
+            {
+                return !master();
             }
 
 

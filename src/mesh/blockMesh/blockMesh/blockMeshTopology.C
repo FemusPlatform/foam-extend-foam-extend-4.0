@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -468,7 +468,7 @@ Foam::polyMesh* Foam::blockMesh::createTopology
                     << endl;
             }
 
-            // Override neighbourpatch name
+            // Override neighbour patch name
             if (nbrPatchNames[patchI] != word::null)
             {
                 dict.set("neighbourPatch", nbrPatchNames[patchI]);

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ void tetFemMatrix<Type>::check()
             << endl;
     }
 
-    Pout << "First check diagonal dominance" << endl;
+    Pout<< "First check diagonal dominance" << endl;
 
     // Get constant matrix access
     const tetFemMatrix<Type>& constMatrix = *this;
@@ -102,7 +102,7 @@ void tetFemMatrix<Type>::check()
 
     eliminateCouplingCoeffs();
 
-    Pout << "Second check diagonal dominance" << endl;
+    Pout<< "Second check diagonal dominance" << endl;
     // Calculate local matrix off-diag sum
     {
         scalarField matrixSumOffDiag(lduAddr().size(), 0.0);

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 
         mesh.update();
 
-#       include "checkVolContinuity.H"
+#       include "volContinuity.H"
 #       include "meshCourantNo.H"
 
         if (runTime.timeIndex() % checkFrequency == 0)
@@ -82,7 +82,11 @@ int main(int argc, char *argv[])
                 )
             );
 
-            magMeshCo.write();
+            if (runTime.outputTime())
+            {
+                Info<< "Writing mesh motion Co number" << endl;
+                magMeshCo.write();
+            }
         }
 
         runTime.write();

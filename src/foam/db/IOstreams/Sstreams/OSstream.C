@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -29,8 +29,20 @@ License
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-Foam::Ostream& Foam::OSstream::write(const token&)
+Foam::Ostream& Foam::OSstream::write(const token& t)
 {
+    if (t.type() == token::VERBATIMSTRING)
+    {
+        write(char(token::HASH));
+        write(char(token::BEGIN_BLOCK));
+        writeQuoted(t.stringToken(), false);
+        write(char(token::HASH));
+        write(char(token::END_BLOCK));
+    }
+    else if (t.type() == token::VARIABLE)
+    {
+        writeQuoted( t.stringToken(), false);
+    }
     return *this;
 }
 

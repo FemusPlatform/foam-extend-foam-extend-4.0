@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ const Foam::GAMGAgglomeration& Foam::GAMGAgglomeration::New
     {
         word agglomeratorType(dict.lookup("agglomerator"));
 
-        dlLibraryTable::open
+        const_cast<Time&>(mesh.thisDb().time()).libs().open
         (
             dict,
             "geometricGAMGAgglomerationLibs",
@@ -159,7 +159,7 @@ const Foam::GAMGAgglomeration& Foam::GAMGAgglomeration::New
     {
         word agglomeratorType(dict.lookup("agglomerator"));
 
-        dlLibraryTable::open
+        const_cast<Time&>(mesh.thisDb().time()).libs().open
         (
             dict,
             "algebraicGAMGAgglomerationLibs",

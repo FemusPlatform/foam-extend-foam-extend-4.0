@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -263,26 +263,35 @@ Foam::PtrList<T>& Foam::PtrList<T>::operator=(const PtrList<T>& a)
             << abort(FatalError);
     }
 
-    if (size() == 0)
+    if (this->size() == 0)
     {
-        setSize(a.size());
+        this->setSize(a.size());
 
         forAll(*this, i)
         {
-            ptrs_[i] = (a[i]).clone().ptr();
+            // Bugfix: only copy elements of a that have been set.
+            // HJ, 24/Oct/2018
+            if (a.set(i))
+            {
+                this->ptrs_[i] = (a[i]).clone().ptr();
+            }
         }
     }
-    else if (a.size() == size())
+    else if (a.size() == this->size())
     {
         forAll(*this, i)
         {
-            (*this)[i] = a[i];
+            if (a.set(i))
+            {
+                (*this)[i] = a[i];
+            }
         }
     }
     else
     {
         FatalErrorIn("PtrList::operator=(const PtrList<T>&)")
             << "bad size: " << a.size()
+            << " for type " << typeid(T).name()
             << abort(FatalError);
     }
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ autoPtr<thermalLaw> thermalLaw::New
     const dictionary& dict
 )
 {
-    word rheoTypeName = dict.lookup("type");
+    const word rheoTypeName = dict.lookup("type");
 
     Info<< "Selecting thermal model " << rheoTypeName << endl;
 
@@ -64,7 +64,7 @@ autoPtr<thermalLaw> thermalLaw::New
         )   << "Unknown thermalLaw type "
             << rheoTypeName << endl << endl
             << "Valid  thermalLaws are : " << endl
-            << dictionaryConstructorTablePtr_->toc()
+            << dictionaryConstructorTablePtr_->sortedToc()
             << exit(FatalIOError);
     }
 

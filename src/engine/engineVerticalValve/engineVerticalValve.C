@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -128,12 +128,11 @@ void Foam::engineVerticalValve::writeDict(Ostream& os) const
 {
     engineValve::writeDict(os);
 
-
     os  << "headPatch " << valveHeadPatch_.name() << token::END_STATEMENT << nl
         << "bottomLayerOffset " << bottomLayerOffset_
         << token::END_STATEMENT << nl
         << "bottomLayerOffsetayerTol " << bottomLayerTol_
-       << token::END_STATEMENT << nl
+        << token::END_STATEMENT << nl
         << "topLayerOffset " << topLayerOffset_ << token::END_STATEMENT << nl
         << "topLayerTol " << topLayerTol_ << token::END_STATEMENT << nl
         << "detachDistance " << detachDistance_ << token::END_STATEMENT << nl

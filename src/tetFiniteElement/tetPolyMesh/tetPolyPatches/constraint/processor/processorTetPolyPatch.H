@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -172,9 +172,8 @@ public:
         );
 
 
-    // Destructor
-
-        virtual ~processorTetPolyPatch();
+    //- Destructor
+    virtual ~processorTetPolyPatch();
 
 
     // Member functions
@@ -192,15 +191,15 @@ public:
         }
 
         //- Is this a master patch
-        bool isMaster() const
+        bool master() const
         {
             return myProcNo() < neighbProcNo();
         }
 
         //- Is this a slave patch
-        bool isSlave() const
+        bool slave() const
         {
-            return !isMaster();
+            return !master();
         }
 
         //- Return the underlying processorPolyPatch

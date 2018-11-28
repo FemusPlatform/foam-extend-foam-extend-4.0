@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -121,9 +121,10 @@ public:
                 const volScalarField& rho,
                 const volVectorField& U,
                 const surfaceScalarField& phi,
-                const basicThermo& thermoPhysicalModel
+                const basicThermo& thermoPhysicalModel,
+                const word& turbulenceModelName
             ),
-            (rho, U, phi, thermoPhysicalModel)
+            (rho, U, phi, thermoPhysicalModel, turbulenceModelName)
         );
 
 
@@ -136,19 +137,21 @@ public:
             const volScalarField& rho,
             const volVectorField& U,
             const surfaceScalarField& phi,
-            const basicThermo& thermoPhysicalModel
+            const basicThermo& thermoPhysicalModel,
+            const word& turbulenceModelName = turbulenceModel::typeName
         );
 
 
     // Selectors
 
         //- Return a reference to the selected LES model
-        static autoPtr<compressible::LESModel> New
+        static autoPtr<LESModel> New
         (
             const volScalarField& rho,
             const volVectorField& U,
             const surfaceScalarField& phi,
-            const basicThermo& thermoPhysicalModel
+            const basicThermo& thermoPhysicalModel,
+            const word& turbulenceModelName = turbulenceModel::typeName
         );
 
 

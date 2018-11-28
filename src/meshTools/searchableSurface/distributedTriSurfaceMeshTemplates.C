@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -96,22 +96,15 @@ void Foam::distributedTriSurfaceMesh::distributeFields
 {
     typedef DimensionedField<Type, triSurfaceGeoMesh> DimensionedSurfField;
 
-    HashTable<const DimensionedSurfField*> fields
+    HashTable<DimensionedSurfField*> fields
     (
         objectRegistry::lookupClass
         <DimensionedSurfField >()
     );
 
-    for
-    (
-        typename HashTable<const DimensionedSurfField*>::iterator fieldIter =
-            fields.begin();
-        fieldIter != fields.end();
-        ++fieldIter
-    )
+    forAllIter (typename HashTable<DimensionedSurfField*>, fields, fieldIter)
     {
-        DimensionedSurfField& field =
-            const_cast<DimensionedSurfField&>(*fieldIter());
+        DimensionedSurfField& field = *fieldIter();
 
         label oldSize = field.size();
 

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ SourceFiles
 #ifndef iluSmoother_H
 #define iluSmoother_H
 
-#include "CholeskyPrecon.H"
+#include "lduMatrix.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -56,7 +56,7 @@ class iluSmoother
     // Private Data
 
         //- Cholesky preconditioner
-        CholeskyPrecon precon_;
+        autoPtr<lduPreconditioner> preconPtr_;
 
         //- Correction array
         mutable scalarField xCorr_;
@@ -92,10 +92,9 @@ public:
         );
 
 
-    // Destructor
-
-        virtual ~iluSmoother()
-        {}
+    //- Destructor
+    virtual ~iluSmoother()
+    {}
 
 
     // Member Functions

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -45,9 +45,11 @@ Foam::BlockAMGInterfaceField<Type>::New
     {
         FatalErrorIn
         (
-            "BlockAMGInterfaceField::New"
-            "(const AMGInterface& AMGCp, "
-            "const BlockLduInterfaceField<Type>& fineInterface)"
+            "BlockAMGInterfaceField::New\n"
+            "(\n"
+            "    const AMGInterface& AMGCp,\n"
+            "    const BlockLduInterfaceField<Type>& fineInterface\n"
+            ")"
         )   << "Unknown BlockAMGInterfaceField type " << coupleType << ".\n"
             << "Valid BlockAMGInterfaceField types are :"
             << lduInterfaceConstructorTablePtr_->sortedToc()

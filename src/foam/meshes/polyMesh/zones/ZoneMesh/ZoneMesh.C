@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -148,6 +148,46 @@ ZoneMesh<ZoneType, MeshType>::ZoneMesh
     mesh_(mesh),
     zoneMapPtr_(NULL)
 {}
+
+
+// Read constructor given IOobject, a MeshType reference and Istream
+template<class ZoneType, class MeshType>
+ZoneMesh<ZoneType, MeshType>::ZoneMesh
+(
+    const IOobject& io,
+    const MeshType& mesh,
+    Istream& is
+)
+:
+    PtrList<ZoneType>(),
+    regIOobject(io),
+    mesh_(mesh),
+    zoneMapPtr_(NULL)
+{
+    PtrList<entry> zoneEntries(is);
+
+    if (!zoneEntries.empty())
+    {
+        PtrList<ZoneType>& zones = *this;
+
+        zones.setSize(zoneEntries.size());
+
+        forAll(zones, zoneI)
+        {
+            zones.set
+            (
+                zoneI,
+                ZoneType::New
+                (
+                    zoneEntries[zoneI].keyword(),
+                    zoneEntries[zoneI].dict(),
+                    zoneI,
+                    *this
+                )
+            );
+        }
+    }
+}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //

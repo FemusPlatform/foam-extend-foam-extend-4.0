@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -189,10 +189,9 @@ public:
         );
 
 
-    // Destructor
-
-        virtual ~BlockLduSolver()
-        {}
+    //- Destructor
+    virtual ~BlockLduSolver()
+    {}
 
 
     // Member functions
@@ -209,6 +208,9 @@ public:
             TypeField& x,
             const TypeField& b
         ) = 0;
+
+        //- Re-initialise solver after matrix coefficient update
+        virtual void initMatrix() = 0;
 };
 
 

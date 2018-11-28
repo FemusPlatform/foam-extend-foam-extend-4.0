@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ Description
     in one go, minimizing communication, and then picked apart and recombined.
 
     Example:
-    @code
+    \code
         // Assuming myContainer defined which holds all the data I want to
         // transfer (say a pointField and a faceList). myContainer also defines
         // access operators to
@@ -76,7 +76,7 @@ Description
                 gatheredData, sizes, myContainerFaces(), offsetOp<face>()
             )
         );
-    @endcode
+    \endcode
 
 SourceFiles
     ListListOps.C

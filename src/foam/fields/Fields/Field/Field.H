@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -83,11 +83,16 @@ class Field
 
 public:
 
-    //- Component type
-    typedef typename pTraits<Type>::cmptType cmptType;
+    // Public typedefs
 
-    //- Declare type of subField
-    typedef SubField<Type> subField;
+        //- Field element type (eg. scalar, vector)
+        typedef Type PrimitiveType;
+
+        //- Component type
+        typedef typename pTraits<Type>::cmptType cmptType;
+
+        //- Declare type of subField
+        typedef SubField<Type> subField;
 
 
     // Static data members
@@ -347,13 +352,11 @@ public:
 
     // IOstream operators
 
-#ifndef SWIG
         friend Ostream& operator<< <Type>
         (Ostream&, const Field<Type>&);
 
         friend Ostream& operator<< <Type>
         (Ostream&, const tmp<Field<Type> >&);
-#endif
 };
 
 

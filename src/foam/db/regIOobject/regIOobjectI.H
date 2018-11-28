@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -94,6 +94,18 @@ inline Foam::label Foam::regIOobject::eventNo() const
 inline Foam::label& Foam::regIOobject::eventNo()
 {
     return eventNo_;
+}
+
+
+inline Foam::label Foam::regIOobject::watchIndex() const
+{
+    return watchIndex_;
+}
+
+
+inline Foam::label& Foam::regIOobject::watchIndex()
+{
+    return watchIndex_;
 }
 
 

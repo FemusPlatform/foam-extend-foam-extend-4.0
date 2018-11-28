@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -46,10 +46,12 @@ mixedSmagorinsky::mixedSmagorinsky
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& transport
+    transportModel& transport,
+    const word& turbulenceModelName,
+    const word& modelName
 )
 :
-    LESModel(typeName, U, phi, transport),
+    LESModel(modelName, U, phi, transport, turbulenceModelName),
     scaleSimilarity(U, phi, transport),
     Smagorinsky(U, phi, transport)
 {

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -48,10 +48,12 @@ LamBremhorstKE::LamBremhorstKE
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& lamTransportModel
+    transportModel& transport,
+    const word& turbulenceModelName,
+    const word& modelName
 )
 :
-    RASModel(typeName, U, phi, lamTransportModel),
+    RASModel(modelName, U, phi, transport, turbulenceModelName),
 
     Cmu_
     (
@@ -192,10 +194,12 @@ tmp<volSymmTensorField> LamBremhorstKE::devReff() const
 
 tmp<fvVectorMatrix> LamBremhorstKE::divDevReff() const
 {
+    const volScalarField nuEffective = nuEff();
+
     return
     (
-      - fvm::laplacian(nuEff(), U_)
-      - fvc::div(nuEff()*dev(T(fvc::grad(U_))))
+      - fvm::laplacian(nuEffective, U_)
+      - (fvc::grad(U_) & fvc::grad(nuEffective))
     );
 }
 

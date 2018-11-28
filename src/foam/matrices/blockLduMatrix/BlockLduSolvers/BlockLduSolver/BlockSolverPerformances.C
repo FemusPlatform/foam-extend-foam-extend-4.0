@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -31,22 +31,27 @@ Author
 
 #include "BlockSolverPerformances.H"
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
 {
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 defineNamedTemplateTypeNameAndDebug(BlockSolverPerformanceScalar, 1);
 defineNamedTemplateTypeNameAndDebug(BlockSolverPerformanceVector, 1);
 defineNamedTemplateTypeNameAndDebug(BlockSolverPerformanceSphericalTensor, 1);
 defineNamedTemplateTypeNameAndDebug(BlockSolverPerformanceSymmTensor, 1);
 defineNamedTemplateTypeNameAndDebug(BlockSolverPerformanceTensor, 1);
+};
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace Foam
+template<>
+Foam::BlockSolverPerformance<Foam::scalar>
+Foam::BlockSolverPerformance<Foam::scalar>::max()
+{
+    return *this;
+}
+
 
 // ************************************************************************* //

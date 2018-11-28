@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -46,6 +46,7 @@ SourceFiles
 
 #include "fvPatch.H"
 #include "DimensionedField.H"
+#include "coeffFields.H"
 #include "debugSwitch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -106,6 +107,21 @@ class fvPatchField
         word patchType_;
 
 
+protected:
+
+    // Protected member functions
+
+        //- Read patch type
+        //  Use for derived types which over-ride dictionary constructor
+        //  in order to read the patch type
+        void readPatchType(const dictionary& dict);
+
+        //- Set patch type
+        //  Use for derived types which over-ride dictionary constructor
+        //  in order to read the patch type
+        void setPatchType(const fvPatchField<Type>& ptf);
+
+
 public:
 
     typedef fvPatch Patch;
@@ -119,7 +135,6 @@ public:
 
     // Declare run-time constructor selection tables
 
-#ifndef SWIG
         declareRunTimeSelectionTable
         (
             tmp,
@@ -158,7 +173,7 @@ public:
             ),
             (p, iF, dict)
         );
-#endif
+
 
     // Constructors
 
@@ -261,10 +276,9 @@ public:
         );
 
 
-    // Destructor
-
-        virtual ~fvPatchField<Type>()
-        {}
+    //- Destructor
+    virtual ~fvPatchField<Type>()
+    {}
 
 
     // Member functions
@@ -329,6 +343,14 @@ public:
                 return false;
             }
 
+            //- Return true if this patch field is block-coupled in the
+            // boundary condition, ie. if the coupling coefficient is a
+            // rank x rank implicit block
+            virtual bool blockCoupled() const
+            {
+                return false;
+            }
+
             //- Return true if the boundary condition has already been updated
             bool updated() const
             {
@@ -352,6 +374,14 @@ public:
             );
 
 
+            //- Update on mesh motion
+            //  This function is used for special conditions such as
+            //  immersed boundary which need to be updated when the mesh
+            //  is moving (as opposed to topo change update)
+            virtual void updateOnMotion()
+            {}
+
+
         // Evaluation functions
 
             //- Return patch-normal gradient
@@ -370,8 +400,21 @@ public:
             //- Return patchField on the opposite patch of a coupled patch
             virtual tmp<Field<Type> > patchNeighbourField() const
             {
-                notImplemented(type() + "patchNeighbourField()");
+                notImplemented(type() + "::patchNeighbourField()");
                 return *this;
+            }
+
+            //- Return neighbour field of internal field, untransformed
+            virtual tmp<scalarField>
+            untransformedInterpolate(const direction cmpt) const
+            {
+                notImplemented
+                (
+                    type()
+                  + "::untransformedInterpolate(const direction cmpt)"
+                );
+
+                return this->component(cmpt);
             }
 
             //- Initialise the evaluation of the patch field
@@ -388,51 +431,125 @@ public:
             );
 
 
-            //- Return the matrix diagonal coefficients corresponding to the
-            //  evaluation of the value of this patchField with given weights
-            virtual tmp<Field<Type> > valueInternalCoeffs
-            (
-                const tmp<Field<scalar> >&
-            ) const
-            {
-                notImplemented
+            // Decoupled matrix coefficients
+
+                //- Return the matrix diagonal coefficients corresponding to the
+                //  evaluation of the value of this patchField with
+                //  given weights
+                virtual tmp<Field<Type> > valueInternalCoeffs
                 (
-                    type()
-                  + "::valueInternalCoeffs(const tmp<Field<scalar> >&)"
-                );
-                return *this;
-            }
+                    const tmp<Field<scalar> >&
+                ) const
+                {
+                    notImplemented
+                    (
+                        type()
+                      + "::valueInternalCoeffs(const tmp<Field<scalar> >&)"
+                    );
 
-            //- Return the matrix source coefficients corresponding to the
-            //  evaluation of the value of this patchField with given weights
-            virtual tmp<Field<Type> > valueBoundaryCoeffs
-            (
-                const tmp<Field<scalar> >&
-            ) const
-            {
-                notImplemented
+                    return *this;
+                }
+
+                //- Return the matrix source coefficients corresponding to the
+                //  evaluation of the value of this patchField with given
+                //  weights
+                virtual tmp<Field<Type> > valueBoundaryCoeffs
                 (
-                    type()
-                  + "::valueBoundaryCoeffs(const tmp<Field<scalar> >&)"
-                );
-                return *this;
-            }
+                    const tmp<Field<scalar> >&
+                ) const
+                {
+                    notImplemented
+                    (
+                        type()
+                      + "::valueBoundaryCoeffs(const tmp<Field<scalar> >&)"
+                    );
+                    return *this;
+                }
 
-            //- Return the matrix diagonal coefficients corresponding to the
-            //  evaluation of the gradient of this patchField
-            virtual tmp<Field<Type> > gradientInternalCoeffs() const
-            {
-                notImplemented(type() + "::gradientInternalCoeffs()");
-                return *this;
-            }
+                //- Return the matrix diagonal coefficients corresponding to the
+                //  evaluation of the gradient of this patchField
+                virtual tmp<Field<Type> > gradientInternalCoeffs() const
+                {
+                    notImplemented(type() + "::gradientInternalCoeffs()");
+                    return *this;
+                }
 
-            //- Return the matrix source coefficients corresponding to the
-            //  evaluation of the gradient of this patchField
-            virtual tmp<Field<Type> > gradientBoundaryCoeffs() const
-            {
-                notImplemented(type() + "::gradientBoundaryCoeffs()");
-                return *this;
-            }
+                //- Return the matrix source coefficients corresponding to the
+                //  evaluation of the gradient of this patchField
+                virtual tmp<Field<Type> > gradientBoundaryCoeffs() const
+                {
+                    notImplemented(type() + "::gradientBoundaryCoeffs()");
+                    return *this;
+                }
+
+
+            // Block-coupled matrix coefficients
+
+                //- Return the matrix diagonal coefficients corresponding to the
+                //  evaluation of the value of this patchField with given
+                //  weights
+                virtual tmp<CoeffField<Type> > blockValueInternalCoeffs
+                (
+                    const tmp<scalarField>&
+                ) const
+                {
+                    notImplemented
+                    (
+                        type()
+                      + "::blockValueInternalCoeffs(const tmp<Field<scalar> >&)"
+                    );
+
+                    return tmp<CoeffField<Type> >
+                    (
+                        new CoeffField<Type>(this->size())
+                    );
+                }
+
+                //- Return the matrix source coefficients corresponding to the
+                //  evaluation of the value of this patchField with given
+                //  weights
+                virtual tmp<Field<Type> > blockValueBoundaryCoeffs
+                (
+                    const tmp<scalarField>&
+                ) const
+                {
+                    notImplemented
+                    (
+                        type()
+                      + "::blockValueBoundaryCoeffs(const tmp<Field<scalar> >&)"
+                    );
+
+                    return *this;
+                }
+
+                //- Return the matrix diagonal coefficients corresponding to the
+                //  evaluation of the gradient of this patchField
+                virtual tmp<CoeffField<Type> >
+                blockGradientInternalCoeffs() const
+                {
+                    notImplemented
+                    (
+                        type() + "blockGradientInternalCoeffs() const"
+                    );
+
+                    return tmp<CoeffField<Type> >
+                    (
+                        new CoeffField<Type>(this->size())
+                    );
+                }
+
+                //- Return the matrix source coefficients corresponding to the
+                //  evaluation of the gradient of this patchField
+                virtual tmp<Field<Type> >
+                blockGradientBoundaryCoeffs() const
+                {
+                    notImplemented
+                    (
+                        type() + "::blockGradientBoundaryCoeffs()"
+                    );
+
+                    return *this;
+                }
 
 
         // Patch interpolation and patch flux
@@ -464,6 +581,16 @@ public:
 
             //- Manipulate matrix
             virtual void manipulateMatrix(fvMatrix<Type>& matrix);
+
+            //- Manipulate value and boundary coefficients for convection.
+            //  Called from gaussConvection scheme and does nothing by default.
+            //  Currently overriden in ggiFvPatchField only
+            virtual void manipulateValueCoeffs(fvMatrix<Type>& matrix) const;
+
+            //- Manipulate value and boundary coefficients for diffusion.
+            //  Called from gaussConvection scheme and does nothing by default.
+            //  Currently overriden in ggiFvPatchField only
+            virtual void manipulateGradientCoeffs(fvMatrix<Type>& matrix) const;
 
 
         // I-O
@@ -521,9 +648,7 @@ public:
 
     // Ostream operator
 
-#ifndef SWIG
         friend Ostream& operator<< <Type>(Ostream&, const fvPatchField<Type>&);
-#endif
 };
 
 

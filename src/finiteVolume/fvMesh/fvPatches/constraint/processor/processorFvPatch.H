@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -64,10 +64,10 @@ protected:
     // Protected Member functions
 
         //- Make patch weighting factors
-        void makeWeights(scalarField&) const;
+        void makeWeights(fvsPatchScalarField&) const;
 
         //- Make patch face - neighbour cell distances
-        void makeDeltaCoeffs(scalarField&) const;
+        void makeDeltaCoeffs(fvsPatchScalarField&) const;
 
 
 public:
@@ -92,6 +92,12 @@ public:
 
 
     // Member functions
+
+        //- Return interface size
+        virtual label interfaceSize() const
+        {
+            return procPolyPatch_.size();
+        }
 
         //- Return processor number
         int myProcNo() const
@@ -178,6 +184,21 @@ public:
             (
                 const Pstream::commsTypes commsType,
                 const unallocLabelList& internalData
+            ) const;
+
+            //- Initialise transfer of prolongation matrix to the interface
+            virtual void initProlongationTransfer
+            (
+                const Pstream::commsTypes commsType,
+                const crMatrix& iF
+            ) const;
+
+            //- Transfer and return prolongation matrix adjacent to
+            //  the interface
+            virtual autoPtr<crMatrix> prolongationTransfer
+            (
+                const Pstream::commsTypes commsType,
+                const crMatrix& iF
             ) const;
 };
 

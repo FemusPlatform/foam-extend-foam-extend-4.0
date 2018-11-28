@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -37,8 +37,8 @@ Author
 #include "vector2D.H"
 #include "coeffFields.H"
 #include "BlockSolverPerformance.H"
-// #include "BlockBiCGStabSolver.H"
-// #include "BlockCGSolver.H"
+#include "BlockCGSolver.H"
+#include "BlockBiCGStabSolver.H"
 #include "BlockGMRESSolver.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -57,8 +57,8 @@ Foam::coarseBlockAMGLevel<Type>::coarseBlockAMGLevel
 :
     addrPtr_(addrPtr),
     matrixPtr_(matrixPtr),
-    x_(matrixPtr_->diag().size(),pTraits<Type>::zero),
-    b_(matrixPtr_->diag().size(),pTraits<Type>::zero),
+    x_(matrixPtr_->diag().size(), pTraits<Type>::zero),
+    b_(matrixPtr_->diag().size(), pTraits<Type>::zero),
     dict_(dict),
     coarseningPtr_
     (
@@ -106,6 +106,13 @@ Foam::coarseBlockAMGLevel<Type>::~coarseBlockAMGLevel()
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
+Foam::BlockLduMatrix<Type>& Foam::coarseBlockAMGLevel<Type>::matrix()
+{
+    return matrixPtr_();
+}
+
+
+template<class Type>
 Foam::Field<Type>& Foam::coarseBlockAMGLevel<Type>::x()
 {
     return x_;
@@ -128,11 +135,7 @@ void Foam::coarseBlockAMGLevel<Type>::residual
 ) const
 {
     // Calculate residual
-    matrixPtr_->Amul
-    (
-        res,
-        x
-    );
+    matrixPtr_->Amul(res, x);
 
     // residual = b - Ax
     forAll (b, i)
@@ -206,53 +209,42 @@ void Foam::coarseBlockAMGLevel<Type>::solve
 {
     BlockSolverPerformance<Type> coarseSolverPerf
     (
-        BlockGMRESSolver<Type>::typeName,
+        BlockBiCGStabSolver<Type>::typeName,
         "topLevelCorr"
     );
-
-    label maxIter = Foam::min(2*coarseningPtr_->minCoarseEqns(), 100);
 
     // Create artificial dictionary for top-level solution
     dictionary topLevelDict;
     topLevelDict.add("nDirections", "5");
-    topLevelDict.add("minIter", 1);
-    topLevelDict.add("maxIter", maxIter);
+    topLevelDict.add("preconditioner", "ILUC0");
+    topLevelDict.add("minIter", 0);
+    topLevelDict.add("maxIter", 500);
     topLevelDict.add("tolerance", tolerance);
     topLevelDict.add("relTol", relTol);
 
     // Avoid issues with round-off on strict tolerance setup
     // HJ, 27/Jun/2013
-    // Create multiplication function object
-    typename BlockCoeff<Type>::multiply mult;
-
-    CoeffField<Type> invDiag = inv(matrixPtr_->diag());
-    multiply(x, invDiag, b);
-
-    // Do not solve if the number of equations is smaller than 5
-    if (coarseningPtr_->minCoarseEqns() < 5)
-    {
-        return;
-    }
+    x = pTraits<Type>::zero;
 
     // Switch of debug in top-level direct solve
-    label oldDebug = BlockLduMatrix<Type>::debug();
+    label oldDebug = blockLduMatrix::debug();
 
-    if (BlockLduMatrix<Type>::debug >= 4)
+    if (blockLduMatrix::debug >= 4)
     {
-        BlockLduMatrix<Type>::debug = 1;
+        blockLduMatrix::debug = 2;
+    }
+    else if (blockLduMatrix::debug == 3)
+    {
+        blockLduMatrix::debug = 1;
     }
     else
     {
-        BlockLduMatrix<Type>::debug = 0;
+        blockLduMatrix::debug = 0;
     }
 
     if (matrixPtr_->symmetric())
     {
-        topLevelDict.add("preconditioner", "Cholesky");
-
-        coarseSolverPerf =
-//         BlockCGSolver<Type>
-        BlockGMRESSolver<Type>
+        coarseSolverPerf = BlockCGSolver<Type>
         (
             "topLevelCorr",
             matrixPtr_,
@@ -261,11 +253,8 @@ void Foam::coarseBlockAMGLevel<Type>::solve
     }
     else
     {
-        topLevelDict.add("preconditioner", "Cholesky");
-
         coarseSolverPerf =
-//         BlockBiCGStabSolver<Type>
-        BlockGMRESSolver<Type>
+        BlockBiCGStabSolver<Type>
         (
             "topLevelCorr",
             matrixPtr_,
@@ -273,28 +262,30 @@ void Foam::coarseBlockAMGLevel<Type>::solve
         ).solve(x, b);
     }
 
-    // Restore debug
-    BlockLduMatrix<Type>::debug = oldDebug;
+    // Check for convergence
 
-    // Escape cases of top-level solver divergence
-    if
-    (
-        coarseSolverPerf.nIterations() == maxIter
-     && (
-            coarseSolverPerf.finalResidual()
-         >= coarseSolverPerf.initialResidual()
-        )
-    )
+//    blockLduMatrix::debug = 1;
+//    coarseSolverPerf.print();
+//    Info<< "b: " << gSum(b) << " corr (min, max): (" << gMin(x) << ", " << gMax(x) << endl;
+
+    const scalar magInitialRes = mag(coarseSolverPerf.initialResidual());
+    const scalar magFinalRes = mag(coarseSolverPerf.finalResidual());
+
+    if (magFinalRes > magInitialRes && magInitialRes > 1e-12)
     {
-        // Top-level solution failed.  Attempt rescue
-        // HJ, 27/Jul/2013
-        multiply(x, invDiag, b);
+        if (blockLduMatrix::debug)
+        {
+            Info<< "Divergence in top AMG level" << endl;
+            coarseSolverPerf.print();
+        }
 
-        // Print top level correction failure as info for user
-        coarseSolverPerf.print();
+        x = pTraits<Type>::zero;
     }
 
-    if (BlockLduMatrix<Type>::debug >= 3)
+    // Restore debug
+    blockLduMatrix::debug = oldDebug;
+
+    if (blockLduMatrix::debug >= 3)
     {
         coarseSolverPerf.print();
     }
@@ -363,6 +354,25 @@ Foam::coarseBlockAMGLevel<Type>::makeNextLevel() const
     {
         // Final level: cannot coarsen
         return autoPtr<BlockAMGLevel<Type> >();
+    }
+}
+
+
+template<class Type>
+void Foam::coarseBlockAMGLevel<Type>::initLevel
+(
+    autoPtr<Foam::BlockAMGLevel<Type> >& coarseLevelPtr
+)
+{
+    // Update matrix by repeating coarsening
+
+    // Update smoother for new matrix
+    smootherPtr_->initMatrix();
+
+    // Update coarse matrix if it exists
+    if (coarseLevelPtr.valid())
+    {
+        coarseningPtr_->updateMatrix(coarseLevelPtr->matrix());
     }
 }
 

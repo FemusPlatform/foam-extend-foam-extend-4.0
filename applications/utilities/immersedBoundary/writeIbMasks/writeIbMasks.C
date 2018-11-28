@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -29,32 +29,128 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
-#include "fvCFD.H"
+#include "calc.H"
+#include "fvc.H"
+#include "fvMatrices.H"
 #include "immersedBoundaryFvPatch.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-int main(int argc, char *argv[])
+void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
 {
-#   include "setRootCase.H"
-#   include "createTime.H"
-#   include "createMesh.H"
-#   include "createIbMasks.H"
+    Info<< nl << "Calculating gamma" << endl;
+    volScalarField gamma
+    (
+        IOobject
+        (
+            "gamma",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar("one", dimless, 1)
+    );
+    gamma.internalField() = mesh.V()/mesh.cellVolumes();
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+    // Report minimal live cell volume
+    scalar minLiveGamma = GREAT;
+    label minLiveCell = -1;
+    const scalarField& gammaIn = gamma.internalField();
 
-    Info<< "Time = " << runTime.timeName() << nl << endl;
+    forAll (mesh.boundary(), patchI)
+    {
+        if (isA<immersedBoundaryFvPatch>(mesh.boundary()[patchI]))
+        {
+            const immersedBoundaryFvPatch& ibPatch =
+                refCast<const immersedBoundaryFvPatch>
+                (
+                    mesh.boundary()[patchI]
+                );
 
-    cellIbMask.write();
-    cellIbMaskExt.write();
+            const labelList& ibCells = ibPatch.ibPolyPatch().ibCells();
 
-    Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-        << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-        << nl << endl;
+            forAll (ibCells, dcI)
+            {
+                if (gammaIn[ibCells[dcI]] < minLiveGamma)
+                {
+                    minLiveGamma = gammaIn[ibCells[dcI]];
+                    minLiveCell = ibCells[dcI];
+                }
+            }
+        }
+    }
 
-    Info<< "End\n" << endl;
+    Info<< "Min live cell " << minLiveCell
+        << " gamma = " << minLiveGamma
+        << endl;
 
-    return 0;
+    Info<< nl << "Calculating sGamma" << endl;
+    surfaceScalarField sGamma
+    (
+        IOobject
+        (
+            "sGamma",
+            runTime.timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar("one", dimless, 0)
+    );
+
+    const surfaceScalarField& magSf = mesh.magSf();
+    const scalarField magFaceAreas = mag(mesh.faceAreas());
+
+    sGamma.internalField() =
+        magSf.internalField()/
+        scalarField::subField(magFaceAreas, mesh.nInternalFaces());
+
+    forAll (mesh.boundary(), patchI)
+    {
+        if (!isA<immersedBoundaryFvPatch>(mesh.boundary()[patchI]))
+        {
+            sGamma.boundaryField()[patchI] =
+                magSf.boundaryField()[patchI]/
+                mesh.boundary()[patchI].patchSlice(magFaceAreas);
+
+            gamma.boundaryField()[patchI] =
+                sGamma.boundaryField()[patchI];
+        }
+    }
+
+    sGamma.write();
+    gamma.write();
+
+    // Check consistency of face area vectors
+
+    Info<< nl << "Calculating divSf" << endl;
+    volVectorField divSf
+    (
+        "divSf",
+        fvc::div(mesh.Sf())
+    );
+    divSf.write();
+
+    // Check divergence of face area vectors
+    scalarField magDivSf = mag(divSf)().internalField();
+
+    Info<< "Face areas divergence (min, max, average): "
+        << "(" << min(magDivSf) << " " << max(magDivSf)
+        << " " << average(magDivSf) << ")"
+        << endl;
+
+    if (max(magDivSf) > 1e-9)
+    {
+        WarningIn("writeIbMasks")
+            << "Possible problem with immersed boundary face area vectors: "
+            << max(magDivSf)
+            << endl;
+    }
+
+    Info<< endl;
 }
 
 

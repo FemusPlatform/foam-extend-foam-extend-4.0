@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -48,6 +48,17 @@ movingWallVelocityFvPatchVectorField::movingWallVelocityFvPatchVectorField
 
 movingWallVelocityFvPatchVectorField::movingWallVelocityFvPatchVectorField
 (
+    const fvPatch& p,
+    const DimensionedField<vector, volMesh>& iF,
+    const dictionary& dict
+)
+:
+    fixedValueFvPatchVectorField(p, iF, dict)
+{}
+
+
+movingWallVelocityFvPatchVectorField::movingWallVelocityFvPatchVectorField
+(
     const movingWallVelocityFvPatchVectorField& ptf,
     const fvPatch& p,
     const DimensionedField<vector, volMesh>& iF,
@@ -56,19 +67,6 @@ movingWallVelocityFvPatchVectorField::movingWallVelocityFvPatchVectorField
 :
     fixedValueFvPatchVectorField(ptf, p, iF, mapper)
 {}
-
-
-movingWallVelocityFvPatchVectorField::movingWallVelocityFvPatchVectorField
-(
-    const fvPatch& p,
-    const DimensionedField<vector, volMesh>& iF,
-    const dictionary& dict
-)
-:
-    fixedValueFvPatchVectorField(p, iF)
-{
-    fvPatchVectorField::operator=(vectorField("value", dict, p.size()));
-}
 
 
 movingWallVelocityFvPatchVectorField::movingWallVelocityFvPatchVectorField

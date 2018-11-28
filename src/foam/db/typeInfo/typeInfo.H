@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -29,22 +29,22 @@ Description
     Used to enhance the standard RTTI to cover I/O.
 
     The user can get the type's type name using the type info access function
-    @code
+    \code
         type()
-    @endcode
+    \endcode
 
     The reference type cast template function:
-    @code
+    \code
         refCast<T>(r)
-    @endcode
+    \endcode
 
     wraps dynamic_cast to handle the bad_cast exception and generate a
     FatalError.
 
     The isA function:
-    @code
+    \code
         isA<T>(r)
-    @endcode
+    \endcode
 
     returns true if r is of type T or derived from type T.
 
@@ -88,7 +88,7 @@ inline To& dynamicCast(From& r)
     {
         return dynamic_cast<To&>(r);
     }
-    catch (std::bad_cast)
+    catch (std::bad_cast& e)
     {
         FatalErrorIn("dynamicCast<To>(From&)")
             << "Attempt to cast type " << typeid(r).name()
@@ -109,7 +109,7 @@ inline To& refCast(From& r)
     {
         return dynamic_cast<To&>(r);
     }
-    catch (std::bad_cast)
+    catch (std::bad_cast& e)
     {
         FatalErrorIn("refCast<To>(From&)")
             << "Attempt to cast type " << r.type()

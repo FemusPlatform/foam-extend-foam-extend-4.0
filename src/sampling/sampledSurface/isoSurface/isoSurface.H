@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -105,6 +105,7 @@ class isoSurface
         //- Reference to mesh
         const fvMesh& mesh_;
 
+        //- Point values
         const scalarField& pVals_;
 
         //- Input volScalarField with separated coupled patches rewritten
@@ -118,7 +119,6 @@ class isoSurface
 
         //- When to merge points
         const scalar mergeDistance_;
-
 
         //- Whether face might be cut
         List<cellCutType> faceCutType_;
@@ -446,7 +446,6 @@ public:
             const GeometricField<Type, fvPatchField, volMesh>& cCoords,
             const Field<Type>& pCoords
         ) const;
-
 };
 
 

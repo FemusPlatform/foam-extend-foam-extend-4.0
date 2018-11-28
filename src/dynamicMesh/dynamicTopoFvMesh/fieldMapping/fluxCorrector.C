@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ autoPtr<fluxCorrector> fluxCorrector::New
         word correctorTypeName(dict.lookup("fluxCorrector"));
 
         // Open any supplied libraries in dictionary
-        dlLibraryTable::open
+        const_cast<Time&>(mesh.thisDb().time()).libs().open
         (
             dict,
             "fluxCorrectorLibs",

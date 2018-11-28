@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -63,11 +63,11 @@ Foam::autoPtr<Foam::token::compound> Foam::token::compound::New
 
     if (cstrIter == IstreamConstructorTablePtr_->end())
     {
-        FatalErrorIn("token::compound::New(const word&, Istream&)")
+        FatalIOErrorInFunction(is)
             << "Unknown compound type " << compoundType << nl << nl
             << "Valid compound types:" << endl
             << IstreamConstructorTablePtr_->sortedToc()
-            << abort(FatalError);
+            << abort(FatalIOError);
     }
 
     return autoPtr<Foam::token::compound>(cstrIter()(is));
@@ -86,15 +86,15 @@ bool Foam::token::compound::isCompound(const word& name)
 }
 
 
-Foam::token::compound& Foam::token::transferCompoundToken()
+Foam::token::compound& Foam::token::transferCompoundToken(const Istream& is)
 {
     if (type_ == COMPOUND)
     {
         if (compoundTokenPtr_->empty())
         {
-            FatalErrorIn("token::transferCompoundToken()")
+            FatalIOErrorInFunction(is)
                 << "compound has already been transfered from token\n    "
-                << info() << abort(FatalError);
+                << info() << abort(FatalIOError);
         }
         else
         {

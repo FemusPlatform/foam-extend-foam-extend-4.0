@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -38,7 +38,9 @@ SourceFiles
 
 \*---------------------------------------------------------------------------*/
 
-#include "OSspecific.H"
+#ifndef sigQuit_H
+#define sigQuit_H
+
 #include <signal.h>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -60,23 +62,25 @@ class sigQuit
 
     // Private Member Functions
 
-        static void sigQuitHandler(int);
+        //- Handler for caught signals
+        static void sigHandler(int);
 
 
 public:
 
     // Constructors
 
+        //- Construct null
         sigQuit();
 
 
-    // Destructor
-
-        ~sigQuit();
+    //- Destructor
+    ~sigQuit();
 
 
     // Member functions
 
+        //- Activate SIGQUIT signal handler
         void set(const bool verbose);
 };
 
@@ -84,5 +88,9 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

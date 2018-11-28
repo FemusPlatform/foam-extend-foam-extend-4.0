@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -943,6 +943,16 @@ void Foam::BlockGaussSeidelPrecon<Type>::preconditionT
          )  << "cannot solve incomplete matrix, no diagonal"
             << abort(FatalError);
     }
+}
+
+
+template<class Type>
+void Foam::BlockGaussSeidelPrecon<Type>::initMatrix()
+{
+    invDiag_.clear();
+    LUDiag_.clear();
+
+    this->calcInvDiag();
 }
 
 

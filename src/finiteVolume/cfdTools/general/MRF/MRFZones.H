@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -77,11 +77,15 @@ public:
 
     // Member Functions
 
+        //- Return cell centre omega over all zones
+        tmp<volVectorField> omega() const;
+
         //- Return raw correction flux
         tmp<surfaceScalarField> fluxCorrection() const;
 
         //- Return pseudo mesh flux
         tmp<surfaceScalarField> meshPhi() const;
+
 
         // Incompressible MRF
 

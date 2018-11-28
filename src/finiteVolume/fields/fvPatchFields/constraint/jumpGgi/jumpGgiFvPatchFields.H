@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ Author
 
 Contributor
     Hrvoje Jasak, Wikki Ltd.
+    Gregor Cvijetic, FMENA Zagreb.
 
 GE CONFIDENTIAL INFORMATION 2016 General Electric Company. All Rights Reserved
 

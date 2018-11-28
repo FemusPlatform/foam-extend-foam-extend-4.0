@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "wallFvPatch.H"
+#include "fvPatchFields.H"
 #include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -41,7 +42,7 @@ addToRunTimeSelectionTable(fvPatch, wallFvPatch, polyPatch);
 
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
 
-void wallFvPatch::makeCorrVecs(vectorField& cv) const
+void wallFvPatch::makeCorrVecs(fvsPatchVectorField& cv) const
 {
     cv = vector::zero;
 }

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "coupledFvPatch.H"
+#include "fvPatchFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -47,7 +48,7 @@ coupledFvPatch::~coupledFvPatch()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void coupledFvPatch::makeCorrVecs(vectorField& cv) const
+void coupledFvPatch::makeCorrVecs(fvsPatchVectorField& cv) const
 {
     // Calculate correction vectors on coupled patches
     const scalarField& patchDeltaCoeffs = deltaCoeffs();

@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -170,6 +170,12 @@ public:
 
     // Member functions
 
+        //- Return interface size
+        virtual label interfaceSize() const
+        {
+            return size();
+        }
+
         //- Return processor number
         int myProcNo() const
         {
@@ -193,6 +199,12 @@ public:
             {
                 return false;
             }
+        }
+
+        //- Is this the master side?
+        virtual bool master() const
+        {
+            return (myProcNo_ < neighbProcNo_);
         }
 
 

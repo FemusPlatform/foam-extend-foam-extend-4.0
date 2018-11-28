@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -66,12 +66,14 @@ class multiMaterialThermal
         //- Calculate indicator field given index
         tmp<volScalarField> indicator(const label index) const;
 
+
 protected:
 
     // Protected data
 
         //- Material indicator field
         volScalarField materials_;
+
 
     // Protected member functions
 
@@ -113,6 +115,7 @@ public:
             const scalar defaultMaterial
         );
 
+
     // Destructor
 
         virtual ~multiMaterialThermal();
@@ -129,7 +132,13 @@ public:
         //- Return thermal conductivity
         virtual tmp<volScalarField> k() const;
 
-        //- Correct the rheological model
+        //- Return thermal expansion coefficient
+        virtual tmp<volScalarField> alpha() const;
+
+        //- Return reference temperature
+        virtual tmp<volScalarField> T0() const;
+
+        //- Correct the thermal model
         virtual void correct();
 };
 

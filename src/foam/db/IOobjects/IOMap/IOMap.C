@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -34,8 +34,12 @@ Foam::IOMap<T>::IOMap(const IOobject& io)
 {
     if
     (
-        io.readOpt() == IOobject::MUST_READ
+        (
+            io.readOpt() == IOobject::MUST_READ
+         || io.readOpt() == IOobject::MUST_READ_IF_MODIFIED
+        )
      || (io.readOpt() == IOobject::READ_IF_PRESENT && headerOk())
+     || (io.readOpt() == IOobject::READ_IF_PRESENT_IF_MODIFIED && headerOk())
     )
     {
         readStream(typeName) >> *this;
@@ -50,8 +54,12 @@ Foam::IOMap<T>::IOMap(const IOobject& io, const label size)
 {
     if
     (
-        io.readOpt() == IOobject::MUST_READ
+        (
+            io.readOpt() == IOobject::MUST_READ
+         || io.readOpt() == IOobject::MUST_READ_IF_MODIFIED
+        )
      || (io.readOpt() == IOobject::READ_IF_PRESENT && headerOk())
+     || (io.readOpt() == IOobject::READ_IF_PRESENT_IF_MODIFIED && headerOk())
     )
     {
         readStream(typeName) >> *this;
@@ -71,8 +79,12 @@ Foam::IOMap<T>::IOMap(const IOobject& io, const Map<T>& map)
 {
     if
     (
-        io.readOpt() == IOobject::MUST_READ
+        (
+            io.readOpt() == IOobject::MUST_READ
+         || io.readOpt() == IOobject::MUST_READ_IF_MODIFIED
+        )
      || (io.readOpt() == IOobject::READ_IF_PRESENT && headerOk())
+     || (io.readOpt() == IOobject::READ_IF_PRESENT_IF_MODIFIED && headerOk())
     )
     {
         readStream(typeName) >> *this;
@@ -94,8 +106,12 @@ Foam::IOMap<T>::IOMap(const IOobject& io, const Xfer<Map<T> >& map)
 
     if
     (
-        io.readOpt() == IOobject::MUST_READ
+        (
+            io.readOpt() == IOobject::MUST_READ
+         || io.readOpt() == IOobject::MUST_READ_IF_MODIFIED
+        )
      || (io.readOpt() == IOobject::READ_IF_PRESENT && headerOk())
+     || (io.readOpt() == IOobject::READ_IF_PRESENT_IF_MODIFIED && headerOk())
     )
     {
         readStream(typeName) >> *this;

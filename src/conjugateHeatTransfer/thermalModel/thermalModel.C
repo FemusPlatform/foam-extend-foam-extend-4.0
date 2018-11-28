@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ thermalModel::thermalModel(const volScalarField& T)
             "thermalProperties",
             T.time().constant(),
             T.db(),
-            IOobject::MUST_READ,
+            IOobject::MUST_READ_IF_MODIFIED,
             IOobject::NO_WRITE
         )
     ),
@@ -118,9 +118,10 @@ void thermalModel::modifyResistance
     }
 }
 
+
 tmp<fvScalarMatrix> thermalModel::laplacian(volScalarField& T)
 {
-    word kScheme ("laplacian(k,T)");
+    const word kScheme("laplacian(k,T)");
 
     surfaceScalarField kf = fvc::interpolate(lawPtr_->k());
 
@@ -128,9 +129,10 @@ tmp<fvScalarMatrix> thermalModel::laplacian(volScalarField& T)
 
     return tmp<fvScalarMatrix>
     (
-        new fvScalarMatrix( fvm::laplacian(kf, T, kScheme) )
+        new fvScalarMatrix(fvm::laplacian(kf, T, kScheme))
     );
 }
+
 
 tmp<volScalarField> thermalModel::S() const
 {
@@ -155,14 +157,16 @@ tmp<volScalarField> thermalModel::S() const
             )
         )
     );
+    volScalarField& source = tsource();
 
     forAll(sourcePtr_, sourceI)
     {
-        sourcePtr_[sourceI].addSource(tsource());
+        sourcePtr_[sourceI].addSource(source);
     }
 
     return tsource;
 }
+
 
 bool thermalModel::read()
 {

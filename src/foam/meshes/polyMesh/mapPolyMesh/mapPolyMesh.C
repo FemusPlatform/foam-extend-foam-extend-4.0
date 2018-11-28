@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -69,6 +69,7 @@ Foam::mapPolyMesh::mapPolyMesh
     const labelListList& faceZonePointMap,
     const labelListList& faceZoneFaceMap,
     const labelListList& cellZoneMap,
+    const boolList& resetPatchFlag,
     const pointField& preMotionPoints,
     const labelList& oldPatchStarts,
     const labelList& oldPatchNMeshPoints
@@ -99,6 +100,7 @@ Foam::mapPolyMesh::mapPolyMesh
     faceZonePointMap_(faceZonePointMap),
     faceZoneFaceMap_(faceZoneFaceMap),
     cellZoneMap_(cellZoneMap),
+    resetPatchFlag_(resetPatchFlag),
     preMotionPoints_(preMotionPoints),
     oldPatchSizes_(oldPatchStarts.size()),
     oldPatchStarts_(oldPatchStarts),
@@ -155,6 +157,7 @@ Foam::mapPolyMesh::mapPolyMesh
     labelListList& faceZonePointMap,
     labelListList& faceZoneFaceMap,
     labelListList& cellZoneMap,
+    boolList& resetPatchFlag,
     pointField& preMotionPoints,
     labelList& oldPatchStarts,
     labelList& oldPatchNMeshPoints,
@@ -186,6 +189,7 @@ Foam::mapPolyMesh::mapPolyMesh
     faceZonePointMap_(faceZonePointMap, reUse),
     faceZoneFaceMap_(faceZoneFaceMap, reUse),
     cellZoneMap_(cellZoneMap, reUse),
+    resetPatchFlag_(resetPatchFlag, reUse),
     preMotionPoints_(preMotionPoints, reUse),
     oldPatchSizes_(oldPatchStarts.size()),
     oldPatchStarts_(oldPatchStarts, reUse),

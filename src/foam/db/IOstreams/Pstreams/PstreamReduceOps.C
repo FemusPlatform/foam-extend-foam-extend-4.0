@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -31,12 +31,10 @@ License
 #include "allReduce.H"
 
 // Check type of label for use in MPI calls
-#if defined(WM_INT)
+#if WM_LABEL_SIZE == 32
 #   define MPI_LABEL MPI_INT
-#elif defined(WM_LONG)
+#elif WM_LABEL_SIZE == 64
 #   define MPI_LABEL MPI_LONG
-#elif defined(WM_LLONG)
-#   define MPI_LABEL MPI_LONG_LONG
 #endif
 
 // Check type of scalar for use in MPI calls

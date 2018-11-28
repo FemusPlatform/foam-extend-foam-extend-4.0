@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ inline Foam::scalar Foam::polynomialTransport<Thermo, PolySize>::mu
     const scalar T
 ) const
 {
-    return muPolynomial_.evaluate(T)/this->W();
+    return muPolynomial_.value(T)/this->W();
 }
 
 
@@ -106,7 +106,7 @@ inline Foam::scalar Foam::polynomialTransport<Thermo, PolySize>::kappa
     const scalar T
 ) const
 {
-    return kappaPolynomial_.evaluate(T)/this->W();
+    return kappaPolynomial_.value(T)/this->W();
 }
 
 

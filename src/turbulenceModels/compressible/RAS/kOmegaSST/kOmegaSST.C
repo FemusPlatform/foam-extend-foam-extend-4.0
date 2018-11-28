@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -117,10 +117,12 @@ kOmegaSST::kOmegaSST
     const volScalarField& rho,
     const volVectorField& U,
     const surfaceScalarField& phi,
-    const basicThermo& thermophysicalModel
+    const basicThermo& thermophysicalModel,
+    const word& turbulenceModelName,
+    const word& modelName
 )
 :
-    RASModel(typeName, rho, U, phi, thermophysicalModel),
+    RASModel(modelName, rho, U, phi, thermophysicalModel, turbulenceModelName),
 
     alphaK1_
     (

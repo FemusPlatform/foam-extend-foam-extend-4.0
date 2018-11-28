@@ -80,13 +80,11 @@ $(faceToCell)/extendedFaceToCellStencil.C
 $(faceToCell)/extendedCentredFaceToCellStencil.C
 $(faceToCell)/MeshObjects/centredCFCFaceToCellStencilObject.C
 
-
 fvPatchFields = fields/fvPatchFields
 $(fvPatchFields)/fvPatchField/fvPatchFields.C
 $(fvPatchFields)/fvPatchField/fvPatchVectorNFields.C
 
 basicFvPatchFields = $(fvPatchFields)/basic
-$(basicFvPatchFields)/basicSymmetry/basicSymmetryFvPatchFields.C
 $(basicFvPatchFields)/basicSymmetry/basicSymmetryFvPatchScalarField.C
 $(basicFvPatchFields)/calculated/calculatedFvPatchFields.C
 $(basicFvPatchFields)/calculated/calculatedFvPatchVectorNFields.C
@@ -120,11 +118,13 @@ $(constraintFvPatchFields)/symmetry/symmetryFvPatchFields.C
 $(constraintFvPatchFields)/wedge/wedgeFvPatchFields.C
 $(constraintFvPatchFields)/wedge/wedgeFvPatchScalarField.C
 $(constraintFvPatchFields)/wedge/wedgeFvPatchVectorNFields.C
+$(constraintFvPatchFields)/ggi/ggiFvPatchScalarField.C
 $(constraintFvPatchFields)/ggi/ggiFvPatchFields.C
 $(constraintFvPatchFields)/ggi/ggiFvPatchVectorNFields.C
 $(constraintFvPatchFields)/jumpGgi/jumpGgiFvPatchFields.C
 $(constraintFvPatchFields)/cyclicGgi/cyclicGgiFvPatchFields.C
 $(constraintFvPatchFields)/overlapGgi/overlapGgiFvPatchFields.C
+$(constraintFvPatchFields)/jumpOverlapGgi/jumpOverlapGgiFvPatchFields.C
 $(constraintFvPatchFields)/mixingPlane/mixingPlaneFvPatchFields.C
 $(constraintFvPatchFields)/jumpMixingPlane/jumpMixingPlaneFvPatchFields.C
 $(constraintFvPatchFields)/regionCoupling/regionCouplingFvPatchFields.C
@@ -158,6 +158,7 @@ $(derivedFvPatchFields)/partialSlip/partialSlipFvPatchFields.C
 $(derivedFvPatchFields)/pressureDirectedInletOutletVelocity/pressureDirectedInletOutletVelocityFvPatchVectorField.C
 $(derivedFvPatchFields)/pressureNormalInletOutletVelocity/pressureNormalInletOutletVelocityFvPatchVectorField.C
 $(derivedFvPatchFields)/pressureDirectedInletVelocity/pressureDirectedInletVelocityFvPatchVectorField.C
+$(derivedFvPatchFields)/swirlInletVelocity/swirlInletVelocityFvPatchVectorField.C
 $(derivedFvPatchFields)/timeVaryingMappedPressureDirectedInletVelocity/timeVaryingMappedPressureDirectedInletVelocityFvPatchVectorField.C
 $(derivedFvPatchFields)/pressureInletOutletVelocity/pressureInletOutletVelocityFvPatchVectorField.C
 $(derivedFvPatchFields)/pressureInletUniformVelocity/pressureInletUniformVelocityFvPatchVectorField.C
@@ -185,6 +186,10 @@ $(derivedFvPatchFields)/waveTransmissive/waveTransmissiveFvPatchFields.C
 $(derivedFvPatchFields)/uniformDensityHydrostaticPressure/uniformDensityHydrostaticPressureFvPatchScalarField.C
 $(derivedFvPatchFields)/pulseFixedValue/pulseFixedValueFvPatchFields.C
 $(derivedFvPatchFields)/waveTransmissiveInlet/waveTransmissiveInletFvPatchFields.C
+$(derivedFvPatchFields)/noSlipWall/noSlipWallFvPatchVectorField.C
+$(derivedFvPatchFields)/noSlipMovingWall/noSlipMovingWallFvPatchVectorField.C
+
+$(derivedFvPatchFields)/blockSymmPlane/blockSymmPlaneFvPatchVectorField.C
 
 fvsPatchFields = fields/fvsPatchFields
 $(fvsPatchFields)/fvsPatchField/fvsPatchFields.C
@@ -234,6 +239,8 @@ $(interpolation)/interpolationCellPoint/makeInterpolationCellPoint.C
 $(interpolation)/interpolationCellPointFace/makeInterpolationCellPointFace.C
 $(interpolation)/interpolationCellPointWallModified/cellPointWeightWallModified/cellPointWeightWallModified.C
 $(interpolation)/interpolationCellPointWallModified/makeInterpolationCellPointWallModified.C
+$(interpolation)/interpolationPointMVC/pointMVCWeight.C
+$(interpolation)/interpolationPointMVC/makeInterpolationPointMVC.C
 
 volPointInterpolation = interpolation/volPointInterpolation
 $(volPointInterpolation)/pointPatchInterpolation/pointPatchInterpolation.C

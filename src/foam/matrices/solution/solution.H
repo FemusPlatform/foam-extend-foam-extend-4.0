@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -37,7 +37,8 @@ SourceFiles
 
 #include "IOdictionary.H"
 #include "debugSwitch.H"
-#include "lduSolverPerformance.H"
+#include "foamTime.H"
+#include "BlockSolverPerformance.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -80,6 +81,10 @@ class solution
 
         //- Previously used time-index, used for reset between iterations
         mutable label prevTimeIndex_;
+
+        //- Switch for storing residuals of every iteration inside a single
+        //  timestep
+        bool storeAllResiduals_;
 
 
     // Private Member Functions
@@ -156,17 +161,19 @@ public:
             //  checking
             dictionary& solverPerformanceDict() const;
 
-            //- Add/set the solverPerformance entry for the named field
+            //- Add/set the BlockSolverPerformance entry for the named field
+            template<class Type>
             void setSolverPerformance
             (
                 const word& name,
-                const lduSolverPerformance&
+                const BlockSolverPerformance<Type>&
             ) const;
 
-            //- Add/set the solverPerformance entry, using its fieldName
+            //- Add/set the BlockSolverPerformance entry, using its fieldName
+            template<class Type>
             void setSolverPerformance
             (
-                const lduSolverPerformance&
+                const BlockSolverPerformance<Type>&
             ) const;
 
 

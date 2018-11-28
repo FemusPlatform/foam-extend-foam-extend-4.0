@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ namespace Foam
 {
 
 /*---------------------------------------------------------------------------*\
-                       Class linearValveLayersFvMesh Declaration
+                   Class linearValveLayersFvMesh Declaration
 \*---------------------------------------------------------------------------*/
 
 class linearValveLayersFvMesh
@@ -70,10 +70,10 @@ class linearValveLayersFvMesh
         void addZonesAndModifiers();
 
         //- Make layering modifiers live
-        void makeLayersLive();
+        void makeLayersLive() const;
 
         //- Make sliding modifiers live
-        void makeSlidersLive();
+        void makeSlidersLive() const;
 
         //- Return true if sliders are attached
         bool attached() const;
@@ -94,9 +94,8 @@ public:
         explicit linearValveLayersFvMesh(const IOobject& io);
 
 
-    // Destructor
-
-        virtual ~linearValveLayersFvMesh();
+    //- Destructor
+    virtual ~linearValveLayersFvMesh();
 
 
     // Member Functions

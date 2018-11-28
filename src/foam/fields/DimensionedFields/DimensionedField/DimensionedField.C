@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ if (&(df1).mesh() != &(df2).mesh())                                 \
     FatalErrorIn("checkField(df1, df2, op)")                        \
         << "different mesh for fields "                             \
         << (df1).name() << " and " << (df2).name()                  \
-        << " during operatrion " <<  op                             \
+        << " during operation " <<  op                              \
         << abort(FatalError);                                       \
 }
 

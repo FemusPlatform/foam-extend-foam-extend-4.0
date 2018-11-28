@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -61,6 +61,8 @@ void Foam::sampledCuttingPlane::createGeometry()
     pointDistance_.clear();
     cellDistancePtr_.clear();
 
+    // Clear derived data
+    clearGeom();
 
     // Get any subMesh
     if (zoneID_.index() != -1 && !subMeshPtr_.valid())
@@ -266,6 +268,7 @@ Foam::sampledCuttingPlane::sampledCuttingPlane
     plane_(dict),
     mergeTol_(dict.lookupOrDefault("mergeTol", 1E-6)),
     regularise_(dict.lookupOrDefault("regularise", true)),
+    average_(dict.lookupOrDefault("average", false)),
     zoneID_(dict.lookupOrDefault("zone", word::null), mesh.cellZones()),
     exposedPatchName_(word::null),
     needsUpdate_(true),
@@ -310,6 +313,12 @@ Foam::sampledCuttingPlane::~sampledCuttingPlane()
 
 bool Foam::sampledCuttingPlane::needsUpdate() const
 {
+    // Update for changing mesh
+    if (mesh().changing())
+    {
+        needsUpdate_ = true;
+    }
+
     return needsUpdate_;
 }
 
@@ -325,6 +334,9 @@ bool Foam::sampledCuttingPlane::expire()
 
     // Clear any stored topologies
     facesPtr_.clear();
+
+    // Clear derived data
+    clearGeom();
 
     // already marked as expired
     if (needsUpdate_)

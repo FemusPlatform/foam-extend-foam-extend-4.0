@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -68,7 +68,9 @@ public:
             const volScalarField& rho,
             const volVectorField& U,
             const surfaceScalarField& phi,
-            const basicThermo& thermophysicalModel
+            const basicThermo& thermophysicalModel,
+            const word& turbulenceModelName = turbulenceModel::typeName,
+            const word& modelName = typeName
         );
 
 
@@ -88,6 +90,9 @@ public:
         {
             return tmp<volScalarField>(new volScalarField("muEff", mu()));
         }
+
+        //- Return the turbulence thermal diffusivity, i.e. 0 for laminar flow
+        virtual tmp<volScalarField> alphat() const;
 
         //- Return the effective turbulent thermal diffusivity,
         //  i.e. the laminar thermal diffusivity

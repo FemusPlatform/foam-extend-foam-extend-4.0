@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -88,9 +88,6 @@ protected:
         //- Model coefficients dictionary
         dictionary coeffDict_;
 
-        //- Value of y+ at the edge of the laminar sublayer
-        scalar yPlusLam_;
-
         //- Lower limit of k
         dimensionedScalar k0_;
 
@@ -108,9 +105,6 @@ protected:
 
         //- Laminar to turbulent viscosity ratio
         scalar muRatio_;
-
-        //- Near wall distance boundary field
-        nearWallDist y_;
 
 
     // Protected member functions
@@ -138,7 +132,6 @@ public:
 
     // Declare run-time constructor selection table
 
-#ifndef SWIG
         declareRunTimeSelectionTable
         (
             autoPtr,
@@ -148,11 +141,12 @@ public:
                 const volScalarField& rho,
                 const volVectorField& U,
                 const surfaceScalarField& phi,
-                const basicThermo& thermoPhysicalModel
+                const basicThermo& thermoPhysicalModel,
+                const word& turbulenceModelName
             ),
-            (rho, U, phi, thermoPhysicalModel)
+            (rho, U, phi, thermoPhysicalModel, turbulenceModelName)
         );
-#endif
+
 
     // Constructors
 
@@ -163,19 +157,21 @@ public:
             const volScalarField& rho,
             const volVectorField& U,
             const surfaceScalarField& phi,
-            const basicThermo& thermoPhysicalModel
+            const basicThermo& thermoPhysicalModel,
+            const word& turbulenceModelName = turbulenceModel::typeName
         );
 
 
     // Selectors
 
         //- Return a reference to the selected turbulence model
-        static autoPtr<compressible::RASModel> New
+        static autoPtr<RASModel> New
         (
             const volScalarField& rho,
             const volVectorField& U,
             const surfaceScalarField& phi,
-            const basicThermo& thermoPhysicalModel
+            const basicThermo& thermoPhysicalModel,
+            const word& turbulenceModelName = turbulenceModel::typeName
         );
 
 
@@ -264,15 +260,6 @@ public:
                 return muRatio_;
             }
 
-            //- Return the near wall distances
-            const nearWallDist& y() const
-            {
-                return y_;
-            }
-
-            //- Calculate y+ at the edge of the laminar sublayer
-            scalar yPlusLam(const scalar kappa, const scalar E) const;
-
             //- Const access to the coefficients dictionary
             const dictionary& coeffDict() const
             {
@@ -287,7 +274,13 @@ public:
         virtual tmp<volScalarField> muEff() const;
 
         //- Return the effective turbulent thermal diffusivity
-        virtual tmp<volScalarField> alphaEff() const = 0;
+        virtual tmp<volScalarField> alphaEff() const
+        {
+            return tmp<volScalarField>
+            (
+                new volScalarField("alphaEff", alphat() + alpha())
+            );
+        }
 
         //- Return the turbulence kinetic energy
         virtual tmp<volScalarField> k() const = 0;
@@ -303,13 +296,6 @@ public:
 
         //- Return the source term for the momentum equation
         virtual tmp<fvVectorMatrix> divDevRhoReff() const = 0;
-
-        //- Return yPlus for the given patch
-        virtual tmp<scalarField> yPlus
-        (
-            const label patchI,
-            const scalar Cmu
-        ) const;
 
         //- Solve the turbulence equations and correct the turbulence viscosity
         virtual void correct() = 0;

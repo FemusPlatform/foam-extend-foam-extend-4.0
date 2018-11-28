@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -63,6 +63,30 @@ inline Foam::wordRe::wordRe(const word& str)
     word(str),
     re_()
 {}
+
+
+inline Foam::wordRe::wordRe(const keyType& str)
+:
+    word(str, false),
+    re_()
+{
+    if (str.isPattern())
+    {
+        compile();
+    }
+}
+
+
+inline Foam::wordRe::wordRe(const keyType& str, const compOption opt)
+:
+    word(str, false),
+    re_()
+{
+    if (str.isPattern())
+    {
+        compile(opt);
+    }
+}
 
 
 inline Foam::wordRe::wordRe(const char* str, const compOption opt)
@@ -175,12 +199,12 @@ inline void Foam::wordRe::clear()
 }
 
 
-inline bool Foam::wordRe::match(const string& str, bool literalMatch) const
+inline bool Foam::wordRe::match(const std::string& str, bool literalMatch) const
 {
     if (literalMatch || !re_.exists())
     {
         // check as string
-        return (*this == str);
+        return (str == *this);
     }
     else
     {
@@ -232,6 +256,17 @@ inline const Foam::wordRe& Foam::wordRe::operator=(const word& str)
 {
     word::operator=(str);
     re_.clear();
+    return *this;
+}
+
+
+inline const Foam::wordRe& Foam::wordRe::operator=(const keyType& str)
+{
+    string::operator=(str);
+    if (str.isPattern())
+    {
+        compile();
+    }
     return *this;
 }
 

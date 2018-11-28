@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -319,26 +319,6 @@ namespace meshOps
     );
 
 } // End namespace meshOps
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-// Add additional operations missing in ops.H
-template<class T>
-class lessOp
-{ public: T operator()(const T& x, const T& y) const { return x < y; } };
-
-template<class T>
-class lessEqOp
-{ public: T operator()(const T& x, const T& y) const { return x <= y; } };
-
-template<class T>
-class greaterOp
-{ public: T operator()(const T& x, const T& y) const { return x > y; } };
-
-template<class T>
-class greaterEqOp
-{ public: T operator()(const T& x, const T& y) const { return x >= y; } };
-
 } // End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

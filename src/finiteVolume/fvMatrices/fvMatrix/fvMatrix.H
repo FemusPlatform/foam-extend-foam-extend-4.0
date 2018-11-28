@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | foam-extend: Open Source CFD
-   \\    /   O peration     | Version:     4.0
+   \\    /   O peration     | Version:     4.1
     \\  /    A nd           | Web:         http://www.foam-extend.org
      \\/     M anipulation  | For copyright notice see file Copyright
 -------------------------------------------------------------------------------
@@ -137,6 +137,11 @@ class fvMatrix
         //- Face flux field for non-orthogonal correction
         mutable GeometricField<Type, fvsPatchField, surfaceMesh>
             *faceFluxCorrectionPtr_;
+
+        //- Jump face flux field for non-orthogonal correction
+        //  in case of a psi with jump discontinuity in grad(psi)
+        mutable GeometricField<Type, fvsPatchField, surfaceMesh>
+            *jumpFaceFluxCorrectionPtr_;
 
 
     // Private member functions
@@ -291,6 +296,13 @@ public:
                 return faceFluxCorrectionPtr_;
             }
 
+            //- Return pointer to the jump face-flux non-orthogonal correction
+            //  field in case of a psi with jump discontinuity in grad(psi)
+            surfaceTypeFieldPtr& jumpFaceFluxCorrectionPtr()
+            {
+                return jumpFaceFluxCorrectionPtr_;
+            }
+
 
         // Matrix completion functionality
 
@@ -399,6 +411,10 @@ public:
             tmp<GeometricField<Type, fvsPatchField, surfaceMesh> >
             flux() const;
 
+            //- Return the jump face-flux field from the matrix
+            tmp<GeometricField<Type, fvsPatchField, surfaceMesh> >
+            jumpFlux() const;
+
 
     // Member operators
 
@@ -454,7 +470,6 @@ public:
 
     // Friend operators
 
-#ifndef SWIG
         friend tmp<GeometricField<Type, fvPatchField, volMesh> >
         operator& <Type>
         (
@@ -491,7 +506,6 @@ public:
             Ostream&,
             const fvMatrix<Type>&
         );
-#endif
 };
 
 
@@ -505,6 +519,7 @@ void checkMethod
     const char*
 );
 
+
 template<class Type>
 void checkMethod
 (
@@ -512,6 +527,7 @@ void checkMethod
     const DimensionedField<Type, volMesh>&,
     const char*
 );
+
 
 template<class Type>
 void checkMethod
@@ -521,7 +537,8 @@ void checkMethod
     const char*
 );
 
-//- Relax and return a copy of the matrix giver relaxation factor
+
+//- Relax and return a copy of the matrix given relaxation factor
 template<class Type>
 tmp<fvMatrix<Type> > relax
 (
@@ -533,6 +550,21 @@ tmp<fvMatrix<Type> > relax
 //- Relax and return a copy of the matrix
 template<class Type>
 tmp<fvMatrix<Type> > relax(const fvMatrix<Type>&);
+
+
+//- Relax and return a copy of the matrix given tmp to a matrix and relaxation
+//  factor
+template<class Type>
+tmp<fvMatrix<Type> > relax
+(
+    const tmp<fvMatrix<Type> >&,
+    const scalar
+);
+
+
+//- Relax and return a copy of the matrix given tmp to a matrix
+template<class Type>
+tmp<fvMatrix<Type> > relax(const tmp<fvMatrix<Type> >&);
 
 
 //- Solve returning the solution statistics given convergence tolerance
