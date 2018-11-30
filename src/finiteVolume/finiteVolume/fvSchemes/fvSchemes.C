@@ -379,19 +379,19 @@ bool Foam::fvSchemes::read()
         }
 
 
-        // if (dict.found("fluxRequired"))
-        // {
-        //     fluxRequired_ = dict.subDict("fluxRequired");
+        if (dict.found("fluxRequired"))
+        {
+            fluxRequired_ = dict.subDict("fluxRequired");
 
-        //     if
-        //     (
-        //         fluxRequired_.found("default")
-        //      && word(fluxRequired_.lookup("default")) != "none"
-        //     )
-        //     {
-        //         defaultFluxRequired_ = Switch(fluxRequired_.lookup("default"));
-        //     }
-        // }
+            if
+            (
+                fluxRequired_.found("default")
+             && word(fluxRequired_.lookup("default")) != "none"
+            )
+            {
+                defaultFluxRequired_ = Switch(fluxRequired_.lookup("default"));
+            }
+        }
 
         return true;
     }
