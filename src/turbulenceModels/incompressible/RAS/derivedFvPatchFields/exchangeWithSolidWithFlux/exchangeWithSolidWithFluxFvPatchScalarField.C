@@ -23,11 +23,10 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "exchangeWithSolidFvPatchScalarField.H"
+#include "exchangeWithSolidWithFluxFvPatchScalarField.H"
 #include "addToRunTimeSelectionTable.H"
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
-// #include "ParCommunicator.h"
 #include "IOReferencer.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -38,8 +37,8 @@ namespace incompressible
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-exchangeWithSolidFvPatchScalarField::
-exchangeWithSolidFvPatchScalarField
+exchangeWithSolidWithFluxFvPatchScalarField::
+exchangeWithSolidWithFluxFvPatchScalarField
 (
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF
@@ -53,16 +52,17 @@ exchangeWithSolidFvPatchScalarField
     Tref_(p.size(), 0.0),
     solidTemperature_(p.size(), 0.0),
     solidCp_(p.size(), 0.0),
-    solidMass_(p.size(), 0.0)
+    solidMass_(p.size(), 0.0),
+    extFlux_(p.size(), 0.0)
 {
 
 }
 
 
-exchangeWithSolidFvPatchScalarField::
-exchangeWithSolidFvPatchScalarField
+exchangeWithSolidWithFluxFvPatchScalarField::
+exchangeWithSolidWithFluxFvPatchScalarField
 (
-    const exchangeWithSolidFvPatchScalarField& ptf,
+    const exchangeWithSolidWithFluxFvPatchScalarField& ptf,
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF,
     const fvPatchFieldMapper& mapper
@@ -76,14 +76,15 @@ exchangeWithSolidFvPatchScalarField
     Tref_(ptf.Tref_, mapper),
     solidTemperature_(ptf.solidTemperature_, mapper),
     solidCp_(ptf.solidCp_, mapper),
-    solidMass_(ptf.solidMass_, mapper)
+    solidMass_(ptf.solidMass_, mapper),
+    extFlux_(ptf.solidMass_, mapper)
 {
 
 }
 
 
-exchangeWithSolidFvPatchScalarField::
-exchangeWithSolidFvPatchScalarField
+exchangeWithSolidWithFluxFvPatchScalarField::
+exchangeWithSolidWithFluxFvPatchScalarField
 (
     const fvPatch& p,
     const DimensionedField<scalar, volMesh>& iF,
@@ -98,7 +99,8 @@ exchangeWithSolidFvPatchScalarField
     solidCp_("solidCp", dict, p.size()),
     solidMass_("solidMass", dict, p.size()),
     alphaEffName_(dict.lookup("alphaEff")),
-    CpName_(dict.lookup("Cp"))
+    CpName_(dict.lookup("Cp")),
+    extFlux_("extFlux", dict, p.size())
 {
     fvPatchField<scalar>::operator=(patchInternalField());
     gradient() = 0.0;
@@ -106,10 +108,10 @@ exchangeWithSolidFvPatchScalarField
 }
 
 
-exchangeWithSolidFvPatchScalarField::
-exchangeWithSolidFvPatchScalarField
+exchangeWithSolidWithFluxFvPatchScalarField::
+exchangeWithSolidWithFluxFvPatchScalarField
 (
-    const exchangeWithSolidFvPatchScalarField& thftpsf
+    const exchangeWithSolidWithFluxFvPatchScalarField& thftpsf
 )
 :
     fixedGradientFvPatchScalarField(thftpsf),
@@ -120,16 +122,17 @@ exchangeWithSolidFvPatchScalarField
     Tref_(thftpsf.Tref_),
     solidTemperature_(thftpsf.solidTemperature_),
     solidCp_(thftpsf.solidCp_),
-    solidMass_(thftpsf.solidMass_)
+    solidMass_(thftpsf.solidMass_),
+    extFlux_(thftpsf.extFlux_)
 {
 
 }
 
 
-exchangeWithSolidFvPatchScalarField::
-exchangeWithSolidFvPatchScalarField
+exchangeWithSolidWithFluxFvPatchScalarField::
+exchangeWithSolidWithFluxFvPatchScalarField
 (
-    const exchangeWithSolidFvPatchScalarField& thftpsf,
+    const exchangeWithSolidWithFluxFvPatchScalarField& thftpsf,
     const DimensionedField<scalar, volMesh>& iF
 )
 :
@@ -141,7 +144,8 @@ exchangeWithSolidFvPatchScalarField
     Tref_(thftpsf.Tref_),
     solidTemperature_(thftpsf.solidTemperature_),
     solidCp_(thftpsf.solidCp_),
-    solidMass_(thftpsf.solidMass_)
+    solidMass_(thftpsf.solidMass_),
+    extFlux_(thftpsf.extFlux_)
 {
 
 }
@@ -149,7 +153,7 @@ exchangeWithSolidFvPatchScalarField
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void exchangeWithSolidFvPatchScalarField::autoMap
+void exchangeWithSolidWithFluxFvPatchScalarField::autoMap
 (
     const fvPatchFieldMapper& m
 )
@@ -161,11 +165,11 @@ void exchangeWithSolidFvPatchScalarField::autoMap
     solidTemperature_.autoMap(m);
     solidCp_.autoMap(m);
     solidMass_.autoMap(m);
-
+    extFlux_.autoMap(m);
 }
 
 
-void exchangeWithSolidFvPatchScalarField::rmap
+void exchangeWithSolidWithFluxFvPatchScalarField::rmap
 (
     const fvPatchScalarField& ptf,
     const labelList& addr
@@ -173,8 +177,8 @@ void exchangeWithSolidFvPatchScalarField::rmap
 {
     fixedGradientFvPatchScalarField::rmap(ptf, addr);
 
-    const exchangeWithSolidFvPatchScalarField& thftptf =
-        refCast<const exchangeWithSolidFvPatchScalarField>
+    const exchangeWithSolidWithFluxFvPatchScalarField& thftptf =
+        refCast<const exchangeWithSolidWithFluxFvPatchScalarField>
         (
             ptf
         );
@@ -185,11 +189,12 @@ void exchangeWithSolidFvPatchScalarField::rmap
     solidTemperature_.rmap(thftptf.solidTemperature_, addr);
     solidCp_.rmap(thftptf.solidCp_, addr);
     solidMass_.rmap(thftptf.solidMass_, addr);
+    extFlux_.rmap(thftptf.extFlux_, addr);
 
 }
 
 
-void exchangeWithSolidFvPatchScalarField::updateCoeffs()
+void exchangeWithSolidWithFluxFvPatchScalarField::updateCoeffs()
 {
     if (updated())
     {
@@ -199,9 +204,7 @@ void exchangeWithSolidFvPatchScalarField::updateCoeffs()
     const scalarField& alphaEffp = lookupPatchField<volScalarField, scalar>(alphaEffName_);
     const scalarField& Cpp       = lookupPatchField<volScalarField, scalar>(CpName_);
     const volScalarField& Tvolume = db().lookupObject<volScalarField>("T");
-        
-//     const ParCommunicator * pC = db().lookupObject<IOReferencer<ParCommunicator* > >("ParCom")();
-    
+
     scalar dt = db().time().deltaTValue();
 
     scalar TotalFlux = 0.;
@@ -219,7 +222,7 @@ void exchangeWithSolidFvPatchScalarField::updateCoeffs()
                - 2.91*1.e-4*solidTemperature_*solidTemperature_
                + 1.34*1.e-7*solidTemperature_*solidTemperature_*solidTemperature_;
     
-    solidTemperature_ -= TotalFlux * dt / (solidMass_ * solidCp_);
+    solidTemperature_ -= (TotalFlux - extFlux_*Area) * dt / (solidMass_ * solidCp_);
         
     Info<<"Patch "<<patch().name();
     
@@ -227,8 +230,7 @@ void exchangeWithSolidFvPatchScalarField::updateCoeffs()
     forAll(q_, faceI)
     {
         if(counter == 0) {// this allows to print info when running in parallel
-            Info<<" Tsolid after "<< solidTemperature_[faceI] << " Total Flux "<<TotalFlux<<" Area "<<Area;
-            Info<<" Solid cp "<< solidCp_[faceI] << "\n";
+            Info<<" Tsolid "<< solidTemperature_[faceI] << " Sol-Fluid Flux "<<TotalFlux/Area<<" Sol Flux "<<extFlux_[faceI]<<"\n";
         }
         counter ++;
         label faceCellI = patch().faceCells()[faceI];
@@ -241,7 +243,7 @@ void exchangeWithSolidFvPatchScalarField::updateCoeffs()
 }
 
 
-void exchangeWithSolidFvPatchScalarField::write(Ostream& os) const
+void exchangeWithSolidWithFluxFvPatchScalarField::write(Ostream& os) const
 {
     fixedGradientFvPatchScalarField::write(os);
     q_.writeEntry("q", os);
@@ -252,6 +254,7 @@ void exchangeWithSolidFvPatchScalarField::write(Ostream& os) const
     solidTemperature_.writeEntry("solidTemperature", os);
     solidCp_.writeEntry("solidCp", os);
     solidMass_.writeEntry("solidMass", os);
+    extFlux_.writeEntry("extFlux", os);
     writeEntry("value", os);
 }
 
@@ -261,7 +264,7 @@ void exchangeWithSolidFvPatchScalarField::write(Ostream& os) const
 makePatchTypeField
 (
     fvPatchScalarField,
-    exchangeWithSolidFvPatchScalarField
+    exchangeWithSolidWithFluxFvPatchScalarField
 );
 
 
